@@ -1,0 +1,79 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toLeftOf="@+id/ll_btns"
+        android:layout_toStartOf="@+id/ll_btns">
+
+        <com.skyfishjy.library.RippleBackground
+            android:id="@+id/ripple_background"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            app:rb_color="@color/primary"
+            app:rb_duration="3000"
+            app:rb_radius="64dp"
+            app:rb_rippleAmount="4"
+            app:rb_scale="6">
+
+            <ImageView
+                android:id="@+id/iv_logo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:layout_margin="36dp"
+                android:contentDescription="@string/description"
+                android:src="@drawable/img_logo" />
+        </com.skyfishjy.library.RippleBackground>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_btns"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginEnd="24dp"
+        android:layout_marginRight="24dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/tv_play"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginBottom="@dimen/buttons_margin"
+            android:background="@android:color/transparent"
+            android:text="@string/play"
+
+            android:textColor="@drawable/button_text"
+            android:textSize="36sp"
+            android:textStyle="bold" />
+
+
+        <Button
+            android:id="@+id/tv_stop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="@dimen/buttons_margin"
+            android:background="@android:color/transparent"
+            android:text="@string/stop"
+            android:textAllCaps="true"
+            android:textColor="@drawable/button_text"
+
+            android:textSize="24sp"
+
+            />
+    </LinearLayout>
+
+
+</RelativeLayout>
