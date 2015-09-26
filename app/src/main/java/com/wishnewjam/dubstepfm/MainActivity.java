@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         DialogInterface.OnDismissListener {
 
     public static final String ACTION_RECEIVE_AUDIO_INFO = "audio_info";
-    public static final String DOT = ".";
+    private static final String DOT = ".";
     public static final String TAG_MESSAGE = "message";
     private boolean mIsBound;
     private RippleBackground rippleBackground;
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         rippleBackground = (RippleBackground) findViewById(R.id.ripple_background);
     }
 
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra(TAG_MESSAGE);
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private int dotsCount;
-    private Runnable mHandlerRunnable = new Runnable() {
+    private final Runnable mHandlerRunnable = new Runnable() {
         @Override
         public void run() {
             if (mBoundService.getStatus().equals(MainService.Statuses.PLAYING)) {
@@ -178,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private MainService mBoundService;
 
-    private ServiceConnection mConnection = new ServiceConnection() {
+    private final ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             mBoundService = ((MainService.LocalBinder) service).getService();
             checkStatus();
@@ -206,13 +206,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    void doBindService() {
+    private void doBindService() {
         bindService(new Intent(MainActivity.this,
                 MainService.class), mConnection, Context.BIND_AUTO_CREATE);
         mIsBound = true;
     }
 
-    void doUnbindService() {
+    private void doUnbindService() {
         if (mIsBound) {
             unbindService(mConnection);
             mIsBound = false;

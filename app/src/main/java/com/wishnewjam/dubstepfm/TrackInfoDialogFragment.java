@@ -9,8 +9,8 @@ import android.widget.TextView;
 
 public class TrackInfoDialogFragment extends DialogFragment {
 
-    public static final String TAG_TRACKNAME = "trackname";
-    public static final String TAG_LINK = "link";
+    private static final String TAG_TRACKNAME = "trackname";
+    private static final String TAG_LINK = "link";
 
 
     public static DialogFragment newInstance(String trackname,

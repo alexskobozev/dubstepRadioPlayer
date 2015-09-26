@@ -10,7 +10,6 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -18,27 +17,24 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.KeyEvent;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Set;
 
 public class MainService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
 
     private static final int NOTIFICATION_ID = 43432;
-    public static final long TIME_TO_RETRY = 3000;
+    private static final long TIME_TO_RETRY = 3000;
 
     public static final String ACTION_PLAY = "com.example.action.PLAY";
-    public static final String WAKE_LOCK = "mp_wakelock";
+    private static final String WAKE_LOCK = "mp_wakelock";
     public static final String SP_KEY_BITRATE = "link";
 
     public static final String PLAYING = "playing";
     public static final String WAITING = "waiting";
     public static final String ERROR = "error";
 
-    MediaPlayer mMediaPlayer = null;
+    private MediaPlayer mMediaPlayer = null;
     private WifiManager.WifiLock wifiLock;
     private String currentLink;
     private Statuses currentStatus = Statuses.IDLE;
@@ -189,7 +185,7 @@ public class MainService extends Service implements MediaPlayer.OnPreparedListen
 
     }
 
-    private AudioManager.OnAudioFocusChangeListener afChangeListener
+    private final AudioManager.OnAudioFocusChangeListener afChangeListener
             = new AudioManager.OnAudioFocusChangeListener() {
         @Override
         public void onAudioFocusChange(int focusChange) {
