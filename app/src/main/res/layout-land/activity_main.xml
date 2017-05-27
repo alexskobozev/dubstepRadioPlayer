@@ -55,6 +55,7 @@
 
             android:textColor="@drawable/button_text"
             android:textSize="36sp"
+            android:onClick="startPlaying"
             android:textStyle="bold" />
 
 
@@ -69,7 +70,7 @@
             android:text="@string/stop"
             android:textAllCaps="true"
             android:textColor="@drawable/button_text"
-
+            android:onClick="stopPlaying"
             android:textSize="24sp"
 
             />

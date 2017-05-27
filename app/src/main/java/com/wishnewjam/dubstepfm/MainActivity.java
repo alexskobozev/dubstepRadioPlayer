@@ -23,8 +23,7 @@ import android.widget.Toast;
 import com.skyfishjy.library.RippleBackground;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener,
-        DialogInterface.OnDismissListener {
+public class MainActivity extends AppCompatActivity implements DialogInterface.OnDismissListener {
 
     public static final String ACTION_RECEIVE_AUDIO_INFO = "audio_info";
     private static final String DOT = ".";
@@ -39,16 +38,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         handler = new Handler();
-
-        Button playButton = (Button) findViewById(R.id.tv_play);
-        playButton.setOnClickListener(this);
-
-        Button stopButton = (Button) findViewById(R.id.tv_stop);
-        stopButton.setOnClickListener(this);
-
-//        ImageView logoImageView = (ImageView) findViewById(R.id.iv_logo);
-//        logoImageView.setOnClickListener(this);
-
         rippleBackground = (RippleBackground) findViewById(R.id.ripple_background);
     }
 
@@ -70,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void showError() {
         showBuffering(false);
         Toast.makeText(this, getString(R.string.error), Toast.LENGTH_SHORT).show();
-        stopPlaying();
+        stopPlaying(null);
     }
 
     private void showBuffering(boolean b) {
@@ -128,22 +117,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bitrateFragment.show(getSupportFragmentManager(), "bitrate");
     }
 
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.tv_play:
-                startPlaying();
-                break;
-            case R.id.tv_stop:
-                stopPlaying();
-                break;
-//            case R.id.iv_logo:
-//                showTrackInfo();
-//                break;
-        }
-    }
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -161,21 +134,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        checkStatus();
     }
 
-
-    private void stopPlaying() {
-        doUnbindService();
-        rippleBackground.stopRippleAnimation();
-        stopService(new Intent(this, MainService.class));
-    }
-
-    private void startPlaying() {
-        if (mBoundService != null && mBoundService.getStatus() == MainService.Statuses.WAITING) {
-            return;
-        }
-        startService(new Intent(this, MainService.class));
-    }
-
-
     private MainService mBoundService;
 
     private final ServiceConnection mConnection = new ServiceConnection() {
@@ -188,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mBoundService = null;
         }
     };
+
 
     private void checkStatus() {
         if (mBoundService != null) {
@@ -221,6 +180,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onDismiss(DialogInterface dialog) {
-        startPlaying();
+        startPlaying(null);
+    }
+
+    public void startPlaying(View view) {
+        if (mBoundService != null && mBoundService.getStatus() == MainService.Statuses.WAITING) {
+            return;
+        }
+        startService(new Intent(this, MainService.class));
+    }
+
+    public void stopPlaying(View view) {
+        doUnbindService();
+        rippleBackground.stopRippleAnimation();
+        stopService(new Intent(this, MainService.class));
     }
 }
