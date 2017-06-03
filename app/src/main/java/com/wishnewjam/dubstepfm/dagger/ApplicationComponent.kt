@@ -1,5 +1,6 @@
 package com.wishnewjam.dubstepfm.dagger
 
+import com.wishnewjam.dubstepfm.ChooseBitrateDialogFragment
 import com.wishnewjam.dubstepfm.MainActivity
 import com.wishnewjam.dubstepfm.MainService
 import com.wishnewjam.dubstepfm.MyApplication
@@ -15,4 +16,6 @@ interface ApplicationComponent {
     fun inject(mainActivity: MainActivity)
 
     fun inject(mainService: MainService)
+
+    fun inject(dialog: ChooseBitrateDialogFragment)
 }

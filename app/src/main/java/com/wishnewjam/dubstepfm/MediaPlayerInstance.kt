@@ -96,10 +96,6 @@ class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, Me
         fun onError(error: String)
     }
 
-    fun callPlayOrPause() {
-
-    }
-
     fun callPlay() {
         Log.d(TAG, "Call play, status: $status")
         when (status) {
@@ -139,6 +135,27 @@ class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, Me
             }
         }
 
+    }
+
+    fun changeUrl(newUrl: String) {
+        if (currentUrl.currentUrl != newUrl) {
+            currentUrl.updateUrl(newUrl)
+            mediaPlayer.reset()
+            val oldStatus = status
+            notifyStatusChanged(UIStates.STATUS_UNDEFINED)
+            if (oldStatus == UIStates.STATUS_PLAY) {
+                callPlay()
+            }
+        }
+    }
+
+    fun callPlayOrPause() {
+        if (status == UIStates.STATUS_PLAY) {
+            mediaPlayer.stop()
+            notifyStatusChanged(UIStates.STATUS_STOP)
+        } else {
+            callPlay()
+        }
     }
 
 }

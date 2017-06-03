@@ -1,6 +1,5 @@
 package com.wishnewjam.dubstepfm
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -12,7 +11,7 @@ import com.skyfishjy.library.RippleBackground
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
-class MainActivity : AppCompatActivity(), DialogInterface.OnDismissListener {
+class MainActivity : AppCompatActivity() {
 
     private var rippleBackground: RippleBackground? = null
     private var loadingIndicator: View? = null
@@ -106,10 +105,4 @@ class MainActivity : AppCompatActivity(), DialogInterface.OnDismissListener {
     override fun onResume() {
         super.onResume()
     }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        startPlaying(null)
-    }
-
-
 }
