@@ -2,54 +2,58 @@ package com.wishnewjam.dubstepfm
 
 import android.content.DialogInterface
 import android.os.Bundle
-import android.os.Handler
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import com.skyfishjy.library.RippleBackground
+import java.lang.ref.WeakReference
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), DialogInterface.OnDismissListener {
 
     val TAG = MainActivity::class.java.name
 
-    companion object {
-        private val DOT = "."
-        val TAG_MESSAGE = "message"
-        val ACTION_RECEIVE_AUDIO_INFO = "audio_info"
-    }
-
-    private var mIsBound: Boolean = false
     private var rippleBackground: RippleBackground? = null
-    private var dotsCount: Int = 0
-    private var mBoundService: MainService? = null
-    private var handler: Handler? = null
+    private var loadingIndicator: View? = null
 
     @Inject
     lateinit var mediaPlayerInstance: MediaPlayerInstance
 
-//    private fun observer(): Observer<Int> = Observer {
-//        when (it) {
-//            UIStates.STATUS_PLAY -> showPlaying()
-//            UIStates.STATUS_STOP -> showStopped()
-//            UIStates.STATUS_ERROR -> showError()
-//        }
-//    }
+    private val callback: MediaPlayerInstance.CallbackInterface = object : MediaPlayerInstance.CallbackInterface {
+        override fun onChangeStatus(status: Int) {
+            when (status) {
+                UIStates.STATUS_PLAY -> showPlaying()
+                UIStates.STATUS_LOADING -> showLoading()
+                UIStates.STATUS_STOP -> showStopped()
+            }
+        }
+
+        override fun onError(error: String) {
+            showError()
+        }
+
+    }
+
+    private fun showLoading() {
+        loadingIndicator?.visibility = View.VISIBLE
+    }
 
     private fun showStopped() {
+        loadingIndicator?.visibility = View.GONE
         rippleBackground?.stopRippleAnimation()
 
     }
 
     private fun showPlaying() {
-
+        loadingIndicator?.visibility = View.GONE
+        rippleBackground?.startRippleAnimation()
 
     }
 
     private fun showError() {
-        showBuffering(false)
+        loadingIndicator?.visibility = View.GONE
         Toast.makeText(this, getString(R.string.error), Toast.LENGTH_SHORT).show()
         stopPlaying(null)
     }
@@ -67,13 +71,9 @@ class MainActivity : AppCompatActivity(), DialogInterface.OnDismissListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         rippleBackground = findViewById(R.id.ripple_background) as RippleBackground
+        loadingIndicator = findViewById(R.id.ll_loading)
         MyApplication.graph.inject(this)
-//        handler = Handler()
-    }
-
-
-    private fun showBuffering(b: Boolean) {
-
+        mediaPlayerInstance.activityCallback = WeakReference(callback)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -83,7 +83,6 @@ class MainActivity : AppCompatActivity(), DialogInterface.OnDismissListener {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle presses on the action bar items
         when (item.itemId) {
             R.id.action_bitrate -> {
                 showBitrateChooser()

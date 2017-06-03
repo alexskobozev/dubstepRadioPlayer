@@ -1,7 +1,7 @@
 package com.wishnewjam.dubstepfm
 
 internal object UIStates {
-    val STATUS_UNDEFINED = 1
+    val STATUS_UNDEFINED = 0
     val STATUS_PLAY = 1
     val STATUS_STOP = 2
     val STATUS_ERROR = 3

@@ -15,5 +15,6 @@
     <string name="choose_bitrate">Choose bitrate</string>
     <string name="buffering">Buffering</string>
     <string name="error">Radio error</string>
+    <string name="loading">Loading…</string>
 
 </resources>

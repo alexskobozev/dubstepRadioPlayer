@@ -7,24 +7,16 @@ import android.net.wifi.WifiManager
 import android.os.PowerManager
 import android.util.Log
 import dagger.Module
+import java.lang.ref.WeakReference
 
 @Module
 class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
     val TAG = MediaPlayerInstance::class.java.name
 
-    companion object {
-        val STATUS_UNDEFINED = 1
-        val STATUS_PLAY = 1
-        val STATUS_STOP = 2
-        val STATUS_ERROR = 3
-        val STATUS_LOADING = 4
-        val STATUS_DESTROYED = 5
-        val STATUS_WAITING = 6
-    }
-
     private val WAKE_LOCK = "mp_wakelock"
-    var status: Int = STATUS_UNDEFINED
-    var callback: CallbackInterface? = null
+    var status: Int = UIStates.STATUS_UNDEFINED
+    var activityCallback: WeakReference<CallbackInterface>? = null
+    var serviceCallback: WeakReference<CallbackInterface>? = null
 
 
     private var audioManager: AudioManager? = null
@@ -52,16 +44,17 @@ class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, Me
             AudioManager.AUDIOFOCUS_LOSS,
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> if (mediaPlayer.isPlaying) {
                 mediaPlayer.pause()
-                status = STATUS_WAITING
+                notifyStatusChanged(UIStates.STATUS_WAITING)
             }
-            AudioManager.AUDIOFOCUS_GAIN -> if (status == STATUS_WAITING) {
+            AudioManager.AUDIOFOCUS_GAIN -> if (status == UIStates.STATUS_WAITING) {
                 mediaPlayer.start()
+                notifyStatusChanged(UIStates.STATUS_PLAY)
             }
         }
     }
 
     fun destroy() {
-        status = STATUS_DESTROYED
+        status = UIStates.STATUS_DESTROYED
         mediaPlayer.release()
     }
 
@@ -78,58 +71,58 @@ class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, Me
 
     override fun onPrepared(mp: MediaPlayer?) {
         mediaPlayer.start()
-        status = STATUS_PLAY
-        callback?.onPlay()
+        notifyStatusChanged(UIStates.STATUS_PLAY)
+    }
+
+    private fun notifyStatusChanged(status: Int) {
+        this.status = status
+        activityCallback?.get()?.onChangeStatus(status)
+        serviceCallback?.get()?.onChangeStatus(status)
     }
 
     override fun onCompletion(mp: MediaPlayer?) {
-        status = STATUS_STOP
-        callback?.onStop()
+        notifyStatusChanged(UIStates.STATUS_STOP)
     }
 
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
-        status = STATUS_ERROR
-        callback?.onError("Playback error: $what, extra: $extra")
+        status = UIStates.STATUS_ERROR
+        activityCallback?.get()?.onError("Playback error: $what, extra: $extra")
+        serviceCallback?.get()?.onError("Playback error: $what, extra: $extra")
         return true
     }
 
     interface CallbackInterface {
-        fun onStartPreparing()
-        fun onPlay()
-        fun onStop()
+        fun onChangeStatus(status: Int)
         fun onError(error: String)
     }
 
     fun callPlayOrPause() {
-        if (status == STATUS_PLAY) {
-            mediaPlayer.stop()
-            status = STATUS_STOP
-        } else {
-            mediaPlayer.prepareAsync()
-        }
+
     }
 
     fun callPlay() {
         Log.d(TAG, "Call play, status: $status")
         when (status) {
-            STATUS_STOP -> {
-                status = STATUS_LOADING
+            UIStates.STATUS_STOP -> {
                 mediaPlayer.prepareAsync()
-                callback?.onStartPreparing()
+                notifyStatusChanged(UIStates.STATUS_LOADING)
                 audioManager?.requestAudioFocus(afChangeListener,
                         AudioManager.STREAM_MUSIC,
                         AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
             }
 
-            STATUS_PLAY -> {
+            UIStates.STATUS_PLAY -> {
+                // do nothing
+            }
+
+            UIStates.STATUS_LOADING -> {
                 // do nothing
             }
 
             else -> {
-                status = STATUS_LOADING
                 mediaPlayer.setDataSource(currentUrl.currentUrl)
                 mediaPlayer.prepareAsync()
-                callback?.onStartPreparing()
+                notifyStatusChanged(UIStates.STATUS_LOADING)
                 audioManager?.requestAudioFocus(afChangeListener,
                         AudioManager.STREAM_MUSIC,
                         AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
@@ -139,10 +132,9 @@ class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, Me
 
     fun callStop() {
         when (status) {
-            STATUS_PLAY -> {
-                status = STATUS_STOP
+            UIStates.STATUS_PLAY -> {
                 mediaPlayer.stop()
-                callback?.onStop()
+                notifyStatusChanged(UIStates.STATUS_STOP)
                 audioManager?.abandonAudioFocus(afChangeListener)
             }
         }
