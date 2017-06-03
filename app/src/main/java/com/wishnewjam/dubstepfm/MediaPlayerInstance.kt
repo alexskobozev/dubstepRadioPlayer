@@ -5,8 +5,12 @@ import android.media.AudioManager
 import android.media.MediaPlayer
 import android.net.wifi.WifiManager
 import android.os.PowerManager
+import android.util.Log
+import dagger.Module
 
+@Module
 class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
+    val TAG = MediaPlayerInstance::class.java.name
 
     companion object {
         val STATUS_UNDEFINED = 1
@@ -22,8 +26,10 @@ class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, Me
     var status: Int = STATUS_UNDEFINED
     var callback: CallbackInterface? = null
 
+
     private var audioManager: AudioManager? = null
     private var mediaPlayer: MediaPlayer = MediaPlayer()
+    private var currentUrl: CurrentUrl = CurrentUrl(context)
 
     private var wifiLock: WifiManager.WifiLock?
 
@@ -52,24 +58,6 @@ class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, Me
                 mediaPlayer.start()
             }
         }
-    }
-
-
-    fun play(url: String) {
-        status = STATUS_LOADING
-        mediaPlayer.setDataSource(url)
-        mediaPlayer.prepareAsync()
-        callback?.onStartPreparing()
-        audioManager?.requestAudioFocus(afChangeListener,
-                AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
-    }
-
-    fun stop() {
-        status = STATUS_STOP
-        mediaPlayer.stop()
-        callback?.onStop()
-        audioManager?.abandonAudioFocus(afChangeListener)
     }
 
     fun destroy() {
@@ -110,6 +98,55 @@ class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, Me
         fun onPlay()
         fun onStop()
         fun onError(error: String)
+    }
+
+    fun callPlayOrPause() {
+        if (status == STATUS_PLAY) {
+            mediaPlayer.stop()
+            status = STATUS_STOP
+        } else {
+            mediaPlayer.prepareAsync()
+        }
+    }
+
+    fun callPlay() {
+        Log.d(TAG, "Call play, status: $status")
+        when (status) {
+            STATUS_STOP -> {
+                status = STATUS_LOADING
+                mediaPlayer.prepareAsync()
+                callback?.onStartPreparing()
+                audioManager?.requestAudioFocus(afChangeListener,
+                        AudioManager.STREAM_MUSIC,
+                        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            }
+
+            STATUS_PLAY -> {
+                // do nothing
+            }
+
+            else -> {
+                status = STATUS_LOADING
+                mediaPlayer.setDataSource(currentUrl.currentUrl)
+                mediaPlayer.prepareAsync()
+                callback?.onStartPreparing()
+                audioManager?.requestAudioFocus(afChangeListener,
+                        AudioManager.STREAM_MUSIC,
+                        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            }
+        }
+    }
+
+    fun callStop() {
+        when (status) {
+            STATUS_PLAY -> {
+                status = STATUS_STOP
+                mediaPlayer.stop()
+                callback?.onStop()
+                audioManager?.abandonAudioFocus(afChangeListener)
+            }
+        }
+
     }
 
 }
