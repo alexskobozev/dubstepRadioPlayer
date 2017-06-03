@@ -1,6 +1,7 @@
 package com.wishnewjam.dubstepfm
 
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
@@ -12,8 +13,6 @@ import java.lang.ref.WeakReference
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), DialogInterface.OnDismissListener {
-
-    val TAG = MainActivity::class.java.name
 
     private var rippleBackground: RippleBackground? = null
     private var loadingIndicator: View? = null
@@ -60,10 +59,12 @@ class MainActivity : AppCompatActivity(), DialogInterface.OnDismissListener {
 
     fun startPlaying(view: View?) {
         mediaPlayerInstance.callPlay()
+        startService(Intent(this, MainService::class.java))
     }
 
     fun stopPlaying(view: View?) {
         mediaPlayerInstance.callStop()
+        stopService(Intent(this, MainService::class.java))
     }
 
 

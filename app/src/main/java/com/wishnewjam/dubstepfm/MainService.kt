@@ -25,6 +25,8 @@ class MainService : Service() {
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         MyApplication.graph.inject(this)
+        initNotification()
+        initHeadsetReceiver()
         return Service.START_STICKY
     }
 
@@ -91,8 +93,6 @@ class MainService : Service() {
 
     companion object {
         private val NOTIFICATION_ID = 43432
-
-        val ACTION_PLAY = "com.example.action.PLAY"
         val SP_KEY_BITRATE = "link"
     }
 
