@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.media.AudioManager
 import android.os.IBinder
 import android.support.v4.app.NotificationCompat
 import android.view.KeyEvent
@@ -22,11 +23,18 @@ class MainService : Service() {
     }
 
     private var mMediaButtonReceiver: MediaButtonIntentReceiver? = null
+    private val mNoisyReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            mediaPlayerInstance.callStop()
+        }
+    }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         MyApplication.graph.inject(this)
         initNotification()
         initHeadsetReceiver()
+
+        registerReceiver(mNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
         return Service.START_STICKY
     }
 
@@ -63,9 +71,8 @@ class MainService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (mMediaButtonReceiver != null) {
-            unregisterReceiver(mMediaButtonReceiver)
-        }
+        mMediaButtonReceiver?.let { unregisterReceiver(it)}
+        unregisterReceiver(mNoisyReceiver)
     }
 
     inner class MediaButtonIntentReceiver : BroadcastReceiver() {
