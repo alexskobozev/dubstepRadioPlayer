@@ -50,7 +50,6 @@
 
             android:layout_marginBottom="@dimen/buttons_margin"
             android:background="@android:color/transparent"
-            android:onClick="startPlaying"
 
             android:text="@string/play"
             android:textColor="@drawable/button_text"
@@ -64,7 +63,6 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/buttons_margin"
             android:background="@android:color/transparent"
-            android:onClick="stopPlaying"
             android:text="@string/stop"
             android:textAllCaps="true"
             android:textColor="@drawable/button_text"

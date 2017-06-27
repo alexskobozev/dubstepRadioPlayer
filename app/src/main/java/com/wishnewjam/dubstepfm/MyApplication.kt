@@ -1,6 +1,8 @@
 package com.wishnewjam.dubstepfm
 
 import android.app.Application
+import android.content.Context
+import android.util.Log
 import com.wishnewjam.dubstepfm.dagger.AndroidModule
 import com.wishnewjam.dubstepfm.dagger.ApplicationComponent
 import com.wishnewjam.dubstepfm.dagger.DaggerApplicationComponent

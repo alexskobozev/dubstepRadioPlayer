@@ -16,5 +16,6 @@
     <string name="buffering">Buffering</string>
     <string name="error">Radio error</string>
     <string name="loading">Loading…</string>
+    <string name="pause">pause</string>
 
 </resources>

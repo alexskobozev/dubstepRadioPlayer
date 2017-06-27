@@ -1,37 +1,125 @@
 package com.wishnewjam.dubstepfm
 
+import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
 import android.widget.Toast
 import com.skyfishjy.library.RippleBackground
-import java.lang.ref.WeakReference
-import javax.inject.Inject
+import com.wishnewjam.dubstepfm.Tools.logDebug
 
 class MainActivity : AppCompatActivity() {
 
     private var rippleBackground: RippleBackground? = null
     private var loadingIndicator: View? = null
+    private var mediaBrowser: MediaBrowserCompat? = null
 
-    @Inject
-    lateinit var mediaPlayerInstance: MediaPlayerInstance
+    private val controllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
+        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+            super.onPlaybackStateChanged(state)
+            logDebug({ "controllerCallback: onPlaybackStateChanged, state= ${state?.state}" })
+            applyPlaybackState(state?.state)
+        }
+    }
 
-    private val callback: MediaPlayerInstance.CallbackInterface = object : MediaPlayerInstance.CallbackInterface {
-        override fun onChangeStatus(status: Int) {
-            when (status) {
-                UIStates.STATUS_PLAY -> showPlaying()
-                UIStates.STATUS_LOADING -> showLoading()
-                UIStates.STATUS_STOP -> showStopped()
+    private val connectionCallback: MediaBrowserCompat.ConnectionCallback? = object : MediaBrowserCompat.ConnectionCallback() {
+        override fun onConnected() {
+            super.onConnected()
+            logDebug { "ConnectionCallback: onConnected" }
+            val token: MediaSessionCompat.Token? = mediaBrowser?.sessionToken
+            token?.let {
+                val controller = MediaControllerCompat(this@MainActivity, it)
+                MediaControllerCompat.setMediaController(this@MainActivity, controller)
+                buildTransportControls(controller.playbackState.state)
             }
+
+            startService(Intent(this@MainActivity, MainService::class.java))
         }
 
-        override fun onError(error: String) {
-            showError()
+        override fun onConnectionSuspended() {
+            super.onConnectionSuspended()
+            logDebug { "ConnectionCallback: onConnectionSuspended" }
         }
 
+        override fun onConnectionFailed() {
+            super.onConnectionFailed()
+            logDebug { "ConnectionCallback: onConnectionFailed" }
+        }
+    }
+
+    private fun buildTransportControls(state: Int?) {
+        val playButton = findViewById(R.id.tv_play) as? Button?
+        val stopButton = findViewById(R.id.tv_stop) as? Button?
+        val mediaController = MediaControllerCompat.getMediaController(this)
+
+        playButton?.setOnClickListener({
+            mediaController.transportControls.play()
+        })
+
+        stopButton?.setOnClickListener({
+            mediaController.transportControls.stop()
+        })
+
+        mediaController.registerCallback(controllerCallback)
+
+        applyPlaybackState(state)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        rippleBackground = findViewById(R.id.ripple_background) as RippleBackground
+        loadingIndicator = findViewById(R.id.ll_loading)
+        mediaBrowser = MediaBrowserCompat(this, ComponentName(this, MainService::class.java), connectionCallback, null)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        mediaBrowser?.connect()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.main, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_bitrate -> {
+                showBitrateChooser()
+                return true
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        rippleBackground?.stopRippleAnimation()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        MediaControllerCompat.getMediaController(this)?.unregisterCallback(controllerCallback)
+        mediaBrowser?.disconnect()
+    }
+
+    private fun applyPlaybackState(state: Int?) {
+        when (state) {
+            PlaybackStateCompat.STATE_PLAYING -> showPlaying()
+            PlaybackStateCompat.STATE_BUFFERING -> showLoading()
+            PlaybackStateCompat.STATE_ERROR -> showError()
+            else -> showStopped()
+        }
     }
 
     private fun showLoading() {
@@ -53,56 +141,10 @@ class MainActivity : AppCompatActivity() {
     private fun showError() {
         loadingIndicator?.visibility = View.GONE
         Toast.makeText(this, getString(R.string.error), Toast.LENGTH_SHORT).show()
-        stopPlaying(null)
-    }
-
-    fun startPlaying(view: View?) {
-        mediaPlayerInstance.callPlay()
-        startService(Intent(this, MainService::class.java))
-    }
-
-    fun stopPlaying(view: View?) {
-        mediaPlayerInstance.callStop()
-        stopService(Intent(this, MainService::class.java))
-    }
-
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        rippleBackground = findViewById(R.id.ripple_background) as RippleBackground
-        loadingIndicator = findViewById(R.id.ll_loading)
-        MyApplication.graph.inject(this)
-        mediaPlayerInstance.activityCallback = WeakReference(callback)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater = menuInflater
-        inflater.inflate(R.menu.main, menu)
-        return super.onCreateOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_bitrate -> {
-                showBitrateChooser()
-                return true
-            }
-            else -> return super.onOptionsItemSelected(item)
-        }
     }
 
     private fun showBitrateChooser() {
         val bitrateFragment = ChooseBitrateDialogFragment()
         bitrateFragment.show(supportFragmentManager, "bitrate")
-    }
-
-    override fun onPause() {
-        super.onPause()
-        rippleBackground?.stopRippleAnimation()
-    }
-
-    override fun onResume() {
-        super.onResume()
     }
 }

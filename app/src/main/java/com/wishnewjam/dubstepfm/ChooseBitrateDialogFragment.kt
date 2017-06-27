@@ -17,7 +17,7 @@ class ChooseBitrateDialogFragment : DialogFragment() {
         MyApplication.graph.inject(this)
         val builder = AlertDialog.Builder(activity)
         builder.setTitle(R.string.choose_bitrate)
-                .setItems(R.array.bitrates) { dialog, which -> changeBitrate(which) }
+                .setItems(R.array.bitrates) { _, which -> changeBitrate(which) }
         return builder.create()
     }
 

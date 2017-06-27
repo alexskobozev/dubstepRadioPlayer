@@ -53,11 +53,6 @@ class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, Me
         }
     }
 
-    fun destroy() {
-        status = UIStates.STATUS_DESTROYED
-        mediaPlayer.release()
-    }
-
     private fun initWakeLock() {
 
         wifiLock?.acquire()

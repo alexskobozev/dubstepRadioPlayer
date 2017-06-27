@@ -13,8 +13,6 @@ interface ApplicationComponent {
 
     fun inject(application: MyApplication)
 
-    fun inject(mainActivity: MainActivity)
-
     fun inject(mainService: MainService)
 
     fun inject(dialog: ChooseBitrateDialogFragment)
