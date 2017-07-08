@@ -14,9 +14,9 @@ class TrackInfoDialogFragment : DialogFragment() {
                               savedInstanceState: Bundle?): View? {
         val v = inflater?.inflate(R.layout.dialogfragment_info, container, false)
 
-        val tv = v?.findViewById(R.id.tv_trackname) as TextView
+        val tv : TextView? = v?.findViewById(R.id.tv_trackname)
 
-        tv.text = arguments.getString(TAG_TRACKNAME)
+        tv?.text = arguments.getString(TAG_TRACKNAME)
 
         return v
     }

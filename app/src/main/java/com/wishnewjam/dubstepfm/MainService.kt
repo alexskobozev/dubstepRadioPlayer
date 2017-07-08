@@ -18,7 +18,9 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v7.app.NotificationCompat
 import android.text.TextUtils
 import android.view.KeyEvent
+import com.crashlytics.android.Crashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
+import io.fabric.sdk.android.Fabric
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
@@ -79,6 +81,7 @@ class MainService : MediaBrowserServiceCompat() {
 
     override fun onCreate() {
         super.onCreate()
+        Fabric.with(this, Crashlytics())
         MyApplication.graph.inject(this)
         val receiver = ComponentName(packageName, MediaButtonIntentReceiver::class.java.name)
         mediaSession = MediaSessionCompat(this, "PlayerService", receiver, null)
@@ -141,11 +144,12 @@ class MainService : MediaBrowserServiceCompat() {
         }
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         initHeadsetReceiver()
         MediaButtonReceiver.handleIntent(mediaSession, intent)
         registerReceiver(mNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
-
         return Service.START_STICKY
     }
 

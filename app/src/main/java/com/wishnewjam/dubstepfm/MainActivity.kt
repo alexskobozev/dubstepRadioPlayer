@@ -13,8 +13,11 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
+import com.crashlytics.android.Crashlytics
 import com.skyfishjy.library.RippleBackground
 import com.wishnewjam.dubstepfm.Tools.logDebug
+import io.fabric.sdk.android.Fabric
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -56,8 +59,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buildTransportControls(state: Int?) {
-        val playButton = findViewById(R.id.tv_play) as? Button?
-        val stopButton = findViewById(R.id.tv_stop) as? Button?
+        val playButton : Button? = findViewById(R.id.tv_play)
+        val stopButton : Button? = findViewById(R.id.tv_stop)
         val mediaController = MediaControllerCompat.getMediaController(this)
 
         playButton?.setOnClickListener({
@@ -76,9 +79,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        rippleBackground = findViewById(R.id.ripple_background) as RippleBackground
+        rippleBackground = findViewById(R.id.ripple_background)
         loadingIndicator = findViewById(R.id.ll_loading)
         mediaBrowser = MediaBrowserCompat(this, ComponentName(this, MainService::class.java), connectionCallback, null)
+        Fabric.with(this, Crashlytics())
     }
 
     override fun onStart() {
