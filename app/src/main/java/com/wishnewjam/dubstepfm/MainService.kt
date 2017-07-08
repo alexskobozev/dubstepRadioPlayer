@@ -1,5 +1,6 @@
 package com.wishnewjam.dubstepfm
 
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.*
@@ -7,6 +8,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.media.AudioManager
 import android.os.Bundle
+import android.os.ResultReceiver
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserServiceCompat
 import android.support.v4.media.MediaMetadataCompat
@@ -106,20 +108,27 @@ class MainService : MediaBrowserServiceCompat() {
             it.setCallback(object : MediaSessionCompat.Callback() {
                 override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
                     logDebug({ "mediaSessionCallback: onMediaButtonEvent $mediaButtonEvent" })
-                    return true
+                    return handleMediaButtonIntent(mediaButtonIntent)
                 }
+
+                override fun onCommand(command: String?, extras: Bundle?, cb: ResultReceiver?) {
+                    logDebug({ "mediaSessionCallback: onCommand $command" })
+                    super.onCommand(command, extras, cb)
+                }
+
 
                 override fun onStop() {
                     super.onStop()
                     logDebug({ "mediaSessionCallback: onStop" })
                     mediaPlayerInstance.callStop()
-                    stopSelf()
+                    buildNotification(KeyEvent.KEYCODE_MEDIA_STOP)
                 }
 
                 override fun onPlay() {
                     super.onPlay()
                     logDebug({ "mediaSessionCallback: onPlay" })
                     mediaPlayerInstance.callPlay()
+                    buildNotification(KeyEvent.KEYCODE_MEDIA_PLAY)
                 }
 
                 override fun onPause() {
@@ -127,14 +136,14 @@ class MainService : MediaBrowserServiceCompat() {
                     logDebug({ "mediaSessionCallback: onPause" })
                 }
             })
+            it.setSessionActivity(PendingIntent.getActivity(applicationContext, 0, Intent(applicationContext, MainActivity::class.java), 0))
             sessionToken = it.sessionToken
         }
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        initNotification()
         initHeadsetReceiver()
-
+        MediaButtonReceiver.handleIntent(mediaSession, intent)
         registerReceiver(mNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
 
         return Service.START_STICKY
@@ -151,10 +160,11 @@ class MainService : MediaBrowserServiceCompat() {
 
     }
 
-    private fun initNotification() {
+    private fun buildNotification(keyCode: Int) {
         val controller = mediaSession?.controller
         val mediaMetadata = controller?.metadata
         val description = mediaMetadata?.description
+        val activity = controller?.sessionActivity
 
         val mBuilder = NotificationCompat.Builder(applicationContext)
         mBuilder
@@ -162,22 +172,30 @@ class MainService : MediaBrowserServiceCompat() {
                 .setContentText(description?.subtitle)
                 .setSubText(description?.description)
                 .setLargeIcon(description?.iconBitmap)
-                .setContentIntent(controller?.sessionActivity)
+                .setContentIntent(activity)
                 .setDeleteIntent(
                         MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP))
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-
                 .setSmallIcon(R.drawable.ic_notification)
                 .setColor(Color.BLACK)
-                .addAction(R.drawable.ic_stop, getString(R.string.stop),
-                        MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP))
 
                 .setStyle(NotificationCompat.MediaStyle().setShowActionsInCompactView(0)
                         .setMediaSession(mediaSession?.sessionToken)
                         .setShowCancelButton(true)
                         .setCancelButtonIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP)))
 
-        startForeground(NOTIFICATION_ID, mBuilder.build())
+
+        if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
+            mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop),
+                    MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP))
+            startForeground(NOTIFICATION_ID, mBuilder.build())
+        } else {
+            mBuilder.addAction(R.drawable.ic_play, getString(R.string.play),
+                    MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_PLAY))
+            val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            mNotifyMgr.notify(NOTIFICATION_ID, mBuilder.build())
+            stopForeground(false)
+        }
     }
 
     override fun onDestroy() {
@@ -187,27 +205,34 @@ class MainService : MediaBrowserServiceCompat() {
         mediaSession?.release()
     }
 
+    //TODO: check if we don't need that receiver in api below 21
     inner class MediaButtonIntentReceiver : BroadcastReceiver() {
 
         override fun onReceive(context: Context, intent: Intent) {
-            val intentAction = intent.action
-            if (Intent.ACTION_MEDIA_BUTTON != intentAction) {
-                return
-            }
-            val event = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT) ?: return
-            val action = event.action
-            if (action == KeyEvent.ACTION_DOWN) {
-                if (event.keyCode == KeyEvent.KEYCODE_MEDIA_STOP) {
-                    mediaPlayerInstance.callStop()
-                }
-
-                if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
-                    mediaPlayerInstance.callPlay()
-                }
-            }
-            abortBroadcast()
-
+            handleMediaButtonIntent(intent)
         }
+    }
+
+    private fun handleMediaButtonIntent(intent: Intent): Boolean {
+        val intentAction = intent.action
+        if (Intent.ACTION_MEDIA_BUTTON != intentAction) {
+            return false
+        }
+        val event = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT) ?: return false
+        val action = event.action
+        if (action == KeyEvent.ACTION_DOWN) {
+            if (event.keyCode == KeyEvent.KEYCODE_MEDIA_STOP) {
+                mediaPlayerInstance.callStop()
+                return true
+            }
+
+            if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
+                mediaPlayerInstance.callPlay()
+                return true
+            }
+            buildNotification(event.keyCode)
+        }
+        return false
     }
 
     companion object {
