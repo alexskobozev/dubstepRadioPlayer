@@ -15,7 +15,6 @@ class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, Me
 
     private val WAKE_LOCK = "mp_wakelock"
     var status: Int = UIStates.STATUS_UNDEFINED
-    var activityCallback: WeakReference<CallbackInterface>? = null
     var serviceCallback: WeakReference<CallbackInterface>? = null
 
 
@@ -71,17 +70,16 @@ class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, Me
 
     private fun notifyStatusChanged(status: Int) {
         this.status = status
-        activityCallback?.get()?.onChangeStatus(status)
         serviceCallback?.get()?.onChangeStatus(status)
     }
 
     override fun onCompletion(mp: MediaPlayer?) {
+        mp?.stop()
         notifyStatusChanged(UIStates.STATUS_STOP)
     }
 
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
         status = UIStates.STATUS_ERROR
-        activityCallback?.get()?.onError("Playback error: $what, extra: $extra")
         serviceCallback?.get()?.onError("Playback error: $what, extra: $extra")
         return true
     }

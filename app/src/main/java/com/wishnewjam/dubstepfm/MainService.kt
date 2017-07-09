@@ -144,8 +144,6 @@ class MainService : MediaBrowserServiceCompat() {
         }
     }
 
-
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         initHeadsetReceiver()
         MediaButtonReceiver.handleIntent(mediaSession, intent)
