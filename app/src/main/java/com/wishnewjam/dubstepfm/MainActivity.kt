@@ -90,6 +90,17 @@ class MainActivity : AppCompatActivity() {
         mediaBrowser?.connect()
     }
 
+    override fun onPause() {
+        super.onPause()
+        rippleBackground?.stopRippleAnimation()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        MediaControllerCompat.getMediaController(this)?.unregisterCallback(controllerCallback)
+        mediaBrowser?.disconnect()
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater = menuInflater
         inflater.inflate(R.menu.main, menu)
@@ -104,17 +115,6 @@ class MainActivity : AppCompatActivity() {
             }
             else -> return super.onOptionsItemSelected(item)
         }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        rippleBackground?.stopRippleAnimation()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        MediaControllerCompat.getMediaController(this)?.unregisterCallback(controllerCallback)
-        mediaBrowser?.disconnect()
     }
 
     private fun applyPlaybackState(state: Int?) {

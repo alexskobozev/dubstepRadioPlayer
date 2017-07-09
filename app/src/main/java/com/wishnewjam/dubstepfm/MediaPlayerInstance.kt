@@ -2,52 +2,130 @@ package com.wishnewjam.dubstepfm
 
 import android.content.Context
 import android.media.AudioManager
-import android.media.MediaPlayer
+import android.net.Uri
 import android.net.wifi.WifiManager
-import android.os.PowerManager
-import android.util.Log
+import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSourceFactory
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
+import com.google.android.exoplayer2.source.ExtractorMediaSource
+import com.google.android.exoplayer2.source.TrackGroupArray
+import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import dagger.Module
+import okhttp3.OkHttpClient
 import java.lang.ref.WeakReference
 
 @Module
-class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
-    val TAG = MediaPlayerInstance::class.java.name
+class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
 
+    private val USER_AGENT: String = "dubstep.fm"
     private val WAKE_LOCK = "mp_wakelock"
+
     var status: Int = UIStates.STATUS_UNDEFINED
     var serviceCallback: WeakReference<CallbackInterface>? = null
 
-
-    private var audioManager: AudioManager? = null
-    private var mediaPlayer: MediaPlayer = MediaPlayer()
     private var currentUrl: CurrentUrl = CurrentUrl(context)
 
+    private var audioManager: AudioManager? = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var wifiLock: WifiManager.WifiLock?
+    private var mediaPlayer: SimpleExoPlayer?
 
     init {
-        audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
-        mediaPlayer.setOnPreparedListener(this)
-        mediaPlayer.setOnCompletionListener(this)
-        mediaPlayer.setOnErrorListener(this)
-        mediaPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK)
+
+        val trackSelector = DefaultTrackSelector(AdaptiveTrackSelection.Factory(DefaultBandwidthMeter()))
+
+        mediaPlayer = ExoPlayerFactory.newSimpleInstance(context, trackSelector)
+        mediaPlayer?.addListener(this)
 
         wifiLock = (context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager)
                 .createWifiLock(WifiManager.WIFI_MODE_FULL, WAKE_LOCK)
     }
 
+    override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
+        Tools.logDebug({ "exoPlayer: onPlaybackParametersChanged: $playbackParameters" })
+    }
 
-    private val afChangeListener: AudioManager.OnAudioFocusChangeListener = AudioManager.OnAudioFocusChangeListener {
+    override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
+        Tools.logDebug({ "exoPlayer: onTracksChanged: trackGroups = $trackGroups, trackSelections = $trackSelections" })
+
+    }
+
+    override fun onPlayerError(error: ExoPlaybackException?) {
+        Tools.logDebug({ "exoPlayer: onPlayerError: error = $error" })
+        status = UIStates.STATUS_ERROR
+        serviceCallback?.get()?.onError("Playback error: $error")
+
+    }
+
+    override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+        when (playbackState) {
+            ExoPlayer.STATE_BUFFERING -> notifyStatusChanged(UIStates.STATUS_LOADING)
+            ExoPlayer.STATE_READY -> if (playWhenReady) notifyStatusChanged(UIStates.STATUS_PLAY)
+            ExoPlayer.STATE_ENDED -> notifyStatusChanged(UIStates.STATUS_STOP)
+        }
+        Tools.logDebug({ "exoPlayer: onPlayerStateChanged: playWhenReady = $playWhenReady, playbackState = $playbackState " })
+    }
+
+    override fun onLoadingChanged(isLoading: Boolean) {
+        Tools.logDebug({ "exoPlayer: onLoadingChanged: isLoading = $isLoading" })
+    }
+
+    override fun onPositionDiscontinuity() {
+        Tools.logDebug({ "exoPlayer: onPositionDiscontinuity" })
+    }
+
+    override fun onTimelineChanged(timeline: Timeline?, manifest: Any?) {
+        Tools.logDebug({ "exoPlayer: onTimelineChanged: timeline = $timeline, manifest = $manifest" })
+    }
+
+    fun callPlay() {
+        Tools.logDebug({ "Call play, status: $status" })
+        when (status) {
+
+            UIStates.STATUS_PLAY -> {
+                // do nothing
+            }
+
+            UIStates.STATUS_LOADING -> {
+                // do nothing
+            }
+
+            else -> {
+                play()
+            }
+        }
+    }
+
+    fun callStop() {
+        when (status) {
+            UIStates.STATUS_PLAY -> {
+                mediaPlayer?.stop()
+                notifyStatusChanged(UIStates.STATUS_STOP)
+                audioManager?.abandonAudioFocus(getAfChangeListener())
+            }
+        }
+        releaseWakeLock()
+    }
+
+    fun changeUrl(newUrl: String) {
+        if (currentUrl.currentUrl != newUrl) {
+            currentUrl.updateUrl(newUrl)
+            play()
+        }
+    }
+
+    private fun getAfChangeListener(): AudioManager.OnAudioFocusChangeListener = AudioManager.OnAudioFocusChangeListener {
         focusChange ->
         when (focusChange) {
             AudioManager.AUDIOFOCUS_LOSS,
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> if (mediaPlayer.isPlaying) {
-                mediaPlayer.pause()
-                notifyStatusChanged(UIStates.STATUS_WAITING)
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> if (mediaPlayer?.playbackState == ExoPlayer.STATE_READY) {
+                mediaPlayer?.stop()
+                notifyStatusChanged(UIStates.STATUS_STOP)
             }
             AudioManager.AUDIOFOCUS_GAIN -> if (status == UIStates.STATUS_WAITING) {
-                mediaPlayer.start()
-                notifyStatusChanged(UIStates.STATUS_PLAY)
+                // TODO: maybe play, just decide
             }
         }
     }
@@ -63,92 +141,28 @@ class MediaPlayerInstance(context: Context) : MediaPlayer.OnPreparedListener, Me
         }
     }
 
-    override fun onPrepared(mp: MediaPlayer?) {
-        mediaPlayer.start()
-        notifyStatusChanged(UIStates.STATUS_PLAY)
-    }
-
     private fun notifyStatusChanged(status: Int) {
         this.status = status
         serviceCallback?.get()?.onChangeStatus(status)
     }
 
-    override fun onCompletion(mp: MediaPlayer?) {
-        mp?.stop()
-        notifyStatusChanged(UIStates.STATUS_STOP)
-    }
 
-    override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
-        status = UIStates.STATUS_ERROR
-        serviceCallback?.get()?.onError("Playback error: $what, extra: $extra")
-        return true
+    private fun play() {
+        val source = Uri.parse(currentUrl.currentUrl)
+        val mediaSource = ExtractorMediaSource(source,
+                OkHttpDataSourceFactory(OkHttpClient(), USER_AGENT, null), DefaultExtractorsFactory(), null, null)
+        mediaPlayer?.playWhenReady = true
+        mediaPlayer?.prepare(mediaSource)
+
+        notifyStatusChanged(UIStates.STATUS_LOADING)
+        audioManager?.requestAudioFocus(getAfChangeListener(),
+                AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+        initWakeLock()
     }
 
     interface CallbackInterface {
         fun onChangeStatus(status: Int)
         fun onError(error: String)
     }
-
-    fun callPlay() {
-        Log.d(TAG, "Call play, status: $status")
-        when (status) {
-            UIStates.STATUS_STOP -> {
-                mediaPlayer.prepareAsync()
-                notifyStatusChanged(UIStates.STATUS_LOADING)
-                audioManager?.requestAudioFocus(afChangeListener,
-                        AudioManager.STREAM_MUSIC,
-                        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
-            }
-
-            UIStates.STATUS_PLAY -> {
-                // do nothing
-            }
-
-            UIStates.STATUS_LOADING -> {
-                // do nothing
-            }
-
-            else -> {
-                mediaPlayer.setDataSource(currentUrl.currentUrl)
-                mediaPlayer.prepareAsync()
-                notifyStatusChanged(UIStates.STATUS_LOADING)
-                audioManager?.requestAudioFocus(afChangeListener,
-                        AudioManager.STREAM_MUSIC,
-                        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
-            }
-        }
-    }
-
-    fun callStop() {
-        when (status) {
-            UIStates.STATUS_PLAY -> {
-                mediaPlayer.stop()
-                notifyStatusChanged(UIStates.STATUS_STOP)
-                audioManager?.abandonAudioFocus(afChangeListener)
-            }
-        }
-
-    }
-
-    fun changeUrl(newUrl: String) {
-        if (currentUrl.currentUrl != newUrl) {
-            currentUrl.updateUrl(newUrl)
-            mediaPlayer.reset()
-            val oldStatus = status
-            notifyStatusChanged(UIStates.STATUS_UNDEFINED)
-            if (oldStatus == UIStates.STATUS_PLAY) {
-                callPlay()
-            }
-        }
-    }
-
-    fun callPlayOrPause() {
-        if (status == UIStates.STATUS_PLAY) {
-            mediaPlayer.stop()
-            notifyStatusChanged(UIStates.STATUS_STOP)
-        } else {
-            callPlay()
-        }
-    }
-
 }
