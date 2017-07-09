@@ -5,20 +5,17 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <include layout="@layout/info_layout" />
 
-    <com.skyfishjy.library.RippleBackground
+    <RelativeLayout
         android:id="@+id/ripple_background"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/ll_btns"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:rb_color="@color/primary"
-        app:rb_duration="3000"
-        app:rb_radius="64dp"
-        app:rb_rippleAmount="4"
-        app:rb_scale="6">
+        app:layout_constraintTop_toTopOf="@id/info_layout">
 
         <ImageView
             android:id="@+id/iv_logo"
@@ -28,7 +25,7 @@
             android:layout_margin="36dp"
             android:contentDescription="@string/description"
             android:src="@drawable/img_logo" />
-    </com.skyfishjy.library.RippleBackground>
+    </RelativeLayout>
 
 
     <LinearLayout

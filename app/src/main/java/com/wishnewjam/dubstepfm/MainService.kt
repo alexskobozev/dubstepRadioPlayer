@@ -7,6 +7,7 @@ import android.content.*
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.media.AudioManager
+import android.os.AsyncTask
 import android.os.Bundle
 import android.os.ResultReceiver
 import android.support.v4.media.MediaBrowserCompat
@@ -21,7 +22,7 @@ import android.view.KeyEvent
 import com.crashlytics.android.Crashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
 import io.fabric.sdk.android.Fabric
-import java.lang.ref.WeakReference
+import java.net.URL
 import javax.inject.Inject
 
 
@@ -32,9 +33,13 @@ class MainService : MediaBrowserServiceCompat() {
         val SP_KEY_BITRATE = "link"
     }
 
+    val NOTIFICATION_STATUS_PLAY = 1
+    val NOTIFICATION_STATUS_STOP = 0
+
     @Inject
     lateinit var mediaPlayerInstance: MediaPlayerInstance
     private var mediaSession: MediaSessionCompat? = null
+    private var notificationStatus = NOTIFICATION_STATUS_STOP
 
     private var mMediaButtonReceiver: MediaButtonIntentReceiver? = null
 
@@ -56,20 +61,12 @@ class MainService : MediaBrowserServiceCompat() {
         MyApplication.graph.inject(this)
         val receiver = ComponentName(packageName, MediaButtonIntentReceiver::class.java.name)
         mediaSession = MediaSessionCompat(this, "PlayerService", receiver, null)
-        mediaPlayerInstance.serviceCallback = WeakReference(getMediaPlayerCallback())
+        mediaPlayerInstance.serviceCallback = mediaPlayerCallback
         mediaSession?.let {
             it.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
             it.setPlaybackState(PlaybackStateCompat.Builder()
                     .setState(PlaybackStateCompat.STATE_PAUSED, 0, 0f)
                     .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE)
-                    .build())
-            it.setMetadata(MediaMetadataCompat.Builder()
-                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "Test Artist") //TODO:replace with actual
-                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "Test Album")
-                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "Test Track Name")
-                    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 10000)
-                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART,
-                            BitmapFactory.decodeResource(resources, R.drawable.logo_screen))
                     .build())
             val stateBuilder = PlaybackStateCompat.Builder()
                     .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_STOP)
@@ -95,14 +92,14 @@ class MainService : MediaBrowserServiceCompat() {
                     super.onStop()
                     logDebug({ "mediaSessionCallback: onStop" })
                     mediaPlayerInstance.callStop()
-                    buildNotification(KeyEvent.KEYCODE_MEDIA_STOP)
+                    buildNotification(NOTIFICATION_STATUS_STOP)
                 }
 
                 override fun onPlay() {
                     super.onPlay()
                     logDebug({ "mediaSessionCallback: onPlay" })
                     mediaPlayerInstance.callPlay()
-                    buildNotification(KeyEvent.KEYCODE_MEDIA_PLAY)
+                    buildNotification(NOTIFICATION_STATUS_PLAY)
                 }
 
                 override fun onPause() {
@@ -118,52 +115,55 @@ class MainService : MediaBrowserServiceCompat() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         initHeadsetReceiver()
         MediaButtonReceiver.handleIntent(mediaSession, intent)
-        registerReceiver(getMNoisyReceiver(), IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
+        registerReceiver(mNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
         return Service.START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
         mMediaButtonReceiver?.let { unregisterReceiver(it) }
-        unregisterReceiver(getMNoisyReceiver())
+        unregisterReceiver(mNoisyReceiver)
         mediaSession?.release()
     }
 
-    private fun getMNoisyReceiver(): BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            mediaPlayerInstance.callStop()
-        }
-    }
-
-    private fun getMediaPlayerCallback(): MediaPlayerInstance.CallbackInterface = object : MediaPlayerInstance.CallbackInterface {
-        override fun onChangeStatus(status: Int) {
-            logDebug { "mediaPlayerCallback: onChangeStatus, status = $status" }
-            when (status) {
-                UIStates.STATUS_PLAY -> {
-                    mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
-                            .setState(PlaybackStateCompat.STATE_PLAYING, 0, 0.0f)
-                            .setActions(PlaybackStateCompat.ACTION_STOP).build())
-                }
-                UIStates.STATUS_LOADING -> {
-                    mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
-                            .setState(PlaybackStateCompat.STATE_BUFFERING, 0, 0.0f)
-                            .setActions(PlaybackStateCompat.ACTION_STOP).build())
-                }
-                UIStates.STATUS_STOP, UIStates.STATUS_ERROR -> {
-                    mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
-                            .setState(PlaybackStateCompat.STATE_STOPPED, 0, 0.0f)
-                            .setActions(PlaybackStateCompat.ACTION_PLAY).build())
-                }
+    private val mNoisyReceiver: BroadcastReceiver
+        get() = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                mediaPlayerInstance.callStop()
             }
         }
 
-        override fun onError(error: String) {
-            mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
-                    .setState(PlaybackStateCompat.STATE_ERROR, 0, 0.0f)
-                    .setActions(PlaybackStateCompat.ACTION_PLAY).build())
-        }
+    private val mediaPlayerCallback: MediaPlayerInstance.CallbackInterface
+        get() = object : MediaPlayerInstance.CallbackInterface {
+            override fun onChangeStatus(status: Int) {
+                logDebug { "mediaPlayerCallback: onChangeStatus, status = $status" }
+                when (status) {
+                    UIStates.STATUS_PLAY -> {
+                        mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
+                                .setState(PlaybackStateCompat.STATE_PLAYING, 0, 0.0f)
+                                .setActions(PlaybackStateCompat.ACTION_STOP).build())
+                        GetMetadataAsyncTask().execute()
+                    }
+                    UIStates.STATUS_LOADING -> {
+                        mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
+                                .setState(PlaybackStateCompat.STATE_BUFFERING, 0, 0.0f)
+                                .setActions(PlaybackStateCompat.ACTION_STOP).build())
+                    }
+                    UIStates.STATUS_STOP, UIStates.STATUS_ERROR -> {
+                        mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
+                                .setState(PlaybackStateCompat.STATE_STOPPED, 0, 0.0f)
+                                .setActions(PlaybackStateCompat.ACTION_PLAY).build())
+                    }
+                }
+            }
 
-    }
+            override fun onError(error: String) {
+                mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
+                        .setState(PlaybackStateCompat.STATE_ERROR, 0, 0.0f)
+                        .setActions(PlaybackStateCompat.ACTION_PLAY).build())
+            }
+
+        }
 
     private fun initHeadsetReceiver() {
         if (mMediaButtonReceiver != null) {
@@ -176,11 +176,12 @@ class MainService : MediaBrowserServiceCompat() {
 
     }
 
-    private fun buildNotification(keyCode: Int) {
+    private fun buildNotification(keyCode: Int?) {
         val controller = mediaSession?.controller
         val mediaMetadata = controller?.metadata
         val description = mediaMetadata?.description
         val activity = controller?.sessionActivity
+        notificationStatus = keyCode ?: NOTIFICATION_STATUS_STOP
 
         val mBuilder = NotificationCompat.Builder(applicationContext)
         mBuilder
@@ -194,14 +195,13 @@ class MainService : MediaBrowserServiceCompat() {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setColor(Color.BLACK)
-
                 .setStyle(NotificationCompat.MediaStyle().setShowActionsInCompactView(0)
                         .setMediaSession(mediaSession?.sessionToken)
                         .setShowCancelButton(true)
                         .setCancelButtonIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP)))
 
 
-        if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
+        if (keyCode == NOTIFICATION_STATUS_PLAY) {
             mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop),
                     MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP))
             startForeground(NOTIFICATION_ID, mBuilder.build())
@@ -222,16 +222,17 @@ class MainService : MediaBrowserServiceCompat() {
         val event = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT) ?: return false
         val action = event.action
         if (action == KeyEvent.ACTION_DOWN) {
+            var status: Int? = null
             if (event.keyCode == KeyEvent.KEYCODE_MEDIA_STOP) {
+                status = NOTIFICATION_STATUS_STOP
                 mediaPlayerInstance.callStop()
                 return true
-            }
-
-            if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
+            } else if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
+                status = NOTIFICATION_STATUS_PLAY
                 mediaPlayerInstance.callPlay()
                 return true
             }
-            buildNotification(event.keyCode)
+            buildNotification(status)
         }
         return false
     }
@@ -241,6 +242,30 @@ class MainService : MediaBrowserServiceCompat() {
 
         override fun onReceive(context: Context, intent: Intent) {
             handleMediaButtonIntent(intent)
+        }
+    }
+
+    inner class MetaData(var artist: String?, var title: String?)
+
+    inner class GetMetadataAsyncTask : AsyncTask<Void, Void, MetaData>() {
+        override fun doInBackground(vararg p0: Void?): MetaData {
+            val url = URL(Links.LINK_128)
+            val meta: IcyStreamMeta = IcyStreamMeta(url)
+            meta.refreshMeta()
+
+            return MetaData(meta.artist, meta.title)
+        }
+
+        override fun onPostExecute(result: MetaData?) {
+            super.onPostExecute(result)
+            mediaSession?.setMetadata(MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, result?.artist)
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, result?.title)
+                    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 10000)
+                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART,
+                            BitmapFactory.decodeResource(resources, R.drawable.logo_screen))
+                    .build())
+            buildNotification(notificationStatus)
         }
     }
 }

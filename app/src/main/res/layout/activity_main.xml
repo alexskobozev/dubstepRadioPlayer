@@ -1,24 +1,23 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".MainActivity">
 
+    <include layout="@layout/info_layout" />
 
-    <com.skyfishjy.library.RippleBackground
+
+    <RelativeLayout
         android:id="@+id/ripple_background"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:padding="16dp"
         app:layout_constraintBottom_toTopOf="@+id/tv_play"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:rb_color="@color/primary"
-        app:rb_duration="3000"
-        app:rb_radius="64dp"
-        app:rb_rippleAmount="4"
-        app:rb_scale="6">
+        app:layout_constraintTop_toTopOf="@id/info_layout"
+        >
 
         <ImageView
             android:id="@+id/iv_logo"
@@ -28,7 +27,7 @@
             android:layout_margin="36dp"
             android:contentDescription="@string/description"
             android:src="@drawable/img_logo" />
-    </com.skyfishjy.library.RippleBackground>
+    </RelativeLayout>
 
 
     <Button

@@ -15,7 +15,6 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import dagger.Module
 import okhttp3.OkHttpClient
-import java.lang.ref.WeakReference
 
 @Module
 class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
@@ -24,7 +23,7 @@ class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
     private val WAKE_LOCK = "mp_wakelock"
 
     var status: Int = UIStates.STATUS_UNDEFINED
-    var serviceCallback: WeakReference<CallbackInterface>? = null
+    var serviceCallback: CallbackInterface? = null
 
     private var currentUrl: CurrentUrl = CurrentUrl(context)
 
@@ -55,7 +54,7 @@ class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
     override fun onPlayerError(error: ExoPlaybackException?) {
         Tools.logDebug({ "exoPlayer: onPlayerError: error = $error" })
         status = UIStates.STATUS_ERROR
-        serviceCallback?.get()?.onError("Playback error: $error")
+        serviceCallback?.onError("Playback error: $error")
 
     }
 
@@ -103,10 +102,10 @@ class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
             UIStates.STATUS_PLAY -> {
                 mediaPlayer?.stop()
                 notifyStatusChanged(UIStates.STATUS_STOP)
-                audioManager?.abandonAudioFocus(getAfChangeListener())
+                audioManager?.abandonAudioFocus(afChangeListener)
             }
         }
-        releaseWakeLock()
+//        releaseWakeLock()
     }
 
     fun changeUrl(newUrl: String) {
@@ -116,19 +115,20 @@ class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
         }
     }
 
-    private fun getAfChangeListener(): AudioManager.OnAudioFocusChangeListener = AudioManager.OnAudioFocusChangeListener {
-        focusChange ->
-        when (focusChange) {
-            AudioManager.AUDIOFOCUS_LOSS,
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> if (mediaPlayer?.playbackState == ExoPlayer.STATE_READY) {
-                mediaPlayer?.stop()
-                notifyStatusChanged(UIStates.STATUS_STOP)
-            }
-            AudioManager.AUDIOFOCUS_GAIN -> if (status == UIStates.STATUS_WAITING) {
-                // TODO: maybe play, just decide
+    private val afChangeListener: AudioManager.OnAudioFocusChangeListener
+        get() = AudioManager.OnAudioFocusChangeListener {
+            focusChange ->
+            when (focusChange) {
+                AudioManager.AUDIOFOCUS_LOSS,
+                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> if (mediaPlayer?.playbackState == ExoPlayer.STATE_READY) {
+                    mediaPlayer?.stop()
+                    notifyStatusChanged(UIStates.STATUS_STOP)
+                }
+                AudioManager.AUDIOFOCUS_GAIN -> if (status == UIStates.STATUS_WAITING) {
+                    // TODO: maybe play, just decide
+                }
             }
         }
-    }
 
     private fun initWakeLock() {
 
@@ -143,7 +143,7 @@ class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
 
     private fun notifyStatusChanged(status: Int) {
         this.status = status
-        serviceCallback?.get()?.onChangeStatus(status)
+        serviceCallback?.onChangeStatus(status)
     }
 
 
@@ -155,10 +155,10 @@ class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
         mediaPlayer?.prepare(mediaSource)
 
         notifyStatusChanged(UIStates.STATUS_LOADING)
-        audioManager?.requestAudioFocus(getAfChangeListener(),
+        audioManager?.requestAudioFocus(afChangeListener,
                 AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
-        initWakeLock()
+//        initWakeLock()
     }
 
     interface CallbackInterface {
