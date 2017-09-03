@@ -11,8 +11,8 @@ android {
         applicationId "com.wishnewjam.dubstepfm"
         minSdkVersion 14
         targetSdkVersion 26
-        versionCode 10004
-        versionName "1.0.4"
+        versionCode 10200
+        versionName "1.2.0 beta"
     }
     buildTypes {
         release {

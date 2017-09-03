@@ -113,6 +113,7 @@ class MainService : MediaBrowserServiceCompat() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent == null) stopSelf()
         initHeadsetReceiver()
         MediaButtonReceiver.handleIntent(mediaSession, intent)
         registerReceiver(mNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
