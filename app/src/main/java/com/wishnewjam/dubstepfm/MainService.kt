@@ -7,7 +7,6 @@ import android.content.*
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.media.AudioManager
-import android.os.AsyncTask
 import android.os.Bundle
 import android.os.ResultReceiver
 import android.support.v4.media.MediaBrowserCompat
@@ -22,6 +21,9 @@ import android.view.KeyEvent
 import com.crashlytics.android.Crashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
 import io.fabric.sdk.android.Fabric
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import java.net.URL
 import javax.inject.Inject
 
@@ -143,7 +145,7 @@ class MainService : MediaBrowserServiceCompat() {
                         mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
                                 .setState(PlaybackStateCompat.STATE_PLAYING, 0, 0.0f)
                                 .setActions(PlaybackStateCompat.ACTION_STOP).build())
-                        GetMetadataAsyncTask().execute()
+                        getMetaData()
                     }
                     UIStates.STATUS_LOADING -> {
                         mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
@@ -238,6 +240,27 @@ class MainService : MediaBrowserServiceCompat() {
         return false
     }
 
+    private fun getMetaData() {
+        launch(Android) {
+            async(CommonPool) {
+                val url = URL(Links.LINK_128)
+                val meta = IcyStreamMeta(url)
+                meta.refreshMeta()
+                MetaData(meta.artist, meta.title)
+            }.await()
+                    .let { metaData ->
+                        mediaSession?.setMetadata(MediaMetadataCompat.Builder()
+                                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, metaData.artist)
+                                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, metaData.title)
+                                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 10000)
+                                .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART,
+                                        BitmapFactory.decodeResource(resources, R.drawable.logo_screen))
+                                .build())
+                        buildNotification(notificationStatus)
+                    }
+        }
+    }
+
     //TODO: check if we don't need that receiver in api below 21
     inner class MediaButtonIntentReceiver : BroadcastReceiver() {
 
@@ -247,26 +270,4 @@ class MainService : MediaBrowserServiceCompat() {
     }
 
     inner class MetaData(var artist: String?, var title: String?)
-
-    inner class GetMetadataAsyncTask : AsyncTask<Void, Void, MetaData>() {
-        override fun doInBackground(vararg p0: Void?): MetaData {
-            val url = URL(Links.LINK_128)
-            val meta: IcyStreamMeta = IcyStreamMeta(url)
-            meta.refreshMeta()
-
-            return MetaData(meta.artist, meta.title)
-        }
-
-        override fun onPostExecute(result: MetaData?) {
-            super.onPostExecute(result)
-            mediaSession?.setMetadata(MediaMetadataCompat.Builder()
-                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, result?.artist)
-                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, result?.title)
-                    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 10000)
-                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART,
-                            BitmapFactory.decodeResource(resources, R.drawable.logo_screen))
-                    .build())
-            buildNotification(notificationStatus)
-        }
-    }
 }
