@@ -125,7 +125,7 @@ class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
                     notifyStatusChanged(UIStates.STATUS_STOP)
                 }
                 AudioManager.AUDIOFOCUS_GAIN -> if (status == UIStates.STATUS_WAITING) {
-                    // TODO: maybe play, just decide
+                    callPlay()
                 }
             }
         }
