@@ -77,3 +77,14 @@
 # Don't warn about those in case this app is linking against an older
 # platform version.  We know about them, and they are safe.
 -dontwarn android.support.**
+
+-dontwarn kotlin.**
+
+-assumenosideeffects class kotlin.jvm.internal.Intrinsics {
+    static void checkParameterIsNotNull(java.lang.Object, java.lang.String);
+}
+
+-keepclassmembers class **$WhenMappings {
+    <fields>;
+}
+

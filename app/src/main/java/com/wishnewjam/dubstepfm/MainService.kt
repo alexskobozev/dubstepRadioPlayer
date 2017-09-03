@@ -74,7 +74,7 @@ class MainService : MediaBrowserServiceCompat() {
                     .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_STOP)
             it.setPlaybackState(stateBuilder.build())
 
-            val mediaButtonIntent: Intent = Intent(Intent.ACTION_MEDIA_BUTTON)
+            val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
             mediaButtonIntent.setClass(applicationContext, MediaButtonIntentReceiver::class.java)
             val mediaPendingIntent: PendingIntent = PendingIntent.getBroadcast(applicationContext, 0, mediaButtonIntent, 0)
             it.setMediaButtonReceiver(mediaPendingIntent)
@@ -124,9 +124,21 @@ class MainService : MediaBrowserServiceCompat() {
 
     override fun onDestroy() {
         super.onDestroy()
-        mMediaButtonReceiver?.let { unregisterReceiver(it) }
-        unregisterReceiver(mNoisyReceiver)
-        mediaSession?.release()
+        try {
+            mMediaButtonReceiver?.let { unregisterReceiver(it) }
+        } catch (e: Exception) {
+            Tools.logDebug { "Exception onDestroy: ${e.message}" }
+        }
+        try {
+            unregisterReceiver(mNoisyReceiver)
+        } catch (e: Exception) {
+            Tools.logDebug { "Exception onDestroy: ${e.message}" }
+        }
+        try {
+            mediaSession?.release()
+        } catch (e: Exception) {
+            Tools.logDebug { "Exception onDestroy: ${e.message}" }
+        }
     }
 
     private val mNoisyReceiver: BroadcastReceiver
@@ -222,21 +234,25 @@ class MainService : MediaBrowserServiceCompat() {
         if (Intent.ACTION_MEDIA_BUTTON != intentAction) {
             return false
         }
-        val event = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT) ?: return false
-        val action = event.action
-        if (action == KeyEvent.ACTION_DOWN) {
-            var status: Int? = null
-            if (event.keyCode == KeyEvent.KEYCODE_MEDIA_STOP) {
-                status = NOTIFICATION_STATUS_STOP
-                mediaPlayerInstance.callStop()
-                return true
-            } else if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
-                status = NOTIFICATION_STATUS_PLAY
-                mediaPlayerInstance.callPlay()
+        val event = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
+        if (event != null) {
+            val action = event.action
+            if (action == KeyEvent.ACTION_DOWN) {
+                var status: Int? = null
+                if (event.keyCode == KeyEvent.KEYCODE_MEDIA_STOP) {
+                    status = NOTIFICATION_STATUS_STOP
+                    mediaPlayerInstance.callStop()
+                } else if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
+                    status = NOTIFICATION_STATUS_PLAY
+                    mediaPlayerInstance.callPlay()
+                }
+                buildNotification(status)
                 return true
             }
-            buildNotification(status)
+        } else {
+
         }
+
         return false
     }
 

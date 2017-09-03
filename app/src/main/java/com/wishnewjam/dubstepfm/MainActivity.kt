@@ -2,6 +2,7 @@ package com.wishnewjam.dubstepfm
 
 import android.content.ComponentName
 import android.content.Intent
+import android.media.AudioManager
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
@@ -52,7 +53,7 @@ class MainActivity : AppCompatActivity() {
                 applyPlaybackState(controller.playbackState.state)
                 applyMetadata(controller.metadata)
             }
-
+            volumeControlStream = AudioManager.STREAM_MUSIC
             startService(Intent(this@MainActivity, MainService::class.java))
         }
 

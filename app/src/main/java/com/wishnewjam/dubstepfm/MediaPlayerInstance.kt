@@ -16,6 +16,7 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import dagger.Module
 import okhttp3.OkHttpClient
 
+
 @Module
 class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
 
@@ -40,6 +41,7 @@ class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
 
         wifiLock = (context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager)
                 .createWifiLock(WifiManager.WIFI_MODE_FULL, WAKE_LOCK)
+
     }
 
     override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
@@ -155,11 +157,13 @@ class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
         mediaPlayer?.prepare(mediaSource)
 
         notifyStatusChanged(UIStates.STATUS_LOADING)
+
         audioManager?.requestAudioFocus(afChangeListener,
                 AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
 //        initWakeLock()
     }
+
 
     interface CallbackInterface {
         fun onChangeStatus(status: Int)
