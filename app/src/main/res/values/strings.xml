@@ -20,5 +20,6 @@
     <string name="nothing_to_play">Tap "play" to play</string>
     <string name="now_playing">Now playing:</string>
     <string name="gathering_info">Gathering info…</string>
+    <string name="connecting">Trying to connect…</string>
 
 </resources>
