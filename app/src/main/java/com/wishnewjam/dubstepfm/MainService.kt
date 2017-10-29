@@ -49,8 +49,6 @@ class MainService : MediaBrowserServiceCompat() {
     private var notificationStatus = NOTIFICATION_STATUS_STOP
     private var errorPlayAttempts: Int = 0
 
-    private var mMediaButtonReceiver: MediaButtonIntentReceiver? = null
-
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
         result.sendResult(null)
     }
@@ -67,8 +65,7 @@ class MainService : MediaBrowserServiceCompat() {
         super.onCreate()
         Fabric.with(this, Crashlytics())
         MyApplication.graph.inject(this)
-        val receiver = ComponentName(packageName, MediaButtonIntentReceiver::class.java.name)
-        mediaSession = MediaSessionCompat(this, "PlayerService", receiver, null)
+        mediaSession = MediaSessionCompat(this, "PlayerService")
         mediaPlayerInstance.serviceCallback = mediaPlayerCallback
         mediaSession?.let {
             it.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
@@ -81,7 +78,6 @@ class MainService : MediaBrowserServiceCompat() {
             it.setPlaybackState(stateBuilder.build())
 
             val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
-            mediaButtonIntent.setClass(applicationContext, MediaButtonIntentReceiver::class.java)
             val mediaPendingIntent: PendingIntent = PendingIntent.getBroadcast(applicationContext, 0, mediaButtonIntent, 0)
             it.setMediaButtonReceiver(mediaPendingIntent)
             it.setCallback(object : MediaSessionCompat.Callback() {
@@ -122,12 +118,12 @@ class MainService : MediaBrowserServiceCompat() {
             })
             it.setSessionActivity(PendingIntent.getActivity(applicationContext, 0, Intent(applicationContext, MainActivity::class.java), 0))
             sessionToken = it.sessionToken
+            it.isActive = true
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent == null) stopSelf()
-        initHeadsetReceiver()
         MediaButtonReceiver.handleIntent(mediaSession, intent)
         registerReceiver(mNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
         return Service.START_STICKY
@@ -135,11 +131,6 @@ class MainService : MediaBrowserServiceCompat() {
 
     override fun onDestroy() {
         super.onDestroy()
-        try {
-            mMediaButtonReceiver?.let { unregisterReceiver(it) }
-        } catch (e: Exception) {
-            Tools.logDebug { "Exception onDestroy: ${e.message}" }
-        }
         try {
             unregisterReceiver(mNoisyReceiver)
         } catch (e: Exception) {
@@ -203,17 +194,6 @@ class MainService : MediaBrowserServiceCompat() {
             }
 
         }
-
-    private fun initHeadsetReceiver() {
-        if (mMediaButtonReceiver != null) {
-            unregisterReceiver(mMediaButtonReceiver)
-        }
-        mMediaButtonReceiver = MediaButtonIntentReceiver()
-        val mediaFilter = IntentFilter(Intent.ACTION_MEDIA_BUTTON)
-        mediaFilter.priority = IntentFilter.SYSTEM_HIGH_PRIORITY
-        registerReceiver(mMediaButtonReceiver, mediaFilter)
-
-    }
 
     private fun buildNotification(keyCode: Int?) {
         val controller = mediaSession?.controller
@@ -325,19 +305,6 @@ class MainService : MediaBrowserServiceCompat() {
                                 .build())
                         buildNotification(notificationStatus)
                     }
-        }
-    }
-
-    //TODO: check if we don't need that receiver in api below 21
-    inner class MediaButtonIntentReceiver : BroadcastReceiver() {
-
-        override fun onReceive(context: Context, intent: Intent?) {
-            val intentAction = intent?.action
-            if (Intent.ACTION_MEDIA_BUTTON != intentAction) {
-                return
-            }
-            val event: KeyEvent = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT)
-            handleMediaButtonIntent(event)
         }
     }
 

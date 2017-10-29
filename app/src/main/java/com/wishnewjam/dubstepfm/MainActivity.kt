@@ -97,21 +97,17 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        Fabric.with(this, Crashlytics())
         loadingIndicator = findViewById(R.id.ll_loading)
         statusIcon = findViewById(R.id.iv_status)
         loadingIndicatorSmall = findViewById(R.id.progressBar)
         nowPlayingTextView = findViewById(R.id.tv_nowplaying)
         mediaBrowser = MediaBrowserCompat(this, ComponentName(this, MainService::class.java), connectionCallback, null)
-        Fabric.with(this, Crashlytics())
     }
 
     override fun onStart() {
         super.onStart()
         mediaBrowser?.connect()
-    }
-
-    override fun onPause() {
-        super.onPause()
     }
 
     override fun onStop() {
