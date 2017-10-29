@@ -56,10 +56,10 @@ class MainService : MediaBrowserServiceCompat() {
     }
 
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
-        if (TextUtils.equals(clientPackageName, packageName)) {
-            return BrowserRoot(getString(R.string.app_name), null)
+        return if (TextUtils.equals(clientPackageName, packageName)) {
+            BrowserRoot(getString(R.string.app_name), null)
         } else {
-            return MediaBrowserServiceCompat.BrowserRoot("", null)
+            MediaBrowserServiceCompat.BrowserRoot("", null)
         }
     }
 
@@ -227,10 +227,7 @@ class MainService : MediaBrowserServiceCompat() {
                 .setContentTitle(description?.title)
                 .setContentText(description?.subtitle)
                 .setSubText(description?.description)
-                .setLargeIcon(description?.iconBitmap)
                 .setContentIntent(activity)
-                .setDeleteIntent(
-                        MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP))
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setColor(Color.BLACK)
@@ -239,6 +236,7 @@ class MainService : MediaBrowserServiceCompat() {
                         .setShowCancelButton(true)
                         .setCancelButtonIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP)))
 
+        val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         when (keyCode) {
             NOTIFICATION_STATUS_PLAY -> {
@@ -256,7 +254,8 @@ class MainService : MediaBrowserServiceCompat() {
             NOTIFICATION_STATUS_STOP -> {
                 mBuilder.addAction(R.drawable.ic_play, getString(R.string.play),
                         MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_PLAY))
-                startForeground(NOTIFICATION_ID, mBuilder.build())
+                mNotifyMgr.notify(NOTIFICATION_ID, mBuilder.build())
+                stopForeground(false)
             }
             NOTIFICATION_STATUS_LOADING -> {
                 mBuilder.setContentTitle(getString(R.string.loading))
@@ -268,13 +267,13 @@ class MainService : MediaBrowserServiceCompat() {
             NOTIFICATION_STATUS_ERROR -> {
                 mBuilder.addAction(R.drawable.ic_play, getString(R.string.play),
                         MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_PLAY))
-                startForeground(NOTIFICATION_ID, mBuilder.build())
+                mNotifyMgr.notify(NOTIFICATION_ID, mBuilder.build())
+                stopForeground(false)
 
             }
             else -> {
                 mBuilder.addAction(R.drawable.ic_play, getString(R.string.play),
                         MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_PLAY))
-                val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 mNotifyMgr.notify(NOTIFICATION_ID, mBuilder.build())
                 stopForeground(false)
             }
@@ -332,7 +331,7 @@ class MainService : MediaBrowserServiceCompat() {
     //TODO: check if we don't need that receiver in api below 21
     inner class MediaButtonIntentReceiver : BroadcastReceiver() {
 
-        override fun onReceive(context: Context, intent: Intent) {
+        override fun onReceive(context: Context, intent: Intent?) {
             val intentAction = intent?.action
             if (Intent.ACTION_MEDIA_BUTTON != intentAction) {
                 return
