@@ -3,10 +3,15 @@ package com.wishnewjam.dubstepfm
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.*
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.media.AudioManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.ResultReceiver
@@ -80,42 +85,7 @@ class MainService : MediaBrowserServiceCompat() {
             val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
             val mediaPendingIntent: PendingIntent = PendingIntent.getBroadcast(applicationContext, 0, mediaButtonIntent, 0)
             it.setMediaButtonReceiver(mediaPendingIntent)
-            it.setCallback(object : MediaSessionCompat.Callback() {
-                override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
-                    logDebug({ "mediaSessionCallback: onMediaButtonEvent $mediaButtonEvent extras ${mediaButtonEvent?.extras}" })
-                    val intentAction = mediaButtonEvent?.action
-                    if (Intent.ACTION_MEDIA_BUTTON != intentAction) {
-                        return false
-                    }
-                    val event: KeyEvent = mediaButtonEvent.getParcelableExtra(Intent.EXTRA_KEY_EVENT)
-                    return handleMediaButtonIntent(event)
-                }
-
-                override fun onCommand(command: String?, extras: Bundle?, cb: ResultReceiver?) {
-                    logDebug({ "mediaSessionCallback: onCommand $command" })
-                    super.onCommand(command, extras, cb)
-                }
-
-
-                override fun onStop() {
-                    super.onStop()
-                    logDebug({ "mediaSessionCallback: onStop" })
-                    mediaPlayerInstance.callStop()
-                    buildNotification(NOTIFICATION_STATUS_STOP)
-                }
-
-                override fun onPlay() {
-                    super.onPlay()
-                    logDebug({ "mediaSessionCallback: onPlay" })
-                    mediaPlayerInstance.callPlay()
-                    buildNotification(NOTIFICATION_STATUS_PLAY)
-                }
-
-                override fun onPause() {
-                    super.onPause()
-                    logDebug({ "mediaSessionCallback: onPause" })
-                }
-            })
+            it.setCallback(Callback())
             it.setSessionActivity(PendingIntent.getActivity(applicationContext, 0, Intent(applicationContext, MainActivity::class.java), 0))
             sessionToken = it.sessionToken
             it.isActive = true
@@ -195,6 +165,7 @@ class MainService : MediaBrowserServiceCompat() {
 
         }
 
+    @Suppress("DEPRECATION")
     private fun buildNotification(keyCode: Int?) {
         val controller = mediaSession?.controller
         val mediaMetadata = controller?.metadata
@@ -287,26 +258,77 @@ class MainService : MediaBrowserServiceCompat() {
         return false
     }
 
+    @Suppress("EXPERIMENTAL_FEATURE_WARNING")
     private fun getMetaData() {
         launch(Android) {
             async(CommonPool) {
                 val url = URL(Links.LINK_128)
                 val meta = IcyStreamMeta(url)
-                meta.refreshMeta()
+                try {
+                    meta.retrieveMetadata()
+                } catch (e: Exception) {
+                    logDebug { "exception while retrieving metadata" }
+                }
                 MetaData(meta.artist, meta.title)
             }.await()
                     .let { metaData ->
-                        mediaSession?.setMetadata(MediaMetadataCompat.Builder()
+                        val builder = MediaMetadataCompat.Builder()
                                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, metaData.artist)
                                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, metaData.title)
                                 .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 10000)
-                                .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART,
-                                        BitmapFactory.decodeResource(resources, R.drawable.logo_screen))
-                                .build())
+                        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+                            //sometimes it crashes in android 5.0
+                            var bitmap: Bitmap? = null
+                            try {
+                                bitmap = BitmapFactory.decodeResource(resources, R.drawable.logo_screen)
+                            } catch (e: Exception) {
+                                logDebug { "exception while decoding logo img" }
+                            }
+                            bitmap?.let { builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap) }
+                        }
+                        val metadataCompat = builder.build()
+                        mediaSession?.setMetadata(metadataCompat)
                         buildNotification(notificationStatus)
                     }
         }
     }
 
     inner class MetaData(var artist: String?, var title: String?)
+
+    inner class Callback : MediaSessionCompat.Callback() {
+        override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
+            logDebug({ "mediaSessionCallback: onMediaButtonEvent $mediaButtonEvent extras ${mediaButtonEvent?.extras}" })
+            val intentAction = mediaButtonEvent?.action
+            if (Intent.ACTION_MEDIA_BUTTON != intentAction) {
+                return false
+            }
+            val event: KeyEvent = mediaButtonEvent.getParcelableExtra(Intent.EXTRA_KEY_EVENT)
+            return handleMediaButtonIntent(event)
+        }
+
+        override fun onCommand(command: String?, extras: Bundle?, cb: ResultReceiver?) {
+            logDebug({ "mediaSessionCallback: onCommand $command" })
+            super.onCommand(command, extras, cb)
+        }
+
+
+        override fun onStop() {
+            super.onStop()
+            logDebug({ "mediaSessionCallback: onStop" })
+            mediaPlayerInstance.callStop()
+            buildNotification(NOTIFICATION_STATUS_STOP)
+        }
+
+        override fun onPlay() {
+            super.onPlay()
+            logDebug({ "mediaSessionCallback: onPlay" })
+            mediaPlayerInstance.callPlay()
+            buildNotification(NOTIFICATION_STATUS_PLAY)
+        }
+
+        override fun onPause() {
+            super.onPause()
+            logDebug({ "mediaSessionCallback: onPause" })
+        }
+    }
 }

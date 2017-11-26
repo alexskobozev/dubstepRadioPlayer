@@ -17,9 +17,9 @@
     <string name="error">Radio error</string>
     <string name="loading">Loading…</string>
     <string name="pause">pause</string>
-    <string name="nothing_to_play">TAP PLAY TO WUB THE HELL OUT</string>
+    <string name="nothing_to_play">TAP PLAY TO WUB</string>
     <string name="now_playing">Now playing:</string>
-    <string name="gathering_info">Gathering info…</string>
+    <string name="gathering_info">Collecting info…</string>
     <string name="connecting">Trying to connect…</string>
 
 </resources>

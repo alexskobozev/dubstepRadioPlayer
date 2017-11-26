@@ -18,7 +18,7 @@ import okhttp3.OkHttpClient
 
 
 @Module
-class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
+class MediaPlayerInstance(context: Context) : Player.EventListener {
 
     private val USER_AGENT: String = "dubstep.fm"
     private val WAKE_LOCK = "mp_wakelock"
@@ -44,6 +44,10 @@ class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
 
     }
 
+    override fun onRepeatModeChanged(repeatMode: Int) {
+        Tools.logDebug({ "exoPlayer: onRepeatModeChanged: $repeatMode" })
+    }
+
     override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
         Tools.logDebug({ "exoPlayer: onPlaybackParametersChanged: $playbackParameters" })
     }
@@ -62,9 +66,9 @@ class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
 
     override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
         when (playbackState) {
-            ExoPlayer.STATE_BUFFERING -> notifyStatusChanged(UIStates.STATUS_LOADING)
-            ExoPlayer.STATE_READY -> if (playWhenReady) notifyStatusChanged(UIStates.STATUS_PLAY)
-            ExoPlayer.STATE_ENDED -> notifyStatusChanged(UIStates.STATUS_STOP)
+            Player.STATE_BUFFERING -> notifyStatusChanged(UIStates.STATUS_LOADING)
+            Player.STATE_READY -> if (playWhenReady) notifyStatusChanged(UIStates.STATUS_PLAY)
+            Player.STATE_ENDED -> notifyStatusChanged(UIStates.STATUS_STOP)
         }
         Tools.logDebug({ "exoPlayer: onPlayerStateChanged: playWhenReady = $playWhenReady, playbackState = $playbackState " })
     }
@@ -122,7 +126,7 @@ class MediaPlayerInstance(context: Context) : ExoPlayer.EventListener {
             focusChange ->
             when (focusChange) {
                 AudioManager.AUDIOFOCUS_LOSS,
-                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> if (mediaPlayer?.playbackState == ExoPlayer.STATE_READY) {
+                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> if (mediaPlayer?.playbackState == Player.STATE_READY) {
                     mediaPlayer?.stop()
                     notifyStatusChanged(UIStates.STATUS_STOP)
                 }
