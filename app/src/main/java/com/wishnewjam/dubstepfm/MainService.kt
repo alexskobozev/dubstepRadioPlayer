@@ -1,5 +1,6 @@
 package com.wishnewjam.dubstepfm
 
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
@@ -15,13 +16,13 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.ResultReceiver
+import android.support.v4.app.NotificationCompat
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserServiceCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaButtonReceiver
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.support.v7.app.NotificationCompat
 import android.text.TextUtils
 import android.view.KeyEvent
 import com.crashlytics.android.Crashlytics
@@ -165,7 +166,6 @@ class MainService : MediaBrowserServiceCompat() {
 
         }
 
-    @Suppress("DEPRECATION")
     private fun buildNotification(keyCode: Int?) {
         val controller = mediaSession?.controller
         val mediaMetadata = controller?.metadata
@@ -173,7 +173,7 @@ class MainService : MediaBrowserServiceCompat() {
         val activity = controller?.sessionActivity
         notificationStatus = keyCode ?: NOTIFICATION_STATUS_STOP
 
-        val mBuilder = NotificationCompat.Builder(applicationContext)
+        val mBuilder = NotificationCompat.Builder(applicationContext, "default")
         mBuilder
                 .setContentTitle(description?.title)
                 .setContentText(description?.subtitle)
@@ -182,13 +182,13 @@ class MainService : MediaBrowserServiceCompat() {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setColor(Color.BLACK)
-                .setStyle(NotificationCompat.MediaStyle().setShowActionsInCompactView(0)
+                .setStyle(android.support.v4.media.app.NotificationCompat.MediaStyle().setShowActionsInCompactView(0)
                         .setMediaSession(mediaSession?.sessionToken)
                         .setShowCancelButton(true)
                         .setCancelButtonIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP)))
 
         val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
+        initChannels(mNotifyMgr)
         when (keyCode) {
             NOTIFICATION_STATUS_PLAY -> {
                 mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop),
@@ -229,6 +229,14 @@ class MainService : MediaBrowserServiceCompat() {
                 stopForeground(false)
             }
         }
+    }
+
+    private fun initChannels(notificationManager: NotificationManager) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return
+        }
+        val channel = NotificationChannel("default", "DUBSTEP.FM", NotificationManager.IMPORTANCE_DEFAULT)
+        notificationManager.createNotificationChannel(channel)
     }
 
     private fun handleMediaButtonIntent(event: KeyEvent?): Boolean {

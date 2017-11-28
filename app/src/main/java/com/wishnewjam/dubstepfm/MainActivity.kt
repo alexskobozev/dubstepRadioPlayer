@@ -83,7 +83,8 @@ class MainActivity : AppCompatActivity() {
         val mediaController = MediaControllerCompat.getMediaController(this)
 
         playButton?.setOnClickListener({
-            nowPlayingTextView?.setText(R.string.gathering_info)
+            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING)
+                nowPlayingTextView?.setText(R.string.gathering_info)
             mediaController.transportControls.play()
         })
 
