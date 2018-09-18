@@ -9,7 +9,6 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -18,12 +17,9 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.crashlytics.android.Crashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
-import io.fabric.sdk.android.Fabric
-
-
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -45,7 +41,6 @@ class MainActivity : AppCompatActivity() {
             applyMetadata(metadata)
         }
     }
-
 
     private val connectionCallback: MediaBrowserCompat.ConnectionCallback? = object : MediaBrowserCompat.ConnectionCallback() {
         override fun onConnected() {
@@ -89,6 +84,7 @@ class MainActivity : AppCompatActivity() {
         val mediaController = MediaControllerCompat.getMediaController(this)
 
         playButton?.setOnClickListener {
+            Crashlytics.getInstance().crash()
             if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) nowPlayingTextView?.setText(R.string.gathering_info)
             mediaController.transportControls.play()
         }
@@ -102,7 +98,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Fabric.with(this, Crashlytics())
+
+//        Fabric.with(this, Crashlytics())  TODO: enable
         setContentView(R.layout.activity_main)
         loadingIndicator = findViewById(R.id.ll_loading)
         statusIcon = findViewById(R.id.iv_status)
@@ -134,16 +131,16 @@ class MainActivity : AppCompatActivity() {
                 showBitrateChooser()
                 true
             }
-            else -> super.onOptionsItemSelected(item)
+            else                -> super.onOptionsItemSelected(item)
         }
     }
 
     private fun applyPlaybackState(state: Int?) {
         when (state) {
-            PlaybackStateCompat.STATE_PLAYING -> showPlaying()
+            PlaybackStateCompat.STATE_PLAYING   -> showPlaying()
             PlaybackStateCompat.STATE_BUFFERING -> showLoading()
-            PlaybackStateCompat.STATE_ERROR -> showError()
-            else -> showStopped()
+            PlaybackStateCompat.STATE_ERROR     -> showError()
+            else                                -> showStopped()
         }
     }
 

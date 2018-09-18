@@ -3,8 +3,8 @@ package com.wishnewjam.dubstepfm
 import android.graphics.Color
 import android.os.Bundle
 import android.preference.PreferenceManager
-import android.support.v4.app.DialogFragment
-import android.support.v4.content.res.ResourcesCompat
+import androidx.fragment.app.DialogFragment
+import androidx.core.content.res.ResourcesCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +12,7 @@ import android.widget.TextView
 import javax.inject.Inject
 
 
-class ChooseBitrateDialogFragment : DialogFragment(), View.OnClickListener {
+class ChooseBitrateDialogFragment : androidx.fragment.app.DialogFragment(), View.OnClickListener {
 
     @Inject
     lateinit var mediaPlayerInstance: MediaPlayerInstance

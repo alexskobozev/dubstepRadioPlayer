@@ -16,18 +16,15 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.ResultReceiver
-import android.support.v4.app.NotificationCompat
 import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaBrowserServiceCompat
 import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaButtonReceiver
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.text.TextUtils
 import android.view.KeyEvent
-import com.crashlytics.android.Crashlytics
+import androidx.core.app.NotificationCompat
+import androidx.media.MediaBrowserServiceCompat
 import com.wishnewjam.dubstepfm.Tools.logDebug
-import io.fabric.sdk.android.Fabric
 import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.async
@@ -70,7 +67,7 @@ class MainService : MediaBrowserServiceCompat() {
 
     override fun onCreate() {
         super.onCreate()
-        Fabric.with(this, Crashlytics())
+//        Fabric.with(this, Crashlytics())  TODO: enable
         MyApplication.graph.inject(this)
         mediaSession = MediaSessionCompat(this, "PlayerService")
         mediaPlayerInstance.serviceCallback = mediaPlayerCallback
@@ -92,7 +89,7 @@ class MainService : MediaBrowserServiceCompat() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent == null) stopSelf()
-        MediaButtonReceiver.handleIntent(mediaSession, intent)
+        androidx.media.session.MediaButtonReceiver.handleIntent(mediaSession, intent)
         registerReceiver(mNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
         return Service.START_STICKY
     }
@@ -164,40 +161,40 @@ class MainService : MediaBrowserServiceCompat() {
         notificationStatus = keyCode ?: NOTIFICATION_STATUS_STOP
 
         val mBuilder = NotificationCompat.Builder(applicationContext, "default")
-        mBuilder.setContentTitle(description?.title).setContentText(description?.subtitle).setSubText(description?.description).setContentIntent(activity).setVisibility(NotificationCompat.VISIBILITY_PUBLIC).setSmallIcon(R.drawable.ic_notification).setColor(Color.BLACK).setStyle(android.support.v4.media.app.NotificationCompat.MediaStyle().setShowActionsInCompactView(0).setMediaSession(mediaSession?.sessionToken).setShowCancelButton(true).setCancelButtonIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP)))
+        mBuilder.setContentTitle(description?.title).setContentText(description?.subtitle).setSubText(description?.description).setContentIntent(activity).setVisibility(NotificationCompat.VISIBILITY_PUBLIC).setSmallIcon(R.drawable.ic_notification).setColor(Color.BLACK).setStyle(androidx.media.app.NotificationCompat.MediaStyle().setShowActionsInCompactView(0).setMediaSession(mediaSession?.sessionToken).setShowCancelButton(true).setCancelButtonIntent(androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP)))
 
         val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         initChannels(mNotifyMgr)
         when (keyCode) {
             NOTIFICATION_STATUS_PLAY       -> {
-                mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop), MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP))
+                mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop), androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP))
                 startForeground(NOTIFICATION_ID, mBuilder.build())
             }
             NOTIFICATION_STATUS_CONNECTING -> {
                 mBuilder.setContentTitle(getString(R.string.connecting))
                 mBuilder.setContentText("")
-                mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop), MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP))
+                mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop), androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP))
                 startForeground(NOTIFICATION_ID, mBuilder.build())
             }
             NOTIFICATION_STATUS_STOP       -> {
-                mBuilder.addAction(R.drawable.ic_play, getString(R.string.play), MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_PLAY))
+                mBuilder.addAction(R.drawable.ic_play, getString(R.string.play), androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_PLAY))
                 mNotifyMgr.notify(NOTIFICATION_ID, mBuilder.build())
                 stopForeground(false)
             }
             NOTIFICATION_STATUS_LOADING    -> {
                 mBuilder.setContentTitle(getString(R.string.loading))
                 mBuilder.setContentText("")
-                mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop), MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP))
+                mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop), androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP))
                 startForeground(NOTIFICATION_ID, mBuilder.build())
             }
             NOTIFICATION_STATUS_ERROR      -> {
-                mBuilder.addAction(R.drawable.ic_play, getString(R.string.play), MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_PLAY))
+                mBuilder.addAction(R.drawable.ic_play, getString(R.string.play), androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_PLAY))
                 mNotifyMgr.notify(NOTIFICATION_ID, mBuilder.build())
                 stopForeground(false)
 
             }
             else                           -> {
-                mBuilder.addAction(R.drawable.ic_play, getString(R.string.play), MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_PLAY))
+                mBuilder.addAction(R.drawable.ic_play, getString(R.string.play), androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_PLAY))
                 mNotifyMgr.notify(NOTIFICATION_ID, mBuilder.build())
                 stopForeground(false)
             }
