@@ -2,27 +2,26 @@ package com.wishnewjam.dubstepfm
 
 import android.content.Context
 import android.media.AudioManager
-import android.net.Uri
 import android.net.wifi.WifiManager
+import androidx.core.net.toUri
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ExoPlayerFactory
 import com.google.android.exoplayer2.PlaybackParameters
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.Timeline
-import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSourceFactory
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ExtractorMediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.util.Util
 import dagger.Module
-import okhttp3.OkHttpClient
 
 @Module
-class MediaPlayerInstance(context: Context) : Player.EventListener {
+class MediaPlayerInstance(val context: Context) : Player.EventListener {
     companion object {
         private const val USER_AGENT: String = "dubstep.fm"
         private const val WAKE_LOCK = "mp_wakelock"
@@ -152,8 +151,10 @@ class MediaPlayerInstance(context: Context) : Player.EventListener {
     }
 
     private fun play() {
-        val source = Uri.parse(currentUrl.currentUrl)
-        val mediaSource = ExtractorMediaSource(source, OkHttpDataSourceFactory(OkHttpClient(), USER_AGENT, null), DefaultExtractorsFactory(), null, null)
+        val source = currentUrl.currentUrl.toUri()
+        val dataSourceFactory = DefaultDataSourceFactory(context, Util.getUserAgent(context, USER_AGENT))
+        val mediaSourceFactory = ExtractorMediaSource.Factory(dataSourceFactory)
+        val mediaSource = mediaSourceFactory.createMediaSource(source)
         mediaPlayer?.playWhenReady = true
         mediaPlayer?.prepare(mediaSource)
 
