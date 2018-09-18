@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
     private val controllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             super.onPlaybackStateChanged(state)
-            logDebug({ "controllerCallback: onPlaybackStateChanged, state= ${state?.state}" })
+            logDebug { "controllerCallback: onPlaybackStateChanged, state= ${state?.state}" }
             applyPlaybackState(state?.state)
         }
 
@@ -84,15 +84,14 @@ class MainActivity : AppCompatActivity() {
         val stopButton: Button? = findViewById(R.id.tv_stop)
         val mediaController = MediaControllerCompat.getMediaController(this)
 
-        playButton?.setOnClickListener({
-            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING)
-                nowPlayingTextView?.setText(R.string.gathering_info)
+        playButton?.setOnClickListener {
+            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) nowPlayingTextView?.setText(R.string.gathering_info)
             mediaController.transportControls.play()
-        })
+        }
 
-        stopButton?.setOnClickListener({
+        stopButton?.setOnClickListener {
             mediaController.transportControls.stop()
-        })
+        }
 
         mediaController.registerCallback(controllerCallback)
     }

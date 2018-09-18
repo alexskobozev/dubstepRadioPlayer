@@ -36,5 +36,8 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-core:2.8.4'
     implementation 'com.google.android.exoplayer:extension-okhttp:2.8.4'
 
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.1'
+    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.1'
+
     implementation 'com.wang.avi:library:2.1.3'
 }

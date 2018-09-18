@@ -26,7 +26,8 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.text.TextUtils
 import android.view.KeyEvent
 import com.wishnewjam.dubstepfm.Tools.logDebug
-import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import java.net.URL
@@ -35,16 +36,16 @@ import javax.inject.Inject
 class MainService : MediaBrowserServiceCompat() {
 
     companion object {
-        private val NOTIFICATION_ID = 43432
-        val SP_KEY_BITRATE = "link"
-        val MAX_ERROR_ATTEMPTS = 10
-    }
+        private const val NOTIFICATION_ID = 43432
+        const val SP_KEY_BITRATE = "link"
+        const val MAX_ERROR_ATTEMPTS = 10
 
-    val NOTIFICATION_STATUS_PLAY = 1
-    val NOTIFICATION_STATUS_STOP = 0
-    val NOTIFICATION_STATUS_CONNECTING = 2
-    val NOTIFICATION_STATUS_LOADING = 3
-    val NOTIFICATION_STATUS_ERROR = 4
+        const val NOTIFICATION_STATUS_PLAY = 1
+        const val NOTIFICATION_STATUS_STOP = 0
+        const val NOTIFICATION_STATUS_CONNECTING = 2
+        const val NOTIFICATION_STATUS_LOADING = 3
+        const val NOTIFICATION_STATUS_ERROR = 4
+    }
 
     @Inject
     lateinit var mediaPlayerInstance: MediaPlayerInstance
@@ -240,8 +241,8 @@ class MainService : MediaBrowserServiceCompat() {
 
     @Suppress("EXPERIMENTAL_FEATURE_WARNING")
     private fun getMetaData() {
-        launch(Android) {
-            async(CommonPool) {
+        GlobalScope.launch(Android) {
+            async(Dispatchers.Default) {
                 val url = URL(Links.LINK_128)
                 val meta = IcyStreamMeta(url)
                 try {
@@ -275,7 +276,7 @@ class MainService : MediaBrowserServiceCompat() {
 
     inner class Callback : MediaSessionCompat.Callback() {
         override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
-            logDebug({ "mediaSessionCallback: onMediaButtonEvent $mediaButtonEvent extras ${mediaButtonEvent?.extras}" })
+            logDebug { "mediaSessionCallback: onMediaButtonEvent $mediaButtonEvent extras ${mediaButtonEvent?.extras}" }
             val intentAction = mediaButtonEvent?.action
             if (Intent.ACTION_MEDIA_BUTTON != intentAction) {
                 return false
@@ -285,27 +286,27 @@ class MainService : MediaBrowserServiceCompat() {
         }
 
         override fun onCommand(command: String?, extras: Bundle?, cb: ResultReceiver?) {
-            logDebug({ "mediaSessionCallback: onCommand $command" })
+            logDebug { "mediaSessionCallback: onCommand $command" }
             super.onCommand(command, extras, cb)
         }
 
         override fun onStop() {
             super.onStop()
-            logDebug({ "mediaSessionCallback: onStop" })
+            logDebug { "mediaSessionCallback: onStop" }
             mediaPlayerInstance.callStop()
             buildNotification(NOTIFICATION_STATUS_STOP)
         }
 
         override fun onPlay() {
             super.onPlay()
-            logDebug({ "mediaSessionCallback: onPlay" })
+            logDebug { "mediaSessionCallback: onPlay" }
             mediaPlayerInstance.callPlay()
             buildNotification(NOTIFICATION_STATUS_PLAY)
         }
 
         override fun onPause() {
             super.onPause()
-            logDebug({ "mediaSessionCallback: onPause" })
+            logDebug { "mediaSessionCallback: onPause" }
         }
     }
 }

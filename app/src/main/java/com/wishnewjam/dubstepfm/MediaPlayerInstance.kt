@@ -23,8 +23,10 @@ import okhttp3.OkHttpClient
 
 @Module
 class MediaPlayerInstance(context: Context) : Player.EventListener {
-    private val USER_AGENT: String = "dubstep.fm"
-    private val WAKE_LOCK = "mp_wakelock"
+    companion object {
+        private const val USER_AGENT: String = "dubstep.fm"
+        private const val WAKE_LOCK = "mp_wakelock"
+    }
 
     var status: Int = UIStates.STATUS_UNDEFINED
     var serviceCallback: CallbackInterface? = null
@@ -47,20 +49,20 @@ class MediaPlayerInstance(context: Context) : Player.EventListener {
     }
 
     override fun onRepeatModeChanged(repeatMode: Int) {
-        Tools.logDebug({ "exoPlayer: onRepeatModeChanged: $repeatMode" })
+        Tools.logDebug { "exoPlayer: onRepeatModeChanged: $repeatMode" }
     }
 
     override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
-        Tools.logDebug({ "exoPlayer: onPlaybackParametersChanged: $playbackParameters" })
+        Tools.logDebug { "exoPlayer: onPlaybackParametersChanged: $playbackParameters" }
     }
 
     override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
-        Tools.logDebug({ "exoPlayer: onTracksChanged: trackGroups = $trackGroups, trackSelections = $trackSelections" })
+        Tools.logDebug { "exoPlayer: onTracksChanged: trackGroups = $trackGroups, trackSelections = $trackSelections" }
 
     }
 
     override fun onPlayerError(error: ExoPlaybackException?) {
-        Tools.logDebug({ "exoPlayer: onPlayerError: error = $error" })
+        Tools.logDebug { "exoPlayer: onPlayerError: error = $error" }
         status = UIStates.STATUS_ERROR
         serviceCallback?.onError("Playback error: $error")
 
@@ -72,31 +74,31 @@ class MediaPlayerInstance(context: Context) : Player.EventListener {
             Player.STATE_READY     -> if (playWhenReady) notifyStatusChanged(UIStates.STATUS_PLAY)
             Player.STATE_ENDED     -> notifyStatusChanged(UIStates.STATUS_STOP)
         }
-        Tools.logDebug({ "exoPlayer: onPlayerStateChanged: playWhenReady = $playWhenReady, playbackState = $playbackState " })
+        Tools.logDebug { "exoPlayer: onPlayerStateChanged: playWhenReady = $playWhenReady, playbackState = $playbackState " }
     }
 
     override fun onLoadingChanged(isLoading: Boolean) {
-        Tools.logDebug({ "exoPlayer: onLoadingChanged: isLoading = $isLoading" })
+        Tools.logDebug { "exoPlayer: onLoadingChanged: isLoading = $isLoading" }
     }
 
     override fun onPositionDiscontinuity(reason: Int) {
-        Tools.logDebug({ "exoPlayer: onPositionDiscontinuity" })
+        Tools.logDebug { "exoPlayer: onPositionDiscontinuity" }
     }
 
     override fun onTimelineChanged(timeline: Timeline?, manifest: Any?, reason: Int) {
-        Tools.logDebug({ "exoPlayer: onTimelineChanged: timeline = $timeline, manifest = $manifest" })
+        Tools.logDebug { "exoPlayer: onTimelineChanged: timeline = $timeline, manifest = $manifest" }
     }
 
     override fun onSeekProcessed() {
-        Tools.logDebug({ "exoPlayer: onSeekProcessed" })
+        Tools.logDebug { "exoPlayer: onSeekProcessed" }
     }
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-        Tools.logDebug({ "exoPlayer: shuffleModeEnabled" })
+        Tools.logDebug { "exoPlayer: shuffleModeEnabled" }
     }
 
     fun callPlay() {
-        Tools.logDebug({ "Call play, status: $status" })
+        Tools.logDebug { "Call play, status: $status" }
         when (status) {
 
             UIStates.STATUS_PLAY    -> {
