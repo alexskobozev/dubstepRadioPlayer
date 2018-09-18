@@ -13,10 +13,12 @@ import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.*
-import com.crashlytics.android.Crashlytics
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
 import com.wishnewjam.dubstepfm.Tools.logDebug
-import io.fabric.sdk.android.Fabric
 
 
 class MainActivity : AppCompatActivity() {
@@ -98,7 +100,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        Fabric.with(this, Crashlytics())
         loadingIndicator = findViewById(R.id.ll_loading)
         statusIcon = findViewById(R.id.iv_status)
         loadingIndicatorSmall = findViewById(R.id.progressBar)

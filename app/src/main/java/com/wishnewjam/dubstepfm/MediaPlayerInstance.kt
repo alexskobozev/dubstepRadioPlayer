@@ -4,7 +4,12 @@ import android.content.Context
 import android.media.AudioManager
 import android.net.Uri
 import android.net.wifi.WifiManager
-import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.ExoPlaybackException
+import com.google.android.exoplayer2.ExoPlayerFactory
+import com.google.android.exoplayer2.PlaybackParameters
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.Timeline
 import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSourceFactory
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ExtractorMediaSource
@@ -16,10 +21,8 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import dagger.Module
 import okhttp3.OkHttpClient
 
-
 @Module
 class MediaPlayerInstance(context: Context) : Player.EventListener {
-
     private val USER_AGENT: String = "dubstep.fm"
     private val WAKE_LOCK = "mp_wakelock"
 
@@ -39,8 +42,7 @@ class MediaPlayerInstance(context: Context) : Player.EventListener {
         mediaPlayer = ExoPlayerFactory.newSimpleInstance(context, trackSelector)
         mediaPlayer?.addListener(this)
 
-        wifiLock = (context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager)
-                .createWifiLock(WifiManager.WIFI_MODE_FULL, WAKE_LOCK)
+        wifiLock = (context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager).createWifiLock(WifiManager.WIFI_MODE_FULL, WAKE_LOCK)
 
     }
 
@@ -67,8 +69,8 @@ class MediaPlayerInstance(context: Context) : Player.EventListener {
     override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
         when (playbackState) {
             Player.STATE_BUFFERING -> notifyStatusChanged(UIStates.STATUS_LOADING)
-            Player.STATE_READY -> if (playWhenReady) notifyStatusChanged(UIStates.STATUS_PLAY)
-            Player.STATE_ENDED -> notifyStatusChanged(UIStates.STATUS_STOP)
+            Player.STATE_READY     -> if (playWhenReady) notifyStatusChanged(UIStates.STATUS_PLAY)
+            Player.STATE_ENDED     -> notifyStatusChanged(UIStates.STATUS_STOP)
         }
         Tools.logDebug({ "exoPlayer: onPlayerStateChanged: playWhenReady = $playWhenReady, playbackState = $playbackState " })
     }
@@ -77,19 +79,27 @@ class MediaPlayerInstance(context: Context) : Player.EventListener {
         Tools.logDebug({ "exoPlayer: onLoadingChanged: isLoading = $isLoading" })
     }
 
-    override fun onPositionDiscontinuity() {
+    override fun onPositionDiscontinuity(reason: Int) {
         Tools.logDebug({ "exoPlayer: onPositionDiscontinuity" })
     }
 
-    override fun onTimelineChanged(timeline: Timeline?, manifest: Any?) {
+    override fun onTimelineChanged(timeline: Timeline?, manifest: Any?, reason: Int) {
         Tools.logDebug({ "exoPlayer: onTimelineChanged: timeline = $timeline, manifest = $manifest" })
+    }
+
+    override fun onSeekProcessed() {
+        Tools.logDebug({ "exoPlayer: onSeekProcessed" })
+    }
+
+    override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+        Tools.logDebug({ "exoPlayer: shuffleModeEnabled" })
     }
 
     fun callPlay() {
         Tools.logDebug({ "Call play, status: $status" })
         when (status) {
 
-            UIStates.STATUS_PLAY -> {
+            UIStates.STATUS_PLAY    -> {
                 // do nothing
             }
 
@@ -97,7 +107,7 @@ class MediaPlayerInstance(context: Context) : Player.EventListener {
                 // do nothing
             }
 
-            else -> {
+            else                    -> {
                 play()
             }
         }
@@ -122,15 +132,13 @@ class MediaPlayerInstance(context: Context) : Player.EventListener {
     }
 
     private val afChangeListener: AudioManager.OnAudioFocusChangeListener
-        get() = AudioManager.OnAudioFocusChangeListener {
-            focusChange ->
+        get() = AudioManager.OnAudioFocusChangeListener { focusChange ->
             when (focusChange) {
-                AudioManager.AUDIOFOCUS_LOSS,
-                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> if (mediaPlayer?.playbackState == Player.STATE_READY) {
+                AudioManager.AUDIOFOCUS_LOSS, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> if (mediaPlayer?.playbackState == Player.STATE_READY) {
                     mediaPlayer?.stop()
                     notifyStatusChanged(UIStates.STATUS_STOP)
                 }
-                AudioManager.AUDIOFOCUS_GAIN -> if (status == UIStates.STATUS_WAITING) {
+                AudioManager.AUDIOFOCUS_GAIN                                         -> if (status == UIStates.STATUS_WAITING) {
                     callPlay()
                 }
             }
@@ -152,22 +160,17 @@ class MediaPlayerInstance(context: Context) : Player.EventListener {
         serviceCallback?.onChangeStatus(status)
     }
 
-
     private fun play() {
         val source = Uri.parse(currentUrl.currentUrl)
-        val mediaSource = ExtractorMediaSource(source,
-                OkHttpDataSourceFactory(OkHttpClient(), USER_AGENT, null), DefaultExtractorsFactory(), null, null)
+        val mediaSource = ExtractorMediaSource(source, OkHttpDataSourceFactory(OkHttpClient(), USER_AGENT, null), DefaultExtractorsFactory(), null, null)
         mediaPlayer?.playWhenReady = true
         mediaPlayer?.prepare(mediaSource)
 
         notifyStatusChanged(UIStates.STATUS_LOADING)
 
-        audioManager?.requestAudioFocus(afChangeListener,
-                AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+        audioManager?.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
 //        initWakeLock()
     }
-
 
     interface CallbackInterface {
         fun onChangeStatus(status: Int)

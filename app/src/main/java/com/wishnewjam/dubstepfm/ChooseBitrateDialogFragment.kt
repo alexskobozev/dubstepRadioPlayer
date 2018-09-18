@@ -19,10 +19,9 @@ class ChooseBitrateDialogFragment : DialogFragment(), View.OnClickListener {
 
     private var items: ArrayList<TextView> = ArrayList()
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         MyApplication.graph.inject(this)
-        val v = inflater!!.inflate(R.layout.dialogfragment_bitrate, container, false)
+        val v = inflater.inflate(R.layout.dialogfragment_bitrate, container, false)
         items = arrayListOf(v.findViewById(R.id.tv_bitrate_24),
                 v.findViewById(R.id.tv_bitrate_64),
                 v.findViewById(R.id.tv_bitrate_128),
