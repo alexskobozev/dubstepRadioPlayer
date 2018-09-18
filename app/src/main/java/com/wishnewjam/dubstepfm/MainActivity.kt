@@ -18,7 +18,6 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.crashlytics.android.Crashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
 
 class MainActivity : AppCompatActivity() {
@@ -84,7 +83,6 @@ class MainActivity : AppCompatActivity() {
         val mediaController = MediaControllerCompat.getMediaController(this)
 
         playButton?.setOnClickListener {
-            Crashlytics.getInstance().crash()
             if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) nowPlayingTextView?.setText(R.string.gathering_info)
             mediaController.transportControls.play()
         }
