@@ -1,8 +1,12 @@
 package com.wishnewjam.dubstepfm
 
 import android.content.Context
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.net.wifi.WifiManager
+import android.os.Build
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ExoPlayerFactory
@@ -29,10 +33,11 @@ class MediaPlayerInstance(val context: Context) : Player.EventListener {
 
     var status: Int = UIStates.STATUS_UNDEFINED
     var serviceCallback: CallbackInterface? = null
-
     private var currentUrl: CurrentUrl = CurrentUrl(context)
 
-    private var audioManager: AudioManager? = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    private var audioManager: AudioManager? = ContextCompat.getSystemService(context, AudioManager::class.java)
+
+    private var focusRequest: AudioFocusRequest? = null
     private var wifiLock: WifiManager.WifiLock?
     private var mediaPlayer: SimpleExoPlayer?
 
@@ -119,10 +124,14 @@ class MediaPlayerInstance(val context: Context) : Player.EventListener {
             UIStates.STATUS_PLAY -> {
                 mediaPlayer?.stop()
                 notifyStatusChanged(UIStates.STATUS_STOP)
-                audioManager?.abandonAudioFocus(afChangeListener)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    focusRequest?.let { audioManager?.abandonAudioFocusRequest(it) }
+                }
+                else {
+                    audioManager?.abandonAudioFocus(afChangeListener)
+                }
             }
         }
-//        releaseWakeLock()
     }
 
     fun changeUrl(newUrl: String) {
@@ -160,7 +169,14 @@ class MediaPlayerInstance(val context: Context) : Player.EventListener {
 
         notifyStatusChanged(UIStates.STATUS_LOADING)
 
-        audioManager?.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val playbackAttributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()
+            focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).setAudioAttributes(playbackAttributes).setAcceptsDelayedFocusGain(true).setOnAudioFocusChangeListener { afChangeListener }.build()
+            focusRequest?.let { audioManager?.requestAudioFocus(it) }
+        }
+        else {
+            audioManager?.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+        }
     }
 
     interface CallbackInterface {

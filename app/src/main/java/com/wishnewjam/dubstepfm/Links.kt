@@ -1,6 +1,8 @@
 package com.wishnewjam.dubstepfm
 
 internal object Links {
+    const val PRIVACY_POLICY = "http://sites.google.com/view/dubstep-fm-app-privacy-policy"
+
     const val LINK_128 = "http://stream.dubstep.fm/128mp3"
     private const val LINK_256 = "http://stream.dubstep.fm/256mp3"
     private const val LINK_64 = "http://stream.dubstep.fm/64mp3"

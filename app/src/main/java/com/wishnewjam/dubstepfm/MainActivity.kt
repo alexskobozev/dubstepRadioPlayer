@@ -14,8 +14,10 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import com.crashlytics.android.Crashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
 import com.wishnewjam.dubstepfm.Tools.toastDebug
+import io.fabric.sdk.android.Fabric
 import kotlinx.android.synthetic.main.info_layout.*
 import kotlinx.android.synthetic.main.loading_layout.*
 
@@ -91,7 +93,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        val fabric = Fabric.Builder(this).kits(Crashlytics())
+//                .debuggable(true)  // Enables Crashlytics debugger
+                .build()
+        Fabric.with(fabric)
         setContentView(R.layout.activity_main)
         mediaBrowser = MediaBrowserCompat(this, ComponentName(this, MainService::class.java), connectionCallback, null)
     }
