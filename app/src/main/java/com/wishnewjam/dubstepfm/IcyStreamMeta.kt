@@ -4,7 +4,6 @@ import java.io.IOException
 import java.net.URL
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-import kotlin.reflect.KClass
 
 /**
  * From http://uniqueculture.net/2010/11/stream-metadata-plain-java/
@@ -151,7 +150,7 @@ class IcyStreamMeta(streamUrl: URL) {
         for (metaPart in metaParts) {
             m = p.matcher(metaPart)
             if (m.find()) {
-                metadata.put(m.group(1), m.group(2))
+                metadata[m.group(1)] = m.group(2)
             }
         }
 

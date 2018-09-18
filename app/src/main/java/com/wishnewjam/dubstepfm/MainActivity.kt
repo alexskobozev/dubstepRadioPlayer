@@ -13,20 +13,15 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.wishnewjam.dubstepfm.Tools.logDebug
+import com.wishnewjam.dubstepfm.Tools.toastDebug
+import kotlinx.android.synthetic.main.info_layout.*
+import kotlinx.android.synthetic.main.loading_layout.*
 
 class MainActivity : AppCompatActivity() {
 
-    private var loadingIndicator: View? = null
     private var mediaBrowser: MediaBrowserCompat? = null
-    private var statusIcon: ImageView? = null
-    private var loadingIndicatorSmall: ProgressBar? = null
-    private var nowPlayingTextView: TextView? = null
 
     private val controllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
@@ -73,7 +68,7 @@ class MainActivity : AppCompatActivity() {
         val track = metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
         if (artist != null && track != null) {
             val nowPlayingText = "${getString(R.string.now_playing)} $artist - $track"
-            nowPlayingTextView?.text = nowPlayingText
+            tv_nowplaying.text = nowPlayingText
         }
     }
 
@@ -83,7 +78,7 @@ class MainActivity : AppCompatActivity() {
         val mediaController = MediaControllerCompat.getMediaController(this)
 
         playButton?.setOnClickListener {
-            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) nowPlayingTextView?.setText(R.string.gathering_info)
+            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) tv_nowplaying.setText(R.string.gathering_info)
             mediaController.transportControls.play()
         }
 
@@ -97,12 +92,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        Fabric.with(this, Crashlytics())  TODO: enable
         setContentView(R.layout.activity_main)
-        loadingIndicator = findViewById(R.id.ll_loading)
-        statusIcon = findViewById(R.id.iv_status)
-        loadingIndicatorSmall = findViewById(R.id.progressBar)
-        nowPlayingTextView = findViewById(R.id.tv_nowplaying)
         mediaBrowser = MediaBrowserCompat(this, ComponentName(this, MainService::class.java), connectionCallback, null)
     }
 
@@ -143,31 +133,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showLoading() {
-        loadingIndicator?.visibility = View.VISIBLE
-        loadingIndicatorSmall?.visibility = View.VISIBLE
-        statusIcon?.visibility = View.INVISIBLE
+        ll_loading.visibility = View.VISIBLE
+        progressBar.visibility = View.VISIBLE
+        iv_status.visibility = View.INVISIBLE
     }
 
     private fun showStopped() {
-        loadingIndicator?.visibility = View.GONE
-        statusIcon?.setImageResource(R.drawable.ic_stop)
-        loadingIndicatorSmall?.visibility = View.INVISIBLE
-        statusIcon?.visibility = View.VISIBLE
+        ll_loading.visibility = View.GONE
+        iv_status.setImageResource(R.drawable.ic_stop)
+        progressBar.visibility = View.INVISIBLE
+        iv_status.visibility = View.VISIBLE
     }
 
     private fun showPlaying() {
-        loadingIndicator?.visibility = View.GONE
-        loadingIndicatorSmall?.visibility = View.INVISIBLE
-        statusIcon?.visibility = View.VISIBLE
-        statusIcon?.setImageResource(R.drawable.ic_play)
+        ll_loading.visibility = View.GONE
+        progressBar.visibility = View.INVISIBLE
+        iv_status.visibility = View.VISIBLE
+        iv_status.setImageResource(R.drawable.ic_play)
     }
 
     private fun showError() {
-        loadingIndicator?.visibility = View.GONE
-        loadingIndicatorSmall?.visibility = View.INVISIBLE
-        statusIcon?.visibility = View.VISIBLE
-        statusIcon?.setImageResource(R.drawable.ic_stop)
-        Toast.makeText(this, getString(R.string.error), Toast.LENGTH_SHORT).show()
+        ll_loading.visibility = View.GONE
+        progressBar.visibility = View.INVISIBLE
+        iv_status.visibility = View.VISIBLE
+        iv_status.setImageResource(R.drawable.ic_stop)
+        toastDebug({ getString(R.string.error) }, this)
     }
 
     private fun showBitrateChooser() {

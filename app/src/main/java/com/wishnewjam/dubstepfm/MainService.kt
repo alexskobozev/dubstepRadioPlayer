@@ -67,7 +67,6 @@ class MainService : MediaBrowserServiceCompat() {
 
     override fun onCreate() {
         super.onCreate()
-//        Fabric.with(this, Crashlytics())  TODO: enable
         MyApplication.graph.inject(this)
         mediaSession = MediaSessionCompat(this, "PlayerService")
         mediaPlayerInstance.serviceCallback = mediaPlayerCallback
@@ -205,7 +204,7 @@ class MainService : MediaBrowserServiceCompat() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return
         }
-        val channel = NotificationChannel("default", "DUBSTEP.FM", NotificationManager.IMPORTANCE_DEFAULT)
+        val channel = NotificationChannel("default", "DUBSTEP.FM", NotificationManager.IMPORTANCE_LOW)
         notificationManager.createNotificationChannel(channel)
     }
 

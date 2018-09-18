@@ -5,10 +5,14 @@
                                                    android:layout_height="match_parent"
                                                    tools:context=".MainActivity">
 
-    <include layout="@layout/info_layout" />
+    <include
+        layout="@layout/info_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <RelativeLayout
-        android:id="@+id/ripple_background"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="16dp"
@@ -18,7 +22,6 @@
         app:layout_constraintTop_toTopOf="@id/info_layout">
 
         <ImageView
-            android:id="@+id/iv_logo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
@@ -68,6 +71,13 @@
             />
     </LinearLayout>
 
-    <include layout="@layout/loading_layout" />
+    <include
+        layout="@layout/loading_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

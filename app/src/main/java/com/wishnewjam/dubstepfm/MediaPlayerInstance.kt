@@ -146,17 +146,6 @@ class MediaPlayerInstance(context: Context) : Player.EventListener {
             }
         }
 
-    private fun initWakeLock() {
-
-        wifiLock?.acquire()
-    }
-
-    private fun releaseWakeLock() {
-        if (wifiLock != null) {
-            wifiLock?.release()
-        }
-    }
-
     private fun notifyStatusChanged(status: Int) {
         this.status = status
         serviceCallback?.onChangeStatus(status)
@@ -171,7 +160,6 @@ class MediaPlayerInstance(context: Context) : Player.EventListener {
         notifyStatusChanged(UIStates.STATUS_LOADING)
 
         audioManager?.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
-//        initWakeLock()
     }
 
     interface CallbackInterface {
