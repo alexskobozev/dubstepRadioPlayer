@@ -25,7 +25,9 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.text.TextUtils
 import android.view.KeyEvent
+import com.crashlytics.android.Crashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
+import io.fabric.sdk.android.Fabric
 import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.async
@@ -68,6 +70,7 @@ class MainService : MediaBrowserServiceCompat() {
 
     override fun onCreate() {
         super.onCreate()
+        Fabric.with(this, Crashlytics())
         MyApplication.graph.inject(this)
         mediaSession = MediaSessionCompat(this, "PlayerService")
         mediaPlayerInstance.serviceCallback = mediaPlayerCallback
