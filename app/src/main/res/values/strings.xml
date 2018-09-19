@@ -17,5 +17,9 @@
     <string name="now_playing">Now playing:</string>
     <string name="gathering_info">Collecting info…</string>
     <string name="connecting">Trying to connect…</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="consent_text">I am using advertising ID of application and impersonal
+        device parameters to show errors to server. It helps to improve quality of application.
+        Here is the <a href="http://www.google.com">PRIVACY POLICY</a> . If you agree to this, click YES please.</string>
 
 </resources>

@@ -14,6 +14,8 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.crashlytics.android.Crashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
 import com.wishnewjam.dubstepfm.Tools.toastDebug
@@ -24,6 +26,7 @@ import kotlinx.android.synthetic.main.loading_layout.*
 class MainActivity : AppCompatActivity() {
 
     private var mediaBrowser: MediaBrowserCompat? = null
+    private lateinit var mediaViewModel: MediaViewModel
 
     private val controllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
@@ -93,11 +96,24 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val fabric = Fabric.Builder(this).kits(Crashlytics())
+
+        mediaViewModel = ViewModelProviders.of(this).get(MediaViewModel::class.java)
+        mediaViewModel.userConsent.observe(this, Observer<Boolean> { t ->
+            t?.let {
+                if (it) {
+                    val fabric = Fabric.Builder(this).kits(Crashlytics())
 //                .debuggable(true)  // Enables Crashlytics debugger
-                .build()
-        Fabric.with(fabric)
+                            .build()
+                    Fabric.with(fabric)
+                }
+            }
+        })
         setContentView(R.layout.activity_main)
+
+        if (!mediaViewModel.consentDialogShown) {
+            showConsentDialog()
+        }
+
         mediaBrowser = MediaBrowserCompat(this, ComponentName(this, MainService::class.java), connectionCallback, null)
     }
 
@@ -168,5 +184,10 @@ class MainActivity : AppCompatActivity() {
     private fun showBitrateChooser() {
         val bitrateFragment = ChooseBitrateDialogFragment()
         bitrateFragment.show(supportFragmentManager, "bitrate")
+    }
+
+    private fun showConsentDialog() {
+        val consentDialog = ConsentDialogFragment()
+        consentDialog.show(supportFragmentManager, "consent")
     }
 }
