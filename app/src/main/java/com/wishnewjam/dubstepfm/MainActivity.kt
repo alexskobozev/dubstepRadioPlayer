@@ -9,6 +9,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.text.method.LinkMovementMethod
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -16,10 +17,15 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.callbacks.onDismiss
+import com.afollestad.materialdialogs.customview.customView
 import com.crashlytics.android.Crashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
 import com.wishnewjam.dubstepfm.Tools.toastDebug
 import io.fabric.sdk.android.Fabric
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.dialog_consent.view.*
 import kotlinx.android.synthetic.main.info_layout.*
 import kotlinx.android.synthetic.main.loading_layout.*
 
@@ -187,7 +193,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showConsentDialog() {
-        val consentDialog = ConsentDialogFragment()
-        consentDialog.show(supportFragmentManager, "consent")
+        val customView = layoutInflater.inflate(R.layout.dialog_consent, root_view, false)
+        customView.tv_consent.movementMethod = LinkMovementMethod.getInstance()
+
+        MaterialDialog(this).cancelable(false).title(res = R.string.question_to_consent).customView(view = customView).positiveButton(R.string.agree) {
+            it.dismiss()
+            mediaViewModel.changeConsent(true)
+        }.negativeButton(R.string.disagree) {
+            it.dismiss()
+            mediaViewModel.changeConsent(false)
+        }.onDismiss { mediaViewModel.setDialogShown() }.show()
     }
 }

@@ -6,6 +6,7 @@ buildscript {
         maven { url 'https://maven.fabric.io/public' }
         jcenter()
         google()
+        maven { url "https://dl.bintray.com/drummer-aidan/maven/" }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.3.0-alpha10'
@@ -27,13 +28,13 @@ allprojects {
     repositories {
         jcenter()
         maven { url 'https://maven.google.com' }
-        maven { url 'https://maven.google.com/' }
-
+        maven { url "https://dl.bintray.com/drummer-aidan/maven/" }
     }
 }
 repositories {
     mavenCentral()
     google()
+    maven { url "https://dl.bintray.com/drummer-aidan/maven/" }
 }
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"

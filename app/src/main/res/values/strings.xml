@@ -17,9 +17,13 @@
     <string name="now_playing">Now playing:</string>
     <string name="gathering_info">Collecting info…</string>
     <string name="connecting">Trying to connect…</string>
-    <string name="privacy_policy">Privacy policy</string>
-    <string name="consent_text">I am using advertising ID of application and impersonal
-        device parameters to show errors to server. It helps to improve quality of application.
-        Here is the <a href="http://www.google.com">PRIVACY POLICY</a> . If you agree to this, click YES please.</string>
-
+    <string name="question_to_consent">Report errors to server?</string>
+    <string name="privacy_policy"><a href="http://sites.google.com/view/dubstep-fm-app-privacy-policy">Privacy policy</a></string>
+    <string name="privacy_policy_text">Application using advertising ID of application and impersonal
+        device parameters to show errors to the server. It helps to improve the quality of the application.
+        Here is the <a href="http://sites.google.com/view/dubstep-fm-app-privacy-policy">PRIVACY POLICY</a>. If you agree to this, click AGREE.
+        You can change it later in settings</string>
+    <string name="agree">Agree</string>
+    <string name="disagree">Disagree</string>
+    <string name="send_errors_to_server">Send errors to server</string>
 </resources>

@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_gravity="center_horizontal"
-    android:padding="16dp"
-    android:orientation="vertical">
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:layout_gravity="center_horizontal"
+              android:orientation="vertical"
+              android:padding="16dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:padding="8dp"
         android:text="@string/choose_bitrate"
         android:textSize="18sp"
-        android:padding="8dp"
         android:textStyle="bold" />
 
     <TextView
@@ -50,5 +50,22 @@
         android:padding="8dp"
         android:text="@string/b256kbps"
         android:textSize="18sp" />
+
+
+    <CheckBox
+        android:id="@+id/chb_consent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:ellipsize="end"
+        android:lines="1"
+        android:text="@string/send_errors_to_server" />
+
+    <TextView
+        android:id="@+id/tv_privacy_policy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/privacy_policy" />
 
 </LinearLayout>
