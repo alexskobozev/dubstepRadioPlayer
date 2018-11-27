@@ -19,14 +19,16 @@ class IcyStreamMeta(streamUrl: URL) {
      * @throws IOException
      */
     val artist: String
-        @Throws(Throwable::class)
         get() {
             if (metadata.isEmpty()) {
-                retrieveMetadata()
+                try {
+                    retrieveMetadata()
+                }
+                catch (e: Exception) {
+                }
             }
 
-            if (!metadata.containsKey("StreamTitle"))
-                return ""
+            if (!metadata.containsKey("StreamTitle")) return ""
 
             val streamTitle = metadata["StreamTitle"]
             val title = streamTitle?.substring(0, streamTitle.indexOf("-"))
@@ -40,14 +42,16 @@ class IcyStreamMeta(streamUrl: URL) {
      * @throws IOException
      */
     val title: String
-        @Throws(Throwable::class)
-        get() {
+        @Throws(Throwable::class) get() {
             if (metadata.isEmpty()) {
-                retrieveMetadata()
+                try {
+                    retrieveMetadata()
+                }
+                catch (e: Exception) {
+                }
             }
 
-            if (!metadata.containsKey("StreamTitle"))
-                return ""
+            if (!metadata.containsKey("StreamTitle")) return ""
 
             val streamTitle = metadata["StreamTitle"]
             val artist = streamTitle?.substring(streamTitle.indexOf("-") + 1)
@@ -73,15 +77,17 @@ class IcyStreamMeta(streamUrl: URL) {
 
             if (headers.containsKey("icy-metaint")) {
                 // Headers are sent via HTTP
-                metaDataOffset = Integer.parseInt(headers["icy-metaint"]?.get(0))
-            } else {
+                metaDataOffset = headers["icy-metaint"]?.get(0)?.toIntOrNull() ?: 0
+            }
+            else {
                 // Headers are sent within a stream
                 val strHeaders = StringBuilder()
                 var c = 0
                 while (c >= 0) {
                     c = stream.read()
                     strHeaders.append(c)
-                    if (strHeaders.length > 5 && strHeaders.substring(strHeaders.length - 4, strHeaders.length) == "\r\n\r\n") {
+                    if (strHeaders.length > 5 && strHeaders.substring(strHeaders.length - 4,
+                                                                      strHeaders.length) == "\r\n\r\n") {
                         // end of headers
                         break
                     }
@@ -144,7 +150,8 @@ class IcyStreamMeta(streamUrl: URL) {
 
     private fun parseMetadata(metaString: String): Map<String, String> {
         metadata.clear()
-        val metaParts = metaString.split(";".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val metaParts = metaString.split(";".toRegex()).dropLastWhile { it.isEmpty() }
+                .toTypedArray()
         val p = Pattern.compile("^([a-zA-Z]+)=\\'([^\\']*)\\'$")
         var m: Matcher
         for (metaPart in metaParts) {
