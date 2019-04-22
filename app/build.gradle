@@ -48,6 +48,6 @@ dependencies {
     def lifecycle_version = "2.1.0-alpha04"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
 
-    implementation 'com.afollestad.material-dialogs:input:2.8.1'
+    implementation 'com.afollestad.material-dialogs:core:2.8.1'
 }
 apply plugin: 'com.google.gms.google-services'

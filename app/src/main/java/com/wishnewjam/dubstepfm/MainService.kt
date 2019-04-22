@@ -27,10 +27,10 @@ import androidx.media.MediaBrowserServiceCompat
 import com.crashlytics.android.Crashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
 import io.fabric.sdk.android.Fabric
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.GlobalScope
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.URL
 import javax.inject.Inject
 
@@ -65,7 +65,7 @@ class MainService : MediaBrowserServiceCompat() {
             BrowserRoot(getString(R.string.app_name), null)
         }
         else {
-            MediaBrowserServiceCompat.BrowserRoot("", null)
+            BrowserRoot("", null)
         }
     }
 
@@ -107,13 +107,13 @@ class MainService : MediaBrowserServiceCompat() {
             unregisterReceiver(mNoisyReceiver)
         }
         catch (e: Exception) {
-            Tools.logDebug { "Exception onDestroy: ${e.message}" }
+            logDebug { "Exception onDestroy: ${e.message}" }
         }
         try {
             mediaSession?.release()
         }
         catch (e: Exception) {
-            Tools.logDebug { "Exception onDestroy: ${e.message}" }
+            logDebug { "Exception onDestroy: ${e.message}" }
         }
     }
 
@@ -246,10 +246,9 @@ class MainService : MediaBrowserServiceCompat() {
         return false
     }
 
-    @Suppress("EXPERIMENTAL_FEATURE_WARNING")
     private fun getMetaData() {
-        GlobalScope.launch(Android) {
-            async(Dispatchers.Default) {
+        GlobalScope.launch(Dispatchers.Main) {
+            val metadata = withContext(Dispatchers.IO) {
                 val url = URL(Links.LINK_128)
                 val meta = IcyStreamMeta(url)
                 try {
@@ -259,23 +258,23 @@ class MainService : MediaBrowserServiceCompat() {
                     logDebug { "exception while retrieving metadata" }
                 }
                 MetaData(meta.artist, meta.title)
-            }.await().let { metaData ->
-                val builder = MediaMetadataCompat.Builder().putString(MediaMetadataCompat.METADATA_KEY_ARTIST, metaData.artist).putString(MediaMetadataCompat.METADATA_KEY_TITLE, metaData.title).putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 10000)
-                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-                    //sometimes it crashes in android 5.0
-                    var bitmap: Bitmap? = null
-                    try {
-                        bitmap = BitmapFactory.decodeResource(resources, R.drawable.logo_screen)
-                    }
-                    catch (e: Exception) {
-                        logDebug { "exception while decoding logo img" }
-                    }
-                    bitmap?.let { builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap) }
-                }
-                val metadataCompat = builder.build()
-                mediaSession?.setMetadata(metadataCompat)
-                buildNotification(notificationStatus)
             }
+
+            val builder = MediaMetadataCompat.Builder().putString(MediaMetadataCompat.METADATA_KEY_ARTIST, metadata.artist).putString(MediaMetadataCompat.METADATA_KEY_TITLE, metadata.title).putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 10000)
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+                //sometimes it crashes in android 5.0
+                var bitmap: Bitmap? = null
+                try {
+                    bitmap = BitmapFactory.decodeResource(resources, R.drawable.logo_screen)
+                }
+                catch (e: Exception) {
+                    logDebug { "exception while decoding logo img" }
+                }
+                bitmap?.let { builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap) }
+            }
+            val metadataCompat = builder.build()
+            mediaSession?.setMetadata(metadataCompat)
+            buildNotification(notificationStatus)
         }
     }
 
