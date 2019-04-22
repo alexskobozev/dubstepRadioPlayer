@@ -11,7 +11,8 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:3.4.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.gms:google-services:4.2.0'
+        // don't update https://stackoverflow.com/questions/54498721/why-im-getting-java-lang-arrayindexoutofboundsexception-when-i-add-the-plugin-co
+        classpath 'com.google.gms:google-services:4.0.2'
         classpath 'io.fabric.tools:gradle:1.28.1'
 
         // NOTE: Do not place your application dependencies here; they belong
