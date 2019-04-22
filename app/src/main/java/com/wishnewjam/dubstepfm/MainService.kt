@@ -4,14 +4,11 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -32,7 +29,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
-import javax.inject.Inject
 
 class MainService : MediaBrowserServiceCompat() {
 
@@ -50,7 +46,6 @@ class MainService : MediaBrowserServiceCompat() {
         const val NOTIFICATION_STATUS_ERROR = 4
     }
 
-    @Inject
     lateinit var mediaPlayerInstance: MediaPlayerInstance
     private var mediaSession: MediaSessionCompat? = null
     private var notificationStatus = NOTIFICATION_STATUS_STOP
@@ -75,7 +70,7 @@ class MainService : MediaBrowserServiceCompat() {
 //                .debuggable(true)  // Enables Crashlytics debugger
                 .build()
         Fabric.with(fabric)
-        MyApplication.graph.inject(this)
+        mediaPlayerInstance = (application as MyApplication).mediaPlayerInstance
         mediaSession = MediaSessionCompat(this, "PlayerService")
         mediaPlayerInstance.serviceCallback = mediaPlayerCallback
         mediaSession?.let {
@@ -97,18 +92,11 @@ class MainService : MediaBrowserServiceCompat() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent == null) stopSelf()
         androidx.media.session.MediaButtonReceiver.handleIntent(mediaSession, intent)
-        registerReceiver(mNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
         return Service.START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        try {
-            unregisterReceiver(mNoisyReceiver)
-        }
-        catch (e: Exception) {
-            logDebug { "Exception onDestroy: ${e.message}" }
-        }
         try {
             mediaSession?.release()
         }
@@ -116,13 +104,6 @@ class MainService : MediaBrowserServiceCompat() {
             logDebug { "Exception onDestroy: ${e.message}" }
         }
     }
-
-    private val mNoisyReceiver: BroadcastReceiver
-        get() = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                mediaPlayerInstance.callStop()
-            }
-        }
 
     private val mediaPlayerCallback: MediaPlayerInstance.CallbackInterface
         get() = object : MediaPlayerInstance.CallbackInterface {

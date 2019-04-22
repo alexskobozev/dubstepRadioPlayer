@@ -5,19 +5,16 @@ import android.preference.PreferenceManager
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import javax.inject.Inject
 
 class MediaViewModel(application: Application) : AndroidViewModel(application) {
 
-    @Inject
-    lateinit var mediaPlayerInstance: MediaPlayerInstance
+    var mediaPlayerInstance: MediaPlayerInstance = (application as MyApplication).mediaPlayerInstance
 
     val currentUrl = MutableLiveData<String>()
     val userConsent = MutableLiveData<Boolean>()
     var consentDialogShown = false
 
     init {
-        MyApplication.graph.inject(this)
         val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(application)
         currentUrl.value = defaultSharedPreferences.getString(MainService.SP_KEY_BITRATE, Links.LINK_128)
         userConsent.value = defaultSharedPreferences.getBoolean(MainService.SP_KEY_CONSENT, false)

@@ -22,9 +22,7 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
-import dagger.Module
 
-@Module
 class MediaPlayerInstance(val context: Context) : Player.EventListener {
     companion object {
         private const val USER_AGENT: String = "dubstep.fm"
