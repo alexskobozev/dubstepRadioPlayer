@@ -25,7 +25,7 @@ import com.google.android.exoplayer2.util.Util
 import okhttp3.OkHttpClient
 import saschpe.exoplayer2.ext.icy.IcyHttpDataSourceFactory
 
-class MediaPlayerInstance(val context: Context) : Player.EventListener {
+class MediaPlayerInstance(private val context: Context) : Player.EventListener {
     companion object {
         private const val USER_AGENT: String = "dubstep.fm"
         private const val WAKE_LOCK = "mp_wakelock"

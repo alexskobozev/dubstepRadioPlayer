@@ -8,7 +8,7 @@ import androidx.lifecycle.MutableLiveData
 
 class MediaViewModel(application: Application) : AndroidViewModel(application) {
 
-    var mediaPlayerInstance: MediaPlayerInstance =
+    private var mediaPlayerInstance: MediaPlayerInstance =
             (application as MyApplication).mediaPlayerInstance
 
     val currentUrl = MutableLiveData<String>()
