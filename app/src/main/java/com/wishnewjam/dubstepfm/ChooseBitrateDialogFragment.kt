@@ -13,33 +13,44 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.dialogfragment_bitrate.view.*
 
-class ChooseBitrateDialogFragment : androidx.fragment.app.DialogFragment(), View.OnClickListener {
+class ChooseBitrateDialogFragment : androidx.fragment.app.DialogFragment(),
+        View.OnClickListener {
 
     private var items: ArrayList<TextView> = ArrayList()
     private lateinit var mediaViewModel: MediaViewModel
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val v = inflater.inflate(R.layout.dialogfragment_bitrate, container, false)
-        items = arrayListOf(v.tv_bitrate_24, v.tv_bitrate_64, v.tv_bitrate_128, v.tv_bitrate_256)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View? {
+        val v = inflater.inflate(R.layout.dialogfragment_bitrate, container,
+                false)
+        items = arrayListOf(v.tv_bitrate_24, v.tv_bitrate_64, v.tv_bitrate_128,
+                v.tv_bitrate_256)
         for (item in items) {
             item.setOnClickListener(this)
         }
-        mediaViewModel = ViewModelProviders.of(this).get(MediaViewModel::class.java)
-        mediaViewModel.currentUrl.observe(this, Observer<String> { t -> t?.let { colorize(it) } })
+        mediaViewModel = ViewModelProviders.of(this)
+                .get(MediaViewModel::class.java)
+        mediaViewModel.currentUrl.observe(this,
+                Observer<String> { t -> t?.let { colorize(it) } })
 
         v.chb_consent.isChecked = mediaViewModel.userConsent.value ?: true
-        v.chb_consent.setOnCheckedChangeListener { _, isChecked -> mediaViewModel.changeConsent(isChecked) }
+        v.chb_consent.setOnCheckedChangeListener { _, isChecked ->
+            mediaViewModel.changeConsent(isChecked)
+        }
 
-        v.tv_privacy_policy.setOnClickListener { startActivity(Intent(Intent.ACTION_VIEW, Links.PRIVACY_POLICY.toUri())) }
+        v.tv_privacy_policy.setOnClickListener {
+            startActivity(
+                    Intent(Intent.ACTION_VIEW, Links.PRIVACY_POLICY.toUri()))
+        }
         return v
     }
 
     override fun onClick(p0: View?) {
         when (p0?.id) {
-            R.id.tv_bitrate_24  -> {
+            R.id.tv_bitrate_24 -> {
                 changeBitrate(0)
             }
-            R.id.tv_bitrate_64  -> {
+            R.id.tv_bitrate_64 -> {
                 changeBitrate(1)
             }
             R.id.tv_bitrate_128 -> {
@@ -64,7 +75,8 @@ class ChooseBitrateDialogFragment : androidx.fragment.app.DialogFragment(), View
     private fun colorize(which: Int) {
         for ((index, value) in items.withIndex()) {
             if (index == which) {
-                value.setTextColor(ResourcesCompat.getColor(resources, R.color.text_color_secondary, null))
+                value.setTextColor(ResourcesCompat.getColor(resources,
+                        R.color.text_color_secondary, null))
             }
             else {
                 value.setTextColor(Color.WHITE)

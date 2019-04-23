@@ -34,51 +34,59 @@ class MainActivity : AppCompatActivity() {
     private var mediaBrowser: MediaBrowserCompat? = null
     private lateinit var mediaViewModel: MediaViewModel
 
-    private val controllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
-        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            super.onPlaybackStateChanged(state)
-            logDebug { "controllerCallback: onPlaybackStateChanged, state= ${state?.state}" }
-            applyPlaybackState(state?.state)
-        }
+    private val controllerCallback: MediaControllerCompat.Callback =
+            object : MediaControllerCompat.Callback() {
+                override fun onPlaybackStateChanged(
+                        state: PlaybackStateCompat?) {
+                    super.onPlaybackStateChanged(state)
+                    logDebug { "controllerCallback: onPlaybackStateChanged, state= ${state?.state}" }
+                    applyPlaybackState(state?.state)
+                }
 
-        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            super.onMetadataChanged(metadata)
-            applyMetadata(metadata)
-        }
-    }
-
-    private val connectionCallback: MediaBrowserCompat.ConnectionCallback? = object : MediaBrowserCompat.ConnectionCallback() {
-        override fun onConnected() {
-            super.onConnected()
-            logDebug { "ConnectionCallback: onConnected" }
-            val token: MediaSessionCompat.Token? = mediaBrowser?.sessionToken
-            token?.let {
-                val controller = MediaControllerCompat(this@MainActivity, it)
-                MediaControllerCompat.setMediaController(this@MainActivity, controller)
-                buildTransportControls()
-                applyPlaybackState(controller.playbackState.state)
-                applyMetadata(controller.metadata)
+                override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+                    super.onMetadataChanged(metadata)
+                    applyMetadata(metadata)
+                }
             }
-            volumeControlStream = AudioManager.STREAM_MUSIC
-            startService(Intent(this@MainActivity, MainService::class.java))
-        }
 
-        override fun onConnectionSuspended() {
-            super.onConnectionSuspended()
-            logDebug { "ConnectionCallback: onConnectionSuspended" }
-        }
+    private val connectionCallback: MediaBrowserCompat.ConnectionCallback? =
+            object : MediaBrowserCompat.ConnectionCallback() {
+                override fun onConnected() {
+                    super.onConnected()
+                    logDebug { "ConnectionCallback: onConnected" }
+                    val token: MediaSessionCompat.Token? =
+                            mediaBrowser?.sessionToken
+                    token?.let {
+                        val controller =
+                                MediaControllerCompat(this@MainActivity, it)
+                        MediaControllerCompat.setMediaController(
+                                this@MainActivity, controller)
+                        buildTransportControls()
+                        applyPlaybackState(controller.playbackState.state)
+                        applyMetadata(controller.metadata)
+                    }
+                    volumeControlStream = AudioManager.STREAM_MUSIC
+                    startService(
+                            Intent(this@MainActivity, MainService::class.java))
+                }
 
-        override fun onConnectionFailed() {
-            super.onConnectionFailed()
-            logDebug { "ConnectionCallback: onConnectionFailed" }
-        }
-    }
+                override fun onConnectionSuspended() {
+                    super.onConnectionSuspended()
+                    logDebug { "ConnectionCallback: onConnectionSuspended" }
+                }
+
+                override fun onConnectionFailed() {
+                    super.onConnectionFailed()
+                    logDebug { "ConnectionCallback: onConnectionFailed" }
+                }
+            }
 
     private fun applyMetadata(metadata: MediaMetadataCompat?) {
-        val artist = metadata?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
+        val artist =
+                metadata?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
         val track = metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
         if (artist != null && track != null) {
-            val nowPlayingText = "${getString(R.string.now_playing)} $artist - $track"
+            val nowPlayingText = "${getString(R.string.now_playing)} $track"
             tv_nowplaying.text = nowPlayingText
         }
     }
@@ -89,7 +97,8 @@ class MainActivity : AppCompatActivity() {
         val mediaController = MediaControllerCompat.getMediaController(this)
 
         playButton?.setOnClickListener {
-            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) tv_nowplaying.setText(R.string.gathering_info)
+            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) tv_nowplaying.setText(
+                    R.string.gathering_info)
             mediaController.transportControls.play()
         }
 
@@ -103,11 +112,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        mediaViewModel = ViewModelProviders.of(this).get(MediaViewModel::class.java)
+        mediaViewModel = ViewModelProviders.of(this)
+                .get(MediaViewModel::class.java)
         mediaViewModel.userConsent.observe(this, Observer<Boolean> { t ->
             t?.let {
                 if (it) {
-                    val fabric = Fabric.Builder(this).kits(Crashlytics())
+                    val fabric = Fabric.Builder(this)
+                            .kits(Crashlytics())
 //                .debuggable(true)  // Enables Crashlytics debugger
                             .build()
                     Fabric.with(fabric)
@@ -120,7 +131,9 @@ class MainActivity : AppCompatActivity() {
             showConsentDialog()
         }
 
-        mediaBrowser = MediaBrowserCompat(this, ComponentName(this, MainService::class.java), connectionCallback, null)
+        mediaBrowser = MediaBrowserCompat(this,
+                ComponentName(this, MainService::class.java),
+                connectionCallback, null)
     }
 
     override fun onStart() {
@@ -130,7 +143,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        MediaControllerCompat.getMediaController(this)?.unregisterCallback(controllerCallback)
+        MediaControllerCompat.getMediaController(this)
+                ?.unregisterCallback(controllerCallback)
         mediaBrowser?.disconnect()
     }
 
@@ -193,15 +207,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showConsentDialog() {
-        val customView = layoutInflater.inflate(R.layout.dialog_consent, root_view, false)
+        val customView =
+                layoutInflater.inflate(R.layout.dialog_consent, root_view,
+                        false)
         customView.tv_consent.movementMethod = LinkMovementMethod.getInstance()
 
-        MaterialDialog(this).cancelable(false).title(res = R.string.question_to_consent).customView(view = customView).positiveButton(R.string.agree) {
-            it.dismiss()
-            mediaViewModel.changeConsent(true)
-        }.negativeButton(R.string.disagree) {
-            it.dismiss()
-            mediaViewModel.changeConsent(false)
-        }.onDismiss { mediaViewModel.setDialogShown() }.show()
+        MaterialDialog(this).cancelable(false)
+                .title(res = R.string.question_to_consent)
+                .customView(view = customView)
+                .positiveButton(R.string.agree) {
+                    it.dismiss()
+                    mediaViewModel.changeConsent(true)
+                }
+                .negativeButton(R.string.disagree) {
+                    it.dismiss()
+                    mediaViewModel.changeConsent(false)
+                }
+                .onDismiss { mediaViewModel.setDialogShown() }
+                .show()
     }
 }

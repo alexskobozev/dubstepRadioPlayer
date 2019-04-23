@@ -22,6 +22,8 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import okhttp3.OkHttpClient
+import saschpe.exoplayer2.ext.icy.IcyHttpDataSourceFactory
 
 class MediaPlayerInstance(val context: Context) : Player.EventListener {
     companion object {
@@ -33,7 +35,8 @@ class MediaPlayerInstance(val context: Context) : Player.EventListener {
     var serviceCallback: CallbackInterface? = null
     private var currentUrl: CurrentUrl = CurrentUrl(context)
 
-    private var audioManager: AudioManager? = ContextCompat.getSystemService(context, AudioManager::class.java)
+    private var audioManager: AudioManager? =
+            ContextCompat.getSystemService(context, AudioManager::class.java)
 
     private var focusRequest: AudioFocusRequest? = null
     private var wifiLock: WifiManager.WifiLock?
@@ -41,12 +44,15 @@ class MediaPlayerInstance(val context: Context) : Player.EventListener {
 
     init {
 
-        val trackSelector = DefaultTrackSelector(AdaptiveTrackSelection.Factory(DefaultBandwidthMeter()))
+        val trackSelector = DefaultTrackSelector(
+                AdaptiveTrackSelection.Factory(DefaultBandwidthMeter()))
 
         mediaPlayer = ExoPlayerFactory.newSimpleInstance(context, trackSelector)
         mediaPlayer?.addListener(this)
 
-        wifiLock = (context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager).createWifiLock(WifiManager.WIFI_MODE_FULL, WAKE_LOCK)
+        wifiLock = (context.applicationContext.getSystemService(
+                Context.WIFI_SERVICE) as WifiManager).createWifiLock(
+                WifiManager.WIFI_MODE_FULL, WAKE_LOCK)
 
     }
 
@@ -54,11 +60,13 @@ class MediaPlayerInstance(val context: Context) : Player.EventListener {
         Tools.logDebug { "exoPlayer: onRepeatModeChanged: $repeatMode" }
     }
 
-    override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
+    override fun onPlaybackParametersChanged(
+            playbackParameters: PlaybackParameters?) {
         Tools.logDebug { "exoPlayer: onPlaybackParametersChanged: $playbackParameters" }
     }
 
-    override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
+    override fun onTracksChanged(trackGroups: TrackGroupArray?,
+                                 trackSelections: TrackSelectionArray?) {
         Tools.logDebug { "exoPlayer: onTracksChanged: trackGroups = $trackGroups, trackSelections = $trackSelections" }
 
     }
@@ -70,10 +78,13 @@ class MediaPlayerInstance(val context: Context) : Player.EventListener {
 
     }
 
-    override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+    override fun onPlayerStateChanged(playWhenReady: Boolean,
+                                      playbackState: Int) {
         when (playbackState) {
-            Player.STATE_BUFFERING -> notifyStatusChanged(UIStates.STATUS_LOADING)
-            Player.STATE_READY     -> if (playWhenReady) notifyStatusChanged(UIStates.STATUS_PLAY)
+            Player.STATE_BUFFERING -> notifyStatusChanged(
+                    UIStates.STATUS_LOADING)
+            Player.STATE_READY     -> if (playWhenReady) notifyStatusChanged(
+                    UIStates.STATUS_PLAY)
             Player.STATE_ENDED     -> notifyStatusChanged(UIStates.STATUS_STOP)
         }
         Tools.logDebug { "exoPlayer: onPlayerStateChanged: playWhenReady = $playWhenReady, playbackState = $playbackState " }
@@ -87,7 +98,8 @@ class MediaPlayerInstance(val context: Context) : Player.EventListener {
         Tools.logDebug { "exoPlayer: onPositionDiscontinuity" }
     }
 
-    override fun onTimelineChanged(timeline: Timeline?, manifest: Any?, reason: Int) {
+    override fun onTimelineChanged(timeline: Timeline?, manifest: Any?,
+                                   reason: Int) {
         Tools.logDebug { "exoPlayer: onTimelineChanged: timeline = $timeline, manifest = $manifest" }
     }
 
@@ -123,7 +135,9 @@ class MediaPlayerInstance(val context: Context) : Player.EventListener {
                 mediaPlayer?.stop()
                 notifyStatusChanged(UIStates.STATUS_STOP)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    focusRequest?.let { audioManager?.abandonAudioFocusRequest(it) }
+                    focusRequest?.let {
+                        audioManager?.abandonAudioFocusRequest(it)
+                    }
                 }
                 else {
                     audioManager?.abandonAudioFocus(afChangeListener)
@@ -159,7 +173,20 @@ class MediaPlayerInstance(val context: Context) : Player.EventListener {
 
     private fun play() {
         val source = currentUrl.currentUrl.toUri()
-        val dataSourceFactory = DefaultDataSourceFactory(context, Util.getUserAgent(context, USER_AGENT))
+
+        val client = OkHttpClient.Builder()
+                .build()
+        val icyHttpDataSourceFactory = IcyHttpDataSourceFactory.Builder(client)
+                .setUserAgent(Util.getUserAgent(context, USER_AGENT))
+                .setIcyMetadataChangeListener { icyMetadata ->
+                    serviceCallback?.onMetaDataTrackChange(
+                            icyMetadata.streamTitle)
+                }
+                .build()
+
+        val dataSourceFactory = DefaultDataSourceFactory(context, null,
+                icyHttpDataSourceFactory)
+
         val mediaSourceFactory = ExtractorMediaSource.Factory(dataSourceFactory)
         val mediaSource = mediaSourceFactory.createMediaSource(source)
         mediaPlayer?.playWhenReady = true
@@ -168,17 +195,28 @@ class MediaPlayerInstance(val context: Context) : Player.EventListener {
         notifyStatusChanged(UIStates.STATUS_LOADING)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val playbackAttributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()
-            focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).setAudioAttributes(playbackAttributes).setAcceptsDelayedFocusGain(true).setOnAudioFocusChangeListener { afChangeListener }.build()
+            val playbackAttributes = AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            focusRequest =
+                    AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                            .setAudioAttributes(playbackAttributes)
+                            .setAcceptsDelayedFocusGain(true)
+                            .setOnAudioFocusChangeListener { afChangeListener }
+                            .build()
             focusRequest?.let { audioManager?.requestAudioFocus(it) }
         }
         else {
-            audioManager?.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            audioManager?.requestAudioFocus(afChangeListener,
+                    AudioManager.STREAM_MUSIC,
+                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
         }
     }
 
     interface CallbackInterface {
         fun onChangeStatus(status: Int)
         fun onError(error: String)
+        fun onMetaDataTrackChange(trackName: String)
     }
 }

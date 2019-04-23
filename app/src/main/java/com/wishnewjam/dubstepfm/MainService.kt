@@ -24,11 +24,6 @@ import androidx.media.MediaBrowserServiceCompat
 import com.crashlytics.android.Crashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
 import io.fabric.sdk.android.Fabric
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.net.URL
 
 class MainService : MediaBrowserServiceCompat() {
 
@@ -51,11 +46,13 @@ class MainService : MediaBrowserServiceCompat() {
     private var notificationStatus = NOTIFICATION_STATUS_STOP
     private var errorPlayAttempts: Int = 0
 
-    override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
+    override fun onLoadChildren(parentId: String,
+                                result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
         result.sendResult(null)
     }
 
-    override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
+    override fun onGetRoot(clientPackageName: String, clientUid: Int,
+                           rootHints: Bundle?): BrowserRoot? {
         return if (TextUtils.equals(clientPackageName, packageName)) {
             BrowserRoot(getString(R.string.app_name), null)
         }
@@ -66,7 +63,8 @@ class MainService : MediaBrowserServiceCompat() {
 
     override fun onCreate() {
         super.onCreate()
-        val fabric = Fabric.Builder(this).kits(Crashlytics())
+        val fabric = Fabric.Builder(this)
+                .kits(Crashlytics())
 //                .debuggable(true)  // Enables Crashlytics debugger
                 .build()
         Fabric.with(fabric)
@@ -74,24 +72,36 @@ class MainService : MediaBrowserServiceCompat() {
         mediaSession = MediaSessionCompat(this, "PlayerService")
         mediaPlayerInstance.serviceCallback = mediaPlayerCallback
         mediaSession?.let {
-            it.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
-            it.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PAUSED, 0, 0f).setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE).build())
-            val stateBuilder = PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_STOP)
+            it.setFlags(
+                    MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
+            it.setPlaybackState(PlaybackStateCompat.Builder().setState(
+                    PlaybackStateCompat.STATE_PAUSED, 0, 0f).setActions(
+                    PlaybackStateCompat.ACTION_PLAY_PAUSE).build())
+            val stateBuilder = PlaybackStateCompat.Builder()
+                    .setActions(
+                            PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_STOP)
             it.setPlaybackState(stateBuilder.build())
 
             val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
-            val mediaPendingIntent: PendingIntent = PendingIntent.getBroadcast(applicationContext, 0, mediaButtonIntent, 0)
+            val mediaPendingIntent: PendingIntent =
+                    PendingIntent.getBroadcast(applicationContext, 0,
+                            mediaButtonIntent, 0)
             it.setMediaButtonReceiver(mediaPendingIntent)
             it.setCallback(Callback())
-            it.setSessionActivity(PendingIntent.getActivity(applicationContext, 0, Intent(applicationContext, MainActivity::class.java), 0))
+            it.setSessionActivity(
+                    PendingIntent.getActivity(applicationContext, 0,
+                            Intent(applicationContext,
+                                    MainActivity::class.java), 0))
             sessionToken = it.sessionToken
             it.isActive = true
         }
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(intent: Intent?, flags: Int,
+                                startId: Int): Int {
         if (intent == null) stopSelf()
-        androidx.media.session.MediaButtonReceiver.handleIntent(mediaSession, intent)
+        androidx.media.session.MediaButtonReceiver.handleIntent(mediaSession,
+                intent)
         return Service.START_STICKY
     }
 
@@ -107,21 +117,60 @@ class MainService : MediaBrowserServiceCompat() {
 
     private val mediaPlayerCallback: MediaPlayerInstance.CallbackInterface
         get() = object : MediaPlayerInstance.CallbackInterface {
+            override fun onMetaDataTrackChange(trackName: String) {
+                val builder = MediaMetadataCompat.Builder()
+                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "")
+                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE,
+                                trackName)
+                        .putLong(MediaMetadataCompat.METADATA_KEY_DURATION,
+                                10000)
+                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+                    //sometimes it crashes in android 5.0
+                    var bitmap: Bitmap? = null
+                    try {
+                        bitmap = BitmapFactory.decodeResource(resources,
+                                R.drawable.logo_screen)
+                    }
+                    catch (e: Exception) {
+                        logDebug { "exception while decoding logo img" }
+                    }
+                    bitmap?.let {
+                        builder.putBitmap(
+                                MediaMetadataCompat.METADATA_KEY_ALBUM_ART,
+                                bitmap)
+                    }
+                }
+                val metadataCompat = builder.build()
+                mediaSession?.setMetadata(metadataCompat)
+                buildNotification(notificationStatus)
+            }
+
             override fun onChangeStatus(status: Int) {
                 logDebug { "mediaPlayerCallback: onChangeStatus, status = $status" }
                 when (status) {
                     UIStates.STATUS_PLAY                        -> {
                         errorPlayAttempts = 0
-                        mediaSession?.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PLAYING, 0, 0.0f).setActions(PlaybackStateCompat.ACTION_STOP).build())
-                        getMetaData()
+                        mediaSession?.setPlaybackState(
+                                PlaybackStateCompat.Builder().setState(
+                                        PlaybackStateCompat.STATE_PLAYING, 0,
+                                        0.0f).setActions(
+                                        PlaybackStateCompat.ACTION_STOP).build())
                         buildNotification(NOTIFICATION_STATUS_PLAY)
                     }
                     UIStates.STATUS_LOADING                     -> {
-                        mediaSession?.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_BUFFERING, 0, 0.0f).setActions(PlaybackStateCompat.ACTION_STOP).build())
+                        mediaSession?.setPlaybackState(
+                                PlaybackStateCompat.Builder().setState(
+                                        PlaybackStateCompat.STATE_BUFFERING, 0,
+                                        0.0f).setActions(
+                                        PlaybackStateCompat.ACTION_STOP).build())
                         buildNotification(NOTIFICATION_STATUS_LOADING)
                     }
                     UIStates.STATUS_STOP, UIStates.STATUS_ERROR -> {
-                        mediaSession?.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_STOPPED, 0, 0.0f).setActions(PlaybackStateCompat.ACTION_PLAY).build())
+                        mediaSession?.setPlaybackState(
+                                PlaybackStateCompat.Builder().setState(
+                                        PlaybackStateCompat.STATE_STOPPED, 0,
+                                        0.0f).setActions(
+                                        PlaybackStateCompat.ACTION_PLAY).build())
                         buildNotification(NOTIFICATION_STATUS_STOP)
                     }
                 }
@@ -129,12 +178,21 @@ class MainService : MediaBrowserServiceCompat() {
 
             override fun onError(error: String) {
                 if (++errorPlayAttempts < MAX_ERROR_ATTEMPTS) {
-                    mediaSession?.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_CONNECTING, 0, 0.0f).setActions(PlaybackStateCompat.ACTION_STOP).build())
+                    mediaSession?.setPlaybackState(
+                            PlaybackStateCompat.Builder().setState(
+                                    PlaybackStateCompat.STATE_CONNECTING, 0,
+                                    0.0f).setActions(
+                                    PlaybackStateCompat.ACTION_STOP).build())
                     buildNotification(NOTIFICATION_STATUS_CONNECTING)
-                    Handler().postDelayed({ mediaPlayerInstance.callPlay() }, 10000)
+                    Handler().postDelayed({ mediaPlayerInstance.callPlay() },
+                            10000)
                 }
                 else {
-                    mediaSession?.setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_ERROR, 0, 0.0f).setActions(PlaybackStateCompat.ACTION_PLAY).build())
+                    mediaSession?.setPlaybackState(
+                            PlaybackStateCompat.Builder().setState(
+                                    PlaybackStateCompat.STATE_ERROR, 0,
+                                    0.0f).setActions(
+                                    PlaybackStateCompat.ACTION_PLAY).build())
                     buildNotification(NOTIFICATION_STATUS_ERROR)
                 }
             }
@@ -149,40 +207,73 @@ class MainService : MediaBrowserServiceCompat() {
         notificationStatus = keyCode ?: NOTIFICATION_STATUS_STOP
 
         val mBuilder = NotificationCompat.Builder(applicationContext, "default")
-        mBuilder.setContentTitle(description?.title).setContentText(description?.subtitle).setSubText(description?.description).setContentIntent(activity).setVisibility(NotificationCompat.VISIBILITY_PUBLIC).setSmallIcon(R.drawable.ic_notification).setColor(Color.BLACK).setStyle(androidx.media.app.NotificationCompat.MediaStyle().setShowActionsInCompactView(0).setMediaSession(mediaSession?.sessionToken).setShowCancelButton(true).setCancelButtonIntent(androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP)))
+        mBuilder.setContentTitle(description?.title)
+                .setContentText(description?.subtitle)
+                .setSubText(description?.description)
+                .setContentIntent(activity)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setColor(Color.BLACK)
+                .setStyle(
+                        androidx.media.app.NotificationCompat.MediaStyle().setShowActionsInCompactView(
+                                0).setMediaSession(
+                                mediaSession?.sessionToken).setShowCancelButton(
+                                true).setCancelButtonIntent(
+                                androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(
+                                        applicationContext,
+                                        PlaybackStateCompat.ACTION_STOP)))
 
-        val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val mNotifyMgr = getSystemService(
+                Context.NOTIFICATION_SERVICE) as NotificationManager
         initChannels(mNotifyMgr)
         when (keyCode) {
             NOTIFICATION_STATUS_PLAY       -> {
-                mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop), androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP))
+                mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop),
+                        androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(
+                                applicationContext,
+                                PlaybackStateCompat.ACTION_STOP))
                 startForeground(NOTIFICATION_ID, mBuilder.build())
             }
             NOTIFICATION_STATUS_CONNECTING -> {
                 mBuilder.setContentTitle(getString(R.string.connecting))
                 mBuilder.setContentText("")
-                mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop), androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP))
+                mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop),
+                        androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(
+                                applicationContext,
+                                PlaybackStateCompat.ACTION_STOP))
                 startForeground(NOTIFICATION_ID, mBuilder.build())
             }
             NOTIFICATION_STATUS_STOP       -> {
-                mBuilder.addAction(R.drawable.ic_play, getString(R.string.play), androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_PLAY))
+                mBuilder.addAction(R.drawable.ic_play, getString(R.string.play),
+                        androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(
+                                applicationContext,
+                                PlaybackStateCompat.ACTION_PLAY))
                 mNotifyMgr.notify(NOTIFICATION_ID, mBuilder.build())
                 stopForeground(false)
             }
             NOTIFICATION_STATUS_LOADING    -> {
                 mBuilder.setContentTitle(getString(R.string.loading))
                 mBuilder.setContentText("")
-                mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop), androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_STOP))
+                mBuilder.addAction(R.drawable.ic_stop, getString(R.string.stop),
+                        androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(
+                                applicationContext,
+                                PlaybackStateCompat.ACTION_STOP))
                 startForeground(NOTIFICATION_ID, mBuilder.build())
             }
             NOTIFICATION_STATUS_ERROR      -> {
-                mBuilder.addAction(R.drawable.ic_play, getString(R.string.play), androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_PLAY))
+                mBuilder.addAction(R.drawable.ic_play, getString(R.string.play),
+                        androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(
+                                applicationContext,
+                                PlaybackStateCompat.ACTION_PLAY))
                 mNotifyMgr.notify(NOTIFICATION_ID, mBuilder.build())
                 stopForeground(false)
 
             }
             else                           -> {
-                mBuilder.addAction(R.drawable.ic_play, getString(R.string.play), androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext, PlaybackStateCompat.ACTION_PLAY))
+                mBuilder.addAction(R.drawable.ic_play, getString(R.string.play),
+                        androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(
+                                applicationContext,
+                                PlaybackStateCompat.ACTION_PLAY))
                 mNotifyMgr.notify(NOTIFICATION_ID, mBuilder.build())
                 stopForeground(false)
             }
@@ -193,7 +284,8 @@ class MainService : MediaBrowserServiceCompat() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return
         }
-        val channel = NotificationChannel("default", "DUBSTEP.FM", NotificationManager.IMPORTANCE_LOW)
+        val channel = NotificationChannel("default", "DUBSTEP.FM",
+                NotificationManager.IMPORTANCE_LOW)
         notificationManager.createNotificationChannel(channel)
     }
 
@@ -227,40 +319,6 @@ class MainService : MediaBrowserServiceCompat() {
         return false
     }
 
-    private fun getMetaData() {
-        GlobalScope.launch(Dispatchers.Main) {
-            val metadata = withContext(Dispatchers.IO) {
-                val url = URL(Links.LINK_128)
-                val meta = IcyStreamMeta(url)
-                try {
-                    meta.retrieveMetadata()
-                }
-                catch (e: Exception) {
-                    logDebug { "exception while retrieving metadata" }
-                }
-                MetaData(meta.artist, meta.title)
-            }
-
-            val builder = MediaMetadataCompat.Builder().putString(MediaMetadataCompat.METADATA_KEY_ARTIST, metadata.artist).putString(MediaMetadataCompat.METADATA_KEY_TITLE, metadata.title).putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 10000)
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-                //sometimes it crashes in android 5.0
-                var bitmap: Bitmap? = null
-                try {
-                    bitmap = BitmapFactory.decodeResource(resources, R.drawable.logo_screen)
-                }
-                catch (e: Exception) {
-                    logDebug { "exception while decoding logo img" }
-                }
-                bitmap?.let { builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap) }
-            }
-            val metadataCompat = builder.build()
-            mediaSession?.setMetadata(metadataCompat)
-            buildNotification(notificationStatus)
-        }
-    }
-
-    inner class MetaData(var artist: String?, var title: String?)
-
     inner class Callback : MediaSessionCompat.Callback() {
         override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
             logDebug { "mediaSessionCallback: onMediaButtonEvent $mediaButtonEvent extras ${mediaButtonEvent?.extras}" }
@@ -268,11 +326,13 @@ class MainService : MediaBrowserServiceCompat() {
             if (Intent.ACTION_MEDIA_BUTTON != intentAction) {
                 return false
             }
-            val event: KeyEvent = mediaButtonEvent.getParcelableExtra(Intent.EXTRA_KEY_EVENT)
+            val event: KeyEvent =
+                    mediaButtonEvent.getParcelableExtra(Intent.EXTRA_KEY_EVENT)
             return handleMediaButtonIntent(event)
         }
 
-        override fun onCommand(command: String?, extras: Bundle?, cb: ResultReceiver?) {
+        override fun onCommand(command: String?, extras: Bundle?,
+                               cb: ResultReceiver?) {
             logDebug { "mediaSessionCallback: onCommand $command" }
             super.onCommand(command, extras, cb)
         }
