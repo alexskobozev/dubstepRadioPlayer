@@ -15,15 +15,13 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.callbacks.onDismiss
 import com.afollestad.materialdialogs.customview.customView
-import com.crashlytics.android.Crashlytics
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
 import com.wishnewjam.dubstepfm.Tools.toastDebug
-import io.fabric.sdk.android.Fabric
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dialog_consent.view.*
 import kotlinx.android.synthetic.main.info_layout.*
@@ -114,14 +112,11 @@ class MainActivity : AppCompatActivity() {
 
         mediaViewModel = ViewModelProviders.of(this)
                 .get(MediaViewModel::class.java)
-        mediaViewModel.userConsent.observe(this, Observer<Boolean> { t ->
+        mediaViewModel.userConsent.observe(this, { t ->
             t?.let {
                 if (it) {
-                    val fabric = Fabric.Builder(this)
-                            .kits(Crashlytics())
-//                .debuggable(true)  // Enables Crashlytics debugger
-                            .build()
-                    Fabric.with(fabric)
+                    FirebaseCrashlytics.getInstance()
+                            .setCrashlyticsCollectionEnabled(true)
                 }
             }
         })

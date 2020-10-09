@@ -1,8 +1,8 @@
 package com.wishnewjam.dubstepfm
 
-import android.app.Application
+import androidx.multidex.MultiDexApplication
 
-class MyApplication : Application() {
+class MyApplication : MultiDexApplication() {
     val mediaPlayerInstance: MediaPlayerInstance by lazy {
         MediaPlayerInstance(this)
     }

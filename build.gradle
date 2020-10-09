@@ -1,29 +1,27 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.3.61'
+    ext.kotlin_version = '1.4.10'
     repositories {
-        maven { url 'https://maven.fabric.io/public' }
         jcenter()
         google()
         maven { url "https://dl.bintray.com/drummer-aidan/maven/" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.3'
+        classpath 'com.android.tools.build:gradle:4.0.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         // don't update https://stackoverflow.com/questions/54498721/why-im-getting-java-lang-arrayindexoutofboundsexception-when-i-add-the-plugin-co
         // i've updated, if troubles, downgrade to 4.1
-        classpath 'com.google.gms:google-services:4.3.3'
-        classpath 'io.fabric.tools:gradle:1.31.2'
-
+        classpath 'com.google.gms:google-services:4.3.4'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.3.0'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
 
 plugins {
-    id "org.jetbrains.kotlin.jvm" version '1.3.61'
-    id "com.github.ben-manes.versions" version "0.20.0"
+    id "org.jetbrains.kotlin.jvm" version '1.4.10'
+    id "com.github.ben-manes.versions" version "0.33.0"
 }
 
 allprojects {
@@ -41,3 +39,17 @@ repositories {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }
+
+def isNonStable = { String version ->
+    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { it -> version.toUpperCase().contains(it) }
+    def regex = /^[0-9,.v-]+(-r)?$/
+    return !stableKeyword && !(version ==~ regex)
+}
+
+tasks.named("dependencyUpdates").configure {
+    // Example 1: reject all non stable versions
+    rejectVersionIf {
+        isNonStable(it.candidate.version)
+    }
+}
+

@@ -21,9 +21,9 @@ import android.text.TextUtils
 import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import androidx.media.MediaBrowserServiceCompat
-import com.crashlytics.android.Crashlytics
+import com.google.firebase.crashlytics.internal.common.CrashlyticsCore
+import com.google.firebase.crashlytics.internal.model.CrashlyticsReport
 import com.wishnewjam.dubstepfm.Tools.logDebug
-import io.fabric.sdk.android.Fabric
 
 class MainService : MediaBrowserServiceCompat() {
 
@@ -63,11 +63,6 @@ class MainService : MediaBrowserServiceCompat() {
 
     override fun onCreate() {
         super.onCreate()
-        val fabric = Fabric.Builder(this)
-                .kits(Crashlytics())
-//                .debuggable(true)  // Enables Crashlytics debugger
-                .build()
-        Fabric.with(fabric)
         mediaPlayerInstance = (application as MyApplication).mediaPlayerInstance
         mediaSession = MediaSessionCompat(this, "PlayerService")
         mediaPlayerInstance.serviceCallback = mediaPlayerCallback
@@ -326,7 +321,7 @@ class MainService : MediaBrowserServiceCompat() {
             if (Intent.ACTION_MEDIA_BUTTON != intentAction) {
                 return false
             }
-            val event: KeyEvent =
+            val event: KeyEvent? =
                     mediaButtonEvent.getParcelableExtra(Intent.EXTRA_KEY_EVENT)
             return handleMediaButtonIntent(event)
         }
