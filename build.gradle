@@ -8,7 +8,7 @@ buildscript {
         maven { url "https://dl.bintray.com/drummer-aidan/maven/" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.1'
+        classpath 'com.android.tools.build:gradle:4.1.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         // don't update https://stackoverflow.com/questions/54498721/why-im-getting-java-lang-arrayindexoutofboundsexception-when-i-add-the-plugin-co
         // i've updated, if troubles, downgrade to 4.1
