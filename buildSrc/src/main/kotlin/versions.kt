@@ -11,6 +11,7 @@ object Plugins {
 }
 
 object AndroidX {
+    const val PREFERENCES = "1.1.1"
     const val MULTIDEX = "2.0.1"
     const val APPCOMPAT = "1.2.0"
     const val MEDIA = "1.2.1"

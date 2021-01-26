@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.net.toUri
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlaybackException
+import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.PlaybackParameters
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -140,9 +141,10 @@ class MediaPlayerInstance(private val context: Context) : Player.EventListener {
         val source = currentUrl.currentUrl.toUri()
         val dataSourceFactory = DefaultDataSourceFactory(context, USER_AGENT)
         val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(source)
+                .createMediaSource(MediaItem.fromUri(source))
         mediaPlayer.playWhenReady = true
-        mediaPlayer.prepare(mediaSource)
+        mediaPlayer.setMediaSource(mediaSource)
+        mediaPlayer.prepare()
 
         notifyStatusChanged(UIStates.STATUS_LOADING)
     }

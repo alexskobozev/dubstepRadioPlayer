@@ -21,8 +21,6 @@ import android.text.TextUtils
 import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import androidx.media.MediaBrowserServiceCompat
-import com.google.firebase.crashlytics.internal.common.CrashlyticsCore
-import com.google.firebase.crashlytics.internal.model.CrashlyticsReport
 import com.wishnewjam.dubstepfm.Tools.logDebug
 
 class MainService : MediaBrowserServiceCompat() {
@@ -51,8 +49,7 @@ class MainService : MediaBrowserServiceCompat() {
         result.sendResult(null)
     }
 
-    override fun onGetRoot(clientPackageName: String, clientUid: Int,
-                           rootHints: Bundle?): BrowserRoot? {
+    override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot {
         return if (TextUtils.equals(clientPackageName, packageName)) {
             BrowserRoot(getString(R.string.app_name), null)
         }
@@ -67,8 +64,6 @@ class MainService : MediaBrowserServiceCompat() {
         mediaSession = MediaSessionCompat(this, "PlayerService")
         mediaPlayerInstance.serviceCallback = mediaPlayerCallback
         mediaSession?.let {
-            it.setFlags(
-                    MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
             it.setPlaybackState(PlaybackStateCompat.Builder().setState(
                     PlaybackStateCompat.STATE_PAUSED, 0, 0f).setActions(
                     PlaybackStateCompat.ACTION_PLAY_PAUSE).build())
@@ -179,6 +174,7 @@ class MainService : MediaBrowserServiceCompat() {
                                     0.0f).setActions(
                                     PlaybackStateCompat.ACTION_STOP).build())
                     buildNotification(NOTIFICATION_STATUS_CONNECTING)
+                    // TODO: 26/01/2021 this is bad
                     Handler().postDelayed({ mediaPlayerInstance.callPlay() },
                             10000)
                 }

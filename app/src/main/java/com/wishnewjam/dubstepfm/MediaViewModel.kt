@@ -1,10 +1,10 @@
 package com.wishnewjam.dubstepfm
 
 import android.app.Application
-import android.preference.PreferenceManager
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import androidx.preference.PreferenceManager
 
 class MediaViewModel(application: Application) : AndroidViewModel(application) {
 

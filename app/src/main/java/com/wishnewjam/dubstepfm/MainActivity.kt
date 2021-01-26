@@ -15,7 +15,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.callbacks.onDismiss
 import com.afollestad.materialdialogs.customview.customView
@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-    private val connectionCallback: MediaBrowserCompat.ConnectionCallback? =
+    private val connectionCallback: MediaBrowserCompat.ConnectionCallback =
             object : MediaBrowserCompat.ConnectionCallback() {
                 override fun onConnected() {
                     super.onConnected()
@@ -109,8 +109,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-        mediaViewModel = ViewModelProviders.of(this)
-                .get(MediaViewModel::class.java)
+        mediaViewModel = ViewModelProvider(this).get(MediaViewModel::class.java)
         mediaViewModel.userConsent.observe(this, { t ->
             t?.let {
                 if (it) {

@@ -43,6 +43,7 @@ dependencies {
     implementation ("androidx.appcompat:appcompat:${AndroidX.APPCOMPAT}")
     implementation ("androidx.media:media:${AndroidX.MEDIA}")
     implementation ("androidx.constraintlayout:constraintlayout:${AndroidX.CONSTRAINT}")
+    implementation ("androidx.preference:preference-ktx:${AndroidX.PREFERENCES}")
     implementation ("com.google.android.exoplayer:exoplayer-core:${Libs.EXOPLAYER}")
 
     debugImplementation ("com.squareup.leakcanary:leakcanary-android:${Libs.LEAK}")

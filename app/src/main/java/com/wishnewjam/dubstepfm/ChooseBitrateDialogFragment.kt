@@ -11,8 +11,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.net.toUri
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import com.wishnewjam.dubstepfm.databinding.DialogfragmentBitrateBinding
 
 class ChooseBitrateDialogFragment : DialogFragment(), View.OnClickListener, LifecycleOwner {
@@ -22,16 +21,15 @@ class ChooseBitrateDialogFragment : DialogFragment(), View.OnClickListener, Life
     private lateinit var mediaViewModel: MediaViewModel
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+                              savedInstanceState: Bundle?): View {
         binding = DialogfragmentBitrateBinding.inflate(inflater, container, false)
         items = arrayListOf(binding.tvBitrate24, binding.tvBitrate64, binding.tvBitrate128,
                 binding.tvBitrate256)
         for (item in items) {
             item.setOnClickListener(this)
         }
-        mediaViewModel = ViewModelProviders.of(this)
-                .get(MediaViewModel::class.java)
-        mediaViewModel.currentUrl.observe(this, Observer<String> { t -> t?.let { colorize(it) } })
+        mediaViewModel = ViewModelProvider(this).get(MediaViewModel::class.java)
+        mediaViewModel.currentUrl.observe(viewLifecycleOwner, { t -> colorize(t) })
 
         binding.chbConsent.isChecked = mediaViewModel.userConsent.value ?: true
         binding.chbConsent.setOnCheckedChangeListener { _, isChecked ->
