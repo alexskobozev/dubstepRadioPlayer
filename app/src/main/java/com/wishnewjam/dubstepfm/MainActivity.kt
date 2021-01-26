@@ -22,15 +22,14 @@ import com.afollestad.materialdialogs.customview.customView
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
 import com.wishnewjam.dubstepfm.Tools.toastDebug
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.dialog_consent.view.*
-import kotlinx.android.synthetic.main.info_layout.*
-import kotlinx.android.synthetic.main.loading_layout.*
+import com.wishnewjam.dubstepfm.databinding.ActivityMainBinding
+import com.wishnewjam.dubstepfm.databinding.DialogConsentBinding
 
 class MainActivity : AppCompatActivity() {
 
     private var mediaBrowser: MediaBrowserCompat? = null
     private lateinit var mediaViewModel: MediaViewModel
+    private lateinit var binding: ActivityMainBinding
 
     private val controllerCallback: MediaControllerCompat.Callback =
             object : MediaControllerCompat.Callback() {
@@ -85,7 +84,7 @@ class MainActivity : AppCompatActivity() {
         val track = metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
         if (artist != null && track != null) {
             val nowPlayingText = "${getString(R.string.now_playing)} $track"
-            tv_nowplaying.text = nowPlayingText
+            binding.includeInfo.tvNowplaying.text = nowPlayingText
         }
     }
 
@@ -95,7 +94,7 @@ class MainActivity : AppCompatActivity() {
         val mediaController = MediaControllerCompat.getMediaController(this)
 
         playButton?.setOnClickListener {
-            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) tv_nowplaying.setText(
+            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) binding.includeInfo.tvNowplaying.setText(
                     R.string.gathering_info)
             mediaController.transportControls.play()
         }
@@ -109,7 +108,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        binding = ActivityMainBinding.inflate(layoutInflater)
         mediaViewModel = ViewModelProviders.of(this)
                 .get(MediaViewModel::class.java)
         mediaViewModel.userConsent.observe(this, { t ->
@@ -120,7 +119,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
-        setContentView(R.layout.activity_main)
+        setContentView(binding.rootView)
 
         if (!mediaViewModel.consentDialogShown) {
             showConsentDialog()
@@ -169,30 +168,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showLoading() {
-        ll_loading.visibility = View.VISIBLE
-        progressBar.visibility = View.VISIBLE
-        iv_status.visibility = View.INVISIBLE
+        binding.includeLoading.llLoading.visibility = View.VISIBLE
+        binding.includeInfo.progressBar.visibility = View.VISIBLE
+        binding.includeInfo.ivStatus.visibility = View.INVISIBLE
     }
 
     private fun showStopped() {
-        ll_loading.visibility = View.GONE
-        iv_status.setImageResource(R.drawable.ic_stop)
-        progressBar.visibility = View.INVISIBLE
-        iv_status.visibility = View.VISIBLE
+        binding.includeLoading.llLoading.visibility = View.GONE
+        binding.includeInfo.ivStatus.setImageResource(R.drawable.ic_stop)
+        binding.includeInfo.progressBar.visibility = View.INVISIBLE
+        binding.includeInfo.ivStatus.visibility = View.VISIBLE
     }
 
     private fun showPlaying() {
-        ll_loading.visibility = View.GONE
-        progressBar.visibility = View.INVISIBLE
-        iv_status.visibility = View.VISIBLE
-        iv_status.setImageResource(R.drawable.ic_play)
+        binding.includeLoading.llLoading.visibility = View.GONE
+        binding.includeInfo.progressBar.visibility = View.INVISIBLE
+        binding.includeInfo.ivStatus.visibility = View.VISIBLE
+        binding.includeInfo.ivStatus.setImageResource(R.drawable.ic_play)
     }
 
     private fun showError() {
-        ll_loading.visibility = View.GONE
-        progressBar.visibility = View.INVISIBLE
-        iv_status.visibility = View.VISIBLE
-        iv_status.setImageResource(R.drawable.ic_stop)
+        binding.includeLoading.llLoading.visibility = View.GONE
+        binding.includeInfo.progressBar.visibility = View.INVISIBLE
+        binding.includeInfo.ivStatus.visibility = View.VISIBLE
+        binding.includeInfo.ivStatus.setImageResource(R.drawable.ic_stop)
         toastDebug({ getString(R.string.error) }, this)
     }
 
@@ -202,14 +201,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showConsentDialog() {
-        val customView =
-                layoutInflater.inflate(R.layout.dialog_consent, root_view,
-                        false)
-        customView.tv_consent.movementMethod = LinkMovementMethod.getInstance()
+        val consentBinding = DialogConsentBinding.inflate(layoutInflater, binding.rootView, false)
+        consentBinding.tvConsent.movementMethod = LinkMovementMethod.getInstance()
 
         MaterialDialog(this).cancelable(false)
                 .title(res = R.string.question_to_consent)
-                .customView(view = customView)
+                .customView(view = consentBinding.root)
                 .positiveButton(R.string.agree) {
                     it.dismiss()
                     mediaViewModel.changeConsent(true)

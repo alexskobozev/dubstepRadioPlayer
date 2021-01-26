@@ -9,40 +9,39 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.net.toUri
+import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import kotlinx.android.synthetic.main.dialogfragment_bitrate.view.*
+import com.wishnewjam.dubstepfm.databinding.DialogfragmentBitrateBinding
 
-class ChooseBitrateDialogFragment : androidx.fragment.app.DialogFragment(),
-        View.OnClickListener {
+class ChooseBitrateDialogFragment : DialogFragment(), View.OnClickListener, LifecycleOwner {
 
+    private lateinit var binding: DialogfragmentBitrateBinding
     private var items: ArrayList<TextView> = ArrayList()
     private lateinit var mediaViewModel: MediaViewModel
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        val v = inflater.inflate(R.layout.dialogfragment_bitrate, container,
-                false)
-        items = arrayListOf(v.tv_bitrate_24, v.tv_bitrate_64, v.tv_bitrate_128,
-                v.tv_bitrate_256)
+        binding = DialogfragmentBitrateBinding.inflate(inflater, container, false)
+        items = arrayListOf(binding.tvBitrate24, binding.tvBitrate64, binding.tvBitrate128,
+                binding.tvBitrate256)
         for (item in items) {
             item.setOnClickListener(this)
         }
         mediaViewModel = ViewModelProviders.of(this)
                 .get(MediaViewModel::class.java)
-        mediaViewModel.currentUrl.observe(this,
-                Observer<String> { t -> t?.let { colorize(it) } })
+        mediaViewModel.currentUrl.observe(this, Observer<String> { t -> t?.let { colorize(it) } })
 
-        v.chb_consent.isChecked = mediaViewModel.userConsent.value ?: true
-        v.chb_consent.setOnCheckedChangeListener { _, isChecked ->
+        binding.chbConsent.isChecked = mediaViewModel.userConsent.value ?: true
+        binding.chbConsent.setOnCheckedChangeListener { _, isChecked ->
             mediaViewModel.changeConsent(isChecked)
         }
 
-        v.tv_privacy_policy.setOnClickListener {
-            startActivity(
-                    Intent(Intent.ACTION_VIEW, Links.PRIVACY_POLICY.toUri()))
+        binding.tvPrivacyPolicy.setOnClickListener {
+            startActivity(Intent(Intent.ACTION_VIEW, Links.PRIVACY_POLICY.toUri()))
         }
-        return v
+        return binding.root
     }
 
     override fun onClick(p0: View?) {
