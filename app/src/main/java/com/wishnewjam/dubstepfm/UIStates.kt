@@ -16,3 +16,11 @@ sealed interface UiState {
     object Loading : UiState
 }
 
+
+sealed interface PlayerState {
+    object Play : PlayerState
+    object Stop : PlayerState
+    object Error : PlayerState
+    object Loading : PlayerState
+}
+

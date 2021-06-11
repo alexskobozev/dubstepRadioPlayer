@@ -23,7 +23,7 @@ import com.wishnewjam.dubstepfm.Tools.logDebug
 import com.wishnewjam.dubstepfm.Tools.toastDebug
 import com.wishnewjam.dubstepfm.databinding.ActivityMainBinding
 import com.wishnewjam.dubstepfm.databinding.DialogConsentBinding
-import com.wishnewjam.dubstepfm.ui.home.HomeViewModel
+import com.wishnewjam.dubstepfm.ui.home.HomeViewModelImpl
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -33,7 +33,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mediaViewModel: MediaViewModel
     private lateinit var binding: ActivityMainBinding
 
-    private val homeViewModel: HomeViewModel by viewModels()
+    private val homeViewModel: HomeViewModelImpl by viewModels()
+    private val navigationViewModel: NavigationViewModel by viewModels()
 
     private val controllerCallback: MediaControllerCompat.Callback =
             object : MediaControllerCompat.Callback() {
@@ -106,17 +107,14 @@ class MainActivity : AppCompatActivity() {
         mediaController.registerCallback(controllerCallback)
     }
 
-    private val navigationViewModel by viewModels<NavigationViewModel>()
-
     //
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val appContainer = (application as MyApplication).container
+//        val appContainer = (application as MyApplication).container
 
         setContent {
-            DubstepApp(appContainer,
-                    navigationViewModel,
+            DubstepApp(navigationViewModel,
                     homeViewModel)
         }
     }

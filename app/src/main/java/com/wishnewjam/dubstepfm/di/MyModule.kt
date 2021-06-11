@@ -6,6 +6,7 @@ import com.wishnewjam.dubstepfm.MediaPlayerInstance
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -15,7 +16,7 @@ class MyModule {
 
     @Provides
     @Singleton
-    fun provideMediaPlayer(context: Context): DubstepMediaPlayer {
+    fun provideMediaPlayer(@ApplicationContext context: Context): DubstepMediaPlayer {
         return MediaPlayerInstance(context = context)
     }
 

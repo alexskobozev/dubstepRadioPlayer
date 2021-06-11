@@ -60,7 +60,7 @@ class MainService : MediaBrowserServiceCompat() {
 
     override fun onCreate() {
         super.onCreate()
-        mediaPlayerInstance = (application as MyApplication).mediaPlayerInstance
+//        mediaPlayerInstance = (application as MyApplication).mediaPlayerInstance
         mediaSession = MediaSessionCompat(this, "PlayerService")
         mediaPlayerInstance.serviceCallback = mediaPlayerCallback
         mediaSession?.let {

@@ -7,15 +7,15 @@ import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class MyApplication : MultiDexApplication() {
-    lateinit var container: AppContainer
+//    lateinit var container: AppContainer
 
 
-    val mediaPlayerInstance: MediaPlayerInstance by lazy {
-        MediaPlayerInstance(this)
-    }
-
-    override fun onCreate() {
-        super.onCreate()
-        container = AppContainerImpl(this)
-    }
+//    val mediaPlayerInstance: MediaPlayerInstance by lazy {
+//        MediaPlayerInstance(this)
+//    }
+//
+//    override fun onCreate() {
+//        super.onCreate()
+//        container = AppContainerImpl(this)
+//    }
 }
