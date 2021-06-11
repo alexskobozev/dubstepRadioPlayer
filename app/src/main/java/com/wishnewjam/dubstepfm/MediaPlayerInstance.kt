@@ -16,7 +16,7 @@ import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 
-class MediaPlayerInstance(private val context: Context) : Player.EventListener {
+class MediaPlayerInstance(private val context: Context) : Player.EventListener, DubstepMediaPlayer {
     companion object {
         private const val USER_AGENT: String = "dubstep.fm"
     }
@@ -33,7 +33,8 @@ class MediaPlayerInstance(private val context: Context) : Player.EventListener {
                 .setUsage(C.USAGE_MEDIA)
                 .setContentType(C.CONTENT_TYPE_MUSIC)
                 .build()
-        mediaPlayer.audioAttributes = attributes
+        mediaPlayer.setAudioAttributes(attributes,
+                true)
         mediaPlayer.addMetadataOutput {
             if (it.length() > 0) {
                 (it.get(0) as? IcyInfo?)?.title?.let { s ->
@@ -67,10 +68,8 @@ class MediaPlayerInstance(private val context: Context) : Player.EventListener {
     override fun onPlayerStateChanged(playWhenReady: Boolean,
                                       playbackState: Int) {
         when (playbackState) {
-            Player.STATE_BUFFERING -> notifyStatusChanged(
-                    UIStates.STATUS_LOADING)
-            Player.STATE_READY     -> if (playWhenReady) notifyStatusChanged(
-                    UIStates.STATUS_PLAY)
+            Player.STATE_BUFFERING -> notifyStatusChanged(UIStates.STATUS_LOADING)
+            Player.STATE_READY     -> if (playWhenReady) notifyStatusChanged(UIStates.STATUS_PLAY)
             Player.STATE_ENDED     -> notifyStatusChanged(UIStates.STATUS_STOP)
             Player.STATE_IDLE      -> return
         }
@@ -85,7 +84,8 @@ class MediaPlayerInstance(private val context: Context) : Player.EventListener {
         Tools.logDebug { "exoPlayer: onPositionDiscontinuity" }
     }
 
-    override fun onTimelineChanged(timeline: Timeline, manifest: Any?,
+    override fun onTimelineChanged(timeline: Timeline,
+                                   manifest: Any?,
                                    reason: Int) {
         Tools.logDebug { "exoPlayer: onTimelineChanged: timeline = $timeline, manifest = $manifest" }
     }
@@ -139,7 +139,8 @@ class MediaPlayerInstance(private val context: Context) : Player.EventListener {
 
     private fun play() {
         val source = currentUrl.currentUrl.toUri()
-        val dataSourceFactory = DefaultDataSourceFactory(context, USER_AGENT)
+        val dataSourceFactory = DefaultDataSourceFactory(context,
+                USER_AGENT)
         val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
                 .createMediaSource(MediaItem.fromUri(source))
         mediaPlayer.playWhenReady = true

@@ -8,3 +8,11 @@ internal object UIStates {
     const val STATUS_LOADING = 6
     const val STATUS_WAITING = 8
 }
+
+sealed interface UiState {
+    object Play : UiState
+    object Stop : UiState
+    object Error : UiState
+    object Loading : UiState
+}
+

@@ -26,4 +26,5 @@
     <string name="agree">Agree</string>
     <string name="disagree">Disagree</string>
     <string name="send_errors_to_server">Send errors to server</string>
+    <string name="logo_content_desc">Dubstep.fm logo</string>
 </resources>

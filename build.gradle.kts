@@ -1,14 +1,15 @@
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
         google()
-        maven(url = "https://dl.bintray.com/drummer-aidan/maven/")
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:${Plugins.AGP}")
+        classpath("com.android.tools.build:gradle:7.1.0-alpha02")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION")
         classpath("com.google.gms:google-services:${Plugins.GOOGLE_SERVICES}")
         classpath("com.google.firebase:firebase-crashlytics-gradle:${Plugins.FIREBASE_CRASHLITYCS}")
+        classpath("com.google.dagger:hilt-android-gradle-plugin:${Libs.HILT}")
+
     }
 }
 
@@ -19,14 +20,15 @@ plugins {
 
 allprojects {
     repositories {
-        jcenter()
+        mavenCentral()
         google()
-        maven(url = "https://dl.bintray.com/drummer-aidan/maven/")
     }
 }
 
 fun isNonStable(version: String): Boolean {
-    val stableKeyword = listOf("RELEASE", "FINAL", "GA").any {
+    val stableKeyword = listOf("RELEASE",
+            "FINAL",
+            "GA").any {
         version.toUpperCase()
                 .contains(it)
     }
