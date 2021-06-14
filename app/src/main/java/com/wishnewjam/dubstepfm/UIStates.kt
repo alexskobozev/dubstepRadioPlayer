@@ -17,10 +17,11 @@ sealed interface UiState {
 }
 
 
-sealed interface PlayerState {
-    object Play : PlayerState
-    object Stop : PlayerState
-    object Error : PlayerState
-    object Loading : PlayerState
+sealed interface MediaState {
+    object Undefined : MediaState
+    object Play : MediaState
+    object Stop : MediaState
+    object Error : MediaState
+    object Loading : MediaState
 }
 

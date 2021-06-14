@@ -27,4 +27,5 @@
     <string name="disagree">Disagree</string>
     <string name="send_errors_to_server">Send errors to server</string>
     <string name="logo_content_desc">Dubstep.fm logo</string>
+    <string name="initial_status">Nothing is playing</string>
 </resources>

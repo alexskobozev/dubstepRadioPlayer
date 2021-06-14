@@ -18,6 +18,6 @@ private val DarkThemeColors =
 
 @Composable
 fun DubstepTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
-    MaterialTheme(colors = if (darkTheme) DarkThemeColors else LightThemeColors,
+    MaterialTheme(colors = if (darkTheme) DarkThemeColors else DarkThemeColors, // TODO: light theme
             typography = DubstepTypography, shapes = DubstepShapes, content = content)
 }

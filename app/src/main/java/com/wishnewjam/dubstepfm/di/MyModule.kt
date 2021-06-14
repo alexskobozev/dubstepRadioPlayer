@@ -3,6 +3,7 @@ package com.wishnewjam.dubstepfm.di
 import android.content.Context
 import com.wishnewjam.dubstepfm.DubstepMediaPlayer
 import com.wishnewjam.dubstepfm.MediaPlayerInstance
+import com.wishnewjam.dubstepfm.ui.ResourcesProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,6 +19,12 @@ class MyModule {
     @Singleton
     fun provideMediaPlayer(@ApplicationContext context: Context): DubstepMediaPlayer {
         return MediaPlayerInstance(context = context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideResourcesProvider(@ApplicationContext context: Context): ResourcesProvider {
+        return ResourcesProvider(resources = context.resources)
     }
 
 //    @Provides

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
@@ -50,61 +51,86 @@ fun HomeScreen(navigateTo: (Screen) -> Unit,
                 })
     },
             content = {
-                val showNowPlaying by homeViewModel.showNowPlaying.observeAsState()
-                if (showNowPlaying == true) {
-                    val padding = 8.dp
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.padding(padding)) {
-                        Image(modifier = Modifier.size(32.dp),
-                                painter = painterResource(R.drawable.ic_play),
-                                contentDescription = stringResource(R.string.play))
-                        Spacer(modifier = Modifier.size(padding))
-                        Column {
-                            val fontFamily = FontFamily(Font(R.font.montserrat_regular,
-                                    FontWeight.Normal),
-                                    Font(R.font.montserrat_semibold,
-                                            FontWeight.Bold))
-                            val nowPlaying: String? by homeViewModel.nowPlaying.observeAsState()
-                            Text(stringResource(id = R.string.now_playing),
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = fontFamily)
-                            Text(nowPlaying ?: "",
-                                    fontFamily = fontFamily)
-                        }
-                    }
-                }
-
-                Column(modifier = Modifier
-                        .fillMaxSize()
-                        .padding(48.dp),
-                        verticalArrangement = Arrangement.Bottom) {
-                    Box(modifier = Modifier
-                            .weight(1.0f)
-                            .fillMaxWidth()) {
-                        Image(modifier = Modifier.align(Alignment.Center),
-                                painter = painterResource(R.drawable.img_logo),
-                                contentDescription = stringResource(id = R.string.logo_content_desc))
-                    }
-                    IconButton(onClick = homeViewModel::toggleButton,
-                            Modifier
-                                    .height(140.dp)
-                                    .fillMaxWidth()) {
-                        val state: UiState? by homeViewModel.playButtonState.observeAsState()
-                        val playButtonResource = if (state == UiState.Play) {
-                            R.drawable.ic_stop
-                        }
-                        else {
-                            R.drawable.ic_play
-                        }
-                        Image(modifier = Modifier
-                                .fillMaxHeight()
-                                .size(100.dp),
-                                painter = painterResource(playButtonResource),
-                                contentDescription = stringResource(R.string.play))
-                    }
-                }
+                StatusView(homeViewModel)
+                MainView(homeViewModel)
             })
+}
+
+@Composable
+private fun MainView(homeViewModel: HomeViewModel) {
+    Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(48.dp),
+            verticalArrangement = Arrangement.Bottom) {
+        Box(modifier = Modifier
+                .weight(1.0f)
+                .fillMaxWidth()) {
+            Image(modifier = Modifier.align(Alignment.Center),
+                    painter = painterResource(R.drawable.img_logo),
+                    contentDescription = stringResource(id = R.string.logo_content_desc))
+        }
+        IconButton(onClick = homeViewModel::toggleButton,
+                Modifier
+                        .height(140.dp)
+                        .fillMaxWidth()) {
+            val state: UiState? by homeViewModel.playButtonState.observeAsState()
+            val playButtonResource = if (state == UiState.Play) {
+                R.drawable.ic_stop
+            }
+            else {
+                R.drawable.ic_play
+            }
+            Image(modifier = Modifier
+                    .fillMaxHeight()
+                    .size(100.dp),
+                    painter = painterResource(playButtonResource),
+                    contentDescription = stringResource(R.string.play))
+        }
+    }
+}
+
+@Composable
+private fun StatusView(homeViewModel: HomeViewModel) {
+    val statusText by homeViewModel.statusText.observeAsState()
+    if (statusText != null) {
+        val padding = 8.dp
+        Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(padding)) {
+            val iconRes by homeViewModel.statusIcon.observeAsState()
+            StatusIcon(iconRes)
+            Spacer(modifier = Modifier.size(padding))
+            Column {
+                val nowPlaying: String? by homeViewModel.nowPlaying.observeAsState()
+                val fontFamily = FontFamily(Font(R.font.montserrat_regular,
+                        FontWeight.Normal),
+                        Font(R.font.montserrat_semibold,
+                                FontWeight.Bold))
+                Text(statusText ?: "",
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = fontFamily)
+                if (nowPlaying != null) {
+                    Text(nowPlaying ?: "",
+                            fontFamily = fontFamily)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusIcon(iconRes: Int?) {
+    val modifier = Modifier
+            .size(32.dp)
+            .padding(2.dp)
+    if (iconRes == null) {
+        CircularProgressIndicator(modifier = modifier)
+    }
+    else {
+        Image(modifier = modifier,
+                painter = painterResource(iconRes),
+                contentDescription = stringResource(R.string.play))
+    }
 }
 
 @Preview

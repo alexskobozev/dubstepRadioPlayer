@@ -1,5 +1,6 @@
 package com.wishnewjam.dubstepfm
 
+import android.content.ComponentName
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
@@ -8,21 +9,13 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.text.method.LinkMovementMethod
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.Button
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.callbacks.onDismiss
-import com.afollestad.materialdialogs.customview.customView
 import com.wishnewjam.dubstepfm.Tools.logDebug
-import com.wishnewjam.dubstepfm.Tools.toastDebug
-import com.wishnewjam.dubstepfm.databinding.ActivityMainBinding
-import com.wishnewjam.dubstepfm.databinding.DialogConsentBinding
 import com.wishnewjam.dubstepfm.ui.home.HomeViewModelImpl
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -30,8 +23,6 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private var mediaBrowser: MediaBrowserCompat? = null
-    private lateinit var mediaViewModel: MediaViewModel
-    private lateinit var binding: ActivityMainBinding
 
     private val homeViewModel: HomeViewModelImpl by viewModels()
     private val navigationViewModel: NavigationViewModel by viewModels()
@@ -41,7 +32,7 @@ class MainActivity : AppCompatActivity() {
                 override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
                     super.onPlaybackStateChanged(state)
                     logDebug { "controllerCallback: onPlaybackStateChanged, state= ${state?.state}" }
-                    applyPlaybackState(state?.state)
+                    homeViewModel.playbackStateChanged(state)
                 }
 
                 override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
@@ -62,7 +53,7 @@ class MainActivity : AppCompatActivity() {
                         MediaControllerCompat.setMediaController(this@MainActivity,
                                 controller)
                         buildTransportControls()
-                        applyPlaybackState(controller.playbackState.state)
+                        homeViewModel.playbackStateChanged(controller.playbackState)
                         applyMetadata(controller.metadata)
                     }
                     volumeControlStream = AudioManager.STREAM_MUSIC
@@ -85,8 +76,9 @@ class MainActivity : AppCompatActivity() {
         val artist = metadata?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
         val track = metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
         if (artist != null && track != null) {
+            homeViewModel.nowPlayingTextChanged(track)
             val nowPlayingText = "${getString(R.string.now_playing)} $track"
-            binding.includeInfo.tvNowplaying.text = nowPlayingText
+//            binding.includeInfo.tvNowplaying.text = nowPlayingText
         }
     }
 
@@ -96,7 +88,7 @@ class MainActivity : AppCompatActivity() {
         val mediaController = MediaControllerCompat.getMediaController(this)
 
         playButton?.setOnClickListener {
-            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) binding.includeInfo.tvNowplaying.setText(R.string.gathering_info)
+//            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) binding.includeInfo.tvNowplaying.setText(R.string.gathering_info)
             mediaController.transportControls.play()
         }
 
@@ -111,12 +103,38 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        val appContainer = (application as MyApplication).container
-
         setContent {
             DubstepApp(navigationViewModel,
                     homeViewModel)
         }
+        homeViewModel.playButtonState.observe(this) {
+            when (it) {
+                is UiState.Play -> mediaController?.transportControls?.play()
+                is UiState.Stop -> mediaController?.transportControls?.stop()
+            }
+        }
+
+//        mediaViewModel.userConsent.observe(this,
+//                { t ->
+//                    t?.let {
+//                        if (it) {
+//                            FirebaseCrashlytics.getInstance()
+//                                    .setCrashlyticsCollectionEnabled(true)
+//                        }
+//                    }
+//                })
+//        setContentView(binding.rootView)
+//
+//        if (!mediaViewModel.consentDialogShown) {
+//            showConsentDialog()
+//        }
+
+        mediaBrowser = MediaBrowserCompat(this,
+                ComponentName(this,
+                        MainService::class.java),
+                connectionCallback,
+                null)
+
     }
 
     override fun onBackPressed() {
@@ -124,35 +142,6 @@ class MainActivity : AppCompatActivity() {
             super.onBackPressed()
         }
     }
-
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        binding = ActivityMainBinding.inflate(layoutInflater)
-//        mediaViewModel = ViewModelProvider(this).get(MediaViewModel::class.java)
-//
-//        val appContainer = (application as MyApplication).container
-//        setContent {
-//            DubstepApp(appContainer, navigationViewModel)
-//        }
-//
-////        mediaViewModel.userConsent.observe(this, { t ->
-////            t?.let {
-////                if (it) {
-////                    FirebaseCrashlytics.getInstance()
-////                            .setCrashlyticsCollectionEnabled(true)
-////                }
-////            }
-////        })
-////        setContentView(binding.rootView)
-////
-////        if (!mediaViewModel.consentDialogShown) {
-////            showConsentDialog()
-////        }
-////
-////        mediaBrowser = MediaBrowserCompat(this,
-////                ComponentName(this, MainService::class.java),
-////                connectionCallback, null)
-//    }
 
     override fun onStart() {
         super.onStart()
@@ -183,63 +172,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun applyPlaybackState(state: Int?) {
-        when (state) {
-            PlaybackStateCompat.STATE_PLAYING   -> showPlaying()
-            PlaybackStateCompat.STATE_BUFFERING -> showLoading()
-            PlaybackStateCompat.STATE_ERROR     -> showError()
-            else                                -> showStopped()
-        }
-    }
-
-    private fun showLoading() {
-        binding.includeInfo.progressBar.visibility = View.VISIBLE
-        binding.includeInfo.ivStatus.visibility = View.INVISIBLE
-    }
-
-    private fun showStopped() {
-        binding.includeInfo.ivStatus.setImageResource(R.drawable.ic_stop)
-        binding.includeInfo.progressBar.visibility = View.INVISIBLE
-        binding.includeInfo.ivStatus.visibility = View.VISIBLE
-    }
-
-    private fun showPlaying() {
-        binding.includeInfo.progressBar.visibility = View.INVISIBLE
-        binding.includeInfo.ivStatus.visibility = View.VISIBLE
-        binding.includeInfo.ivStatus.setImageResource(R.drawable.ic_play)
-    }
-
-    private fun showError() {
-        binding.includeInfo.progressBar.visibility = View.INVISIBLE
-        binding.includeInfo.ivStatus.visibility = View.VISIBLE
-        binding.includeInfo.ivStatus.setImageResource(R.drawable.ic_stop)
-        toastDebug({ getString(R.string.error) },
-                this)
-    }
-
     private fun showBitrateChooser() {
 //        val bitrateFragment = ChooseBitrateDialogFragment()
 //        bitrateFragment.show(supportFragmentManager, "bitrate")
     }
 
     private fun showConsentDialog() {
-        val consentBinding = DialogConsentBinding.inflate(layoutInflater,
-                binding.rootView,
-                false)
-        consentBinding.tvConsent.movementMethod = LinkMovementMethod.getInstance()
-
-        MaterialDialog(this).cancelable(false)
-                .title(res = R.string.question_to_consent)
-                .customView(view = consentBinding.root)
-                .positiveButton(R.string.agree) {
-                    it.dismiss()
-                    mediaViewModel.changeConsent(true)
-                }
-                .negativeButton(R.string.disagree) {
-                    it.dismiss()
-                    mediaViewModel.changeConsent(false)
-                }
-                .onDismiss { mediaViewModel.setDialogShown() }
-                .show()
+//        val consentBinding = DialogConsentBinding.inflate(layoutInflater,
+//                binding.rootView,
+//                false)
+//        consentBinding.tvConsent.movementMethod = LinkMovementMethod.getInstance()
+//
+//        MaterialDialog(this).cancelable(false)
+//                .title(res = R.string.question_to_consent)
+//                .customView(view = consentBinding.root)
+//                .positiveButton(R.string.agree) {
+//                    it.dismiss()
+//                    mediaViewModel.changeConsent(true)
+//                }
+//                .negativeButton(R.string.disagree) {
+//                    it.dismiss()
+//                    mediaViewModel.changeConsent(false)
+//                }
+//                .onDismiss { mediaViewModel.setDialogShown() }
+//                .show()
     }
 }
