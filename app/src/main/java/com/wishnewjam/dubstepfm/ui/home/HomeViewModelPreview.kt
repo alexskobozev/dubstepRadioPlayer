@@ -3,9 +3,9 @@ package com.wishnewjam.dubstepfm.ui.home
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.wishnewjam.dubstepfm.MediaState
+import com.wishnewjam.dubstepfm.ui.state.MediaState
 import com.wishnewjam.dubstepfm.R
-import com.wishnewjam.dubstepfm.UiState
+import com.wishnewjam.dubstepfm.ui.state.UiState
 
 class HomeViewModelPreview : HomeViewModel {
     override val playButtonState: LiveData<UiState> = MutableLiveData(UiState.Stop)

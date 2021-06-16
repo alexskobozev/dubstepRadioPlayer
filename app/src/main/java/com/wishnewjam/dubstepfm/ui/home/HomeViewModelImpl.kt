@@ -5,8 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.wishnewjam.dubstepfm.MediaState
-import com.wishnewjam.dubstepfm.UiState
+import com.wishnewjam.dubstepfm.ui.state.MediaState
+import com.wishnewjam.dubstepfm.ui.state.UiState
 import com.wishnewjam.dubstepfm.ui.ResourcesProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject

@@ -31,8 +31,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.wishnewjam.dubstepfm.R
-import com.wishnewjam.dubstepfm.Screen
-import com.wishnewjam.dubstepfm.UiState
+import com.wishnewjam.dubstepfm.legacy.Screen
+import com.wishnewjam.dubstepfm.ui.state.UiState
 import com.wishnewjam.dubstepfm.ui.ThemedPreview
 
 @Composable

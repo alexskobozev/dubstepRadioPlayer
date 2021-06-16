@@ -1,4 +1,4 @@
-package com.wishnewjam.dubstepfm
+package com.wishnewjam.dubstepfm.legacy
 
 import android.content.Context
 import androidx.core.net.toUri
@@ -11,6 +11,8 @@ import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.metadata.icy.IcyInfo
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.wishnewjam.dubstepfm.playback.DubstepMediaPlayer
+import com.wishnewjam.dubstepfm.ui.state.UIStates
 
 class MediaPlayerInstance(private val context: Context) : Player.Listener, DubstepMediaPlayer {
     companion object {
@@ -31,7 +33,7 @@ class MediaPlayerInstance(private val context: Context) : Player.Listener, Dubst
                 .setContentType(C.CONTENT_TYPE_MUSIC)
                 .build()
         mediaPlayer.setAudioAttributes(attributes,
-                true)
+                false)
         mediaPlayer.addMetadataOutput {
             if (it.length() > 0) {
                 (it.get(0) as? IcyInfo?)?.title?.let { s ->

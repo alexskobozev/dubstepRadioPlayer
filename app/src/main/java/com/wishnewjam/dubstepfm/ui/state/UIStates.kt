@@ -1,4 +1,4 @@
-package com.wishnewjam.dubstepfm
+package com.wishnewjam.dubstepfm.ui.state
 
 internal object UIStates {
     const val STATUS_UNDEFINED = 0

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.wishnewjam.dubstepfm
+package com.wishnewjam.dubstepfm.legacy
 
 import android.os.Bundle
 import androidx.annotation.MainThread
@@ -23,8 +23,8 @@ import androidx.compose.runtime.setValue
 import androidx.core.os.bundleOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.wishnewjam.dubstepfm.Screen.*
-import com.wishnewjam.dubstepfm.ScreenName.*
+import com.wishnewjam.dubstepfm.legacy.Screen.*
+import com.wishnewjam.dubstepfm.legacy.ScreenName.*
 import com.wishnewjam.dubstepfm.utils.getMutableStateOf
 
 /**

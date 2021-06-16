@@ -1,11 +1,8 @@
-package com.wishnewjam.dubstepfm
+package com.wishnewjam.dubstepfm.legacy
 
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
-import com.wishnewjam.dubstepfm.data.AppContainer
-import com.wishnewjam.dubstepfm.data.StreamsRepository
 import com.wishnewjam.dubstepfm.ui.home.HomeScreen
 import com.wishnewjam.dubstepfm.ui.home.HomeViewModelImpl
 import com.wishnewjam.theme.DubstepTheme

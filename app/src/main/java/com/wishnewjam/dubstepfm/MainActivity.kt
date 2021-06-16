@@ -15,9 +15,20 @@ import android.widget.Button
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.wishnewjam.dubstepfm.Tools.logDebug
+import com.wishnewjam.dubstepfm.legacy.DubstepApp
+import com.wishnewjam.dubstepfm.legacy.NavigationViewModel
+import com.wishnewjam.dubstepfm.legacy.Tools.logDebug
+import com.wishnewjam.dubstepfm.ui.state.UiState
+import com.wishnewjam.dubstepfm.playback.MainService
 import com.wishnewjam.dubstepfm.ui.home.HomeViewModelImpl
 import dagger.hilt.android.AndroidEntryPoint
+
+
+// TODOLIST
+// audiofocus and controls handling in headphones
+// view states when reopen activity after stop/ from notifications
+// leaks
+// сервис пропадает
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -38,6 +49,52 @@ class MainActivity : AppCompatActivity() {
                 override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
                     super.onMetadataChanged(metadata)
                     applyMetadata(metadata)
+                }
+
+                override fun binderDied() {
+                    super.binderDied()
+                }
+
+                override fun onSessionReady() {
+                    super.onSessionReady()
+                }
+
+                override fun onSessionDestroyed() {
+                    super.onSessionDestroyed()
+                }
+
+                override fun onSessionEvent(event: String?,
+                                            extras: Bundle?) {
+                    super.onSessionEvent(event,
+                            extras)
+                }
+
+                override fun onQueueChanged(queue: MutableList<MediaSessionCompat.QueueItem>?) {
+                    super.onQueueChanged(queue)
+                }
+
+                override fun onQueueTitleChanged(title: CharSequence?) {
+                    super.onQueueTitleChanged(title)
+                }
+
+                override fun onExtrasChanged(extras: Bundle?) {
+                    super.onExtrasChanged(extras)
+                }
+
+                override fun onAudioInfoChanged(info: MediaControllerCompat.PlaybackInfo?) {
+                    super.onAudioInfoChanged(info)
+                }
+
+                override fun onCaptioningEnabledChanged(enabled: Boolean) {
+                    super.onCaptioningEnabledChanged(enabled)
+                }
+
+                override fun onRepeatModeChanged(repeatMode: Int) {
+                    super.onRepeatModeChanged(repeatMode)
+                }
+
+                override fun onShuffleModeChanged(shuffleMode: Int) {
+                    super.onShuffleModeChanged(shuffleMode)
                 }
             }
 
@@ -70,6 +127,7 @@ class MainActivity : AppCompatActivity() {
                     super.onConnectionFailed()
                     logDebug { "ConnectionCallback: onConnectionFailed" }
                 }
+
             }
 
     private fun applyMetadata(metadata: MediaMetadataCompat?) {
@@ -77,8 +135,6 @@ class MainActivity : AppCompatActivity() {
         val track = metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
         if (artist != null && track != null) {
             homeViewModel.nowPlayingTextChanged(track)
-            val nowPlayingText = "${getString(R.string.now_playing)} $track"
-//            binding.includeInfo.tvNowplaying.text = nowPlayingText
         }
     }
 
@@ -88,7 +144,6 @@ class MainActivity : AppCompatActivity() {
         val mediaController = MediaControllerCompat.getMediaController(this)
 
         playButton?.setOnClickListener {
-//            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) binding.includeInfo.tvNowplaying.setText(R.string.gathering_info)
             mediaController.transportControls.play()
         }
 
@@ -99,7 +154,6 @@ class MainActivity : AppCompatActivity() {
         mediaController.registerCallback(controllerCallback)
     }
 
-    //
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -113,21 +167,6 @@ class MainActivity : AppCompatActivity() {
                 is UiState.Stop -> mediaController?.transportControls?.stop()
             }
         }
-
-//        mediaViewModel.userConsent.observe(this,
-//                { t ->
-//                    t?.let {
-//                        if (it) {
-//                            FirebaseCrashlytics.getInstance()
-//                                    .setCrashlyticsCollectionEnabled(true)
-//                        }
-//                    }
-//                })
-//        setContentView(binding.rootView)
-//
-//        if (!mediaViewModel.consentDialogShown) {
-//            showConsentDialog()
-//        }
 
         mediaBrowser = MediaBrowserCompat(this,
                 ComponentName(this,
@@ -177,24 +216,4 @@ class MainActivity : AppCompatActivity() {
 //        bitrateFragment.show(supportFragmentManager, "bitrate")
     }
 
-    private fun showConsentDialog() {
-//        val consentBinding = DialogConsentBinding.inflate(layoutInflater,
-//                binding.rootView,
-//                false)
-//        consentBinding.tvConsent.movementMethod = LinkMovementMethod.getInstance()
-//
-//        MaterialDialog(this).cancelable(false)
-//                .title(res = R.string.question_to_consent)
-//                .customView(view = consentBinding.root)
-//                .positiveButton(R.string.agree) {
-//                    it.dismiss()
-//                    mediaViewModel.changeConsent(true)
-//                }
-//                .negativeButton(R.string.disagree) {
-//                    it.dismiss()
-//                    mediaViewModel.changeConsent(false)
-//                }
-//                .onDismiss { mediaViewModel.setDialogShown() }
-//                .show()
-    }
 }

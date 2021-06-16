@@ -1,4 +1,4 @@
-package com.wishnewjam.dubstepfm
+package com.wishnewjam.dubstepfm.legacy
 
 internal object Links {
     const val PRIVACY_POLICY = "http://sites.google.com/view/dubstep-fm-app-privacy-policy"
