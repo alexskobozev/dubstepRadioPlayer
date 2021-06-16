@@ -1,12 +1,11 @@
 package com.wishnewjam.dubstepfm.ui.state
 
-internal object UIStates {
-    const val STATUS_UNDEFINED = 0
-    const val STATUS_PLAY = 3
-    const val STATUS_STOP = 1
-    const val STATUS_ERROR = 7
-    const val STATUS_LOADING = 6
-    const val STATUS_WAITING = 8
+sealed class PlayerState {
+    object Undefined : PlayerState()
+    class Play(val trackName: String?) : PlayerState()
+    object Stop : PlayerState()
+    class Error(val errorText: String) : PlayerState()
+    object Buffering : PlayerState()
 }
 
 sealed interface UiState {
@@ -17,11 +16,11 @@ sealed interface UiState {
 }
 
 
-sealed interface MediaState {
-    object Undefined : MediaState
-    object Play : MediaState
-    object Stop : MediaState
-    object Error : MediaState
-    object Loading : MediaState
+sealed interface PlaybackState {
+    object Undefined : PlaybackState
+    object Play : PlaybackState
+    object Stop : PlaybackState
+    object Error : PlaybackState
+    object Loading : PlaybackState
 }
 

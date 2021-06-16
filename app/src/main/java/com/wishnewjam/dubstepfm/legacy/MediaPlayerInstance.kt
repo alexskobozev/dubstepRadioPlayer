@@ -2,26 +2,20 @@ package com.wishnewjam.dubstepfm.legacy
 
 import android.content.Context
 import androidx.core.net.toUri
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.ExoPlaybackException
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.metadata.icy.IcyInfo
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.wishnewjam.dubstepfm.playback.DubstepMediaPlayer
-import com.wishnewjam.dubstepfm.ui.state.UIStates
+import com.wishnewjam.dubstepfm.ui.state.PlayerState
 
-class MediaPlayerInstance(private val context: Context) : Player.Listener, DubstepMediaPlayer {
+class MediaPlayerInstance(private val context: Context, val stateChange: (state: PlayerState) -> Unit) : Player.Listener, DubstepMediaPlayer {
     companion object {
         private const val USER_AGENT: String = "dubstep.fm"
     }
 
-    override var status: Int = UIStates.STATUS_UNDEFINED
-    override var serviceCallback: CallbackInterface? = null
-
+    private var status: PlayerState = PlayerState.Undefined
     private var currentUrl: CurrentUrl = CurrentUrl(context)
     private val mediaPlayer: SimpleExoPlayer = SimpleExoPlayer.Builder(context)
             .build()
@@ -37,7 +31,7 @@ class MediaPlayerInstance(private val context: Context) : Player.Listener, Dubst
         mediaPlayer.addMetadataOutput {
             if (it.length() > 0) {
                 (it.get(0) as? IcyInfo?)?.title?.let { s ->
-                    serviceCallback?.onMetaDataTrackChange(s)
+                    notifyStatusChanged(PlayerState.Play(s))
                 }
             }
         }
@@ -46,48 +40,32 @@ class MediaPlayerInstance(private val context: Context) : Player.Listener, Dubst
     override fun onPlayerError(error: ExoPlaybackException) {
         mediaPlayer.stop()
         Tools.logDebug { "exoPlayer: onPlayerError: error = ${error.message}" }
-        status = UIStates.STATUS_ERROR
-        serviceCallback?.onError("Playback error: ${error.message}")
-
+        notifyStatusChanged(PlayerState.Error(errorText = "${error.message}"))
     }
 
     override fun onPlayerStateChanged(playWhenReady: Boolean,
                                       playbackState: Int) {
         when (playbackState) {
-            Player.STATE_BUFFERING -> notifyStatusChanged(UIStates.STATUS_LOADING)
-            Player.STATE_READY     -> if (playWhenReady) {
-                notifyStatusChanged(UIStates.STATUS_PLAY)
+            Player.STATE_BUFFERING -> notifyStatusChanged(PlayerState.Buffering)
+            Player.STATE_READY -> if (playWhenReady) {
+                notifyStatusChanged(PlayerState.Play(null))
             }
-            Player.STATE_ENDED     -> notifyStatusChanged(UIStates.STATUS_STOP)
-            Player.STATE_IDLE      -> return
+            Player.STATE_IDLE -> return
         }
         Tools.logDebug { "exoPlayer: onPlayerStateChanged: playWhenReady = $playWhenReady, playbackState = $playbackState " }
     }
 
     override fun callPlay() {
         Tools.logDebug { "Call play, status: $status" }
-        when (status) {
-
-            UIStates.STATUS_PLAY    -> {
-                // do nothing
-            }
-
-            UIStates.STATUS_LOADING -> {
-                // do nothing
-            }
-
-            else                    -> {
-                play()
-            }
+        if (status !is PlayerState.Play && status != PlayerState.Buffering) {
+            play()
         }
     }
 
     override fun callStop() {
-        when (status) {
-            UIStates.STATUS_PLAY -> {
-                mediaPlayer.stop()
-                notifyStatusChanged(UIStates.STATUS_STOP)
-            }
+        if (status is PlayerState.Play) {
+            mediaPlayer.stop()
+            status = PlayerState.Stop
         }
     }
 
@@ -98,9 +76,9 @@ class MediaPlayerInstance(private val context: Context) : Player.Listener, Dubst
 //        }
 //    }
 
-    private fun notifyStatusChanged(status: Int) {
+    private fun notifyStatusChanged(status: PlayerState) {
         this.status = status
-        serviceCallback?.onChangeStatus(status)
+        stateChange.invoke(status)
     }
 
     private fun play() {
@@ -112,13 +90,9 @@ class MediaPlayerInstance(private val context: Context) : Player.Listener, Dubst
         mediaPlayer.playWhenReady = true
         mediaPlayer.setMediaSource(mediaSource)
         mediaPlayer.prepare()
-
-        notifyStatusChanged(UIStates.STATUS_LOADING)
     }
 
-    interface CallbackInterface {
-        fun onChangeStatus(status: Int)
-        fun onError(error: String)
-        fun onMetaDataTrackChange(trackName: String)
+    fun destroy() {
+        mediaPlayer.release()
     }
 }

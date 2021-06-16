@@ -2,7 +2,7 @@ package com.wishnewjam.dubstepfm.ui.home
 
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.LiveData
-import com.wishnewjam.dubstepfm.ui.state.MediaState
+import com.wishnewjam.dubstepfm.ui.state.PlaybackState
 import com.wishnewjam.dubstepfm.ui.state.UiState
 
 interface HomeViewModel {
@@ -12,6 +12,6 @@ interface HomeViewModel {
     fun toggleButton()
 
     fun playbackStateChanged(state: PlaybackStateCompat?)
-    val mediaState: LiveData<MediaState>
+    val playbackState: LiveData<PlaybackState>
     val statusIcon: LiveData<Int?>
 }

@@ -9,9 +9,9 @@ class NotificationResourceProvider(resources: Resources) {
     val playStatusString: String = resources.getString(R.string.play)
 
     val connectStatusString: String = resources.getString(R.string.connecting)
-    val stopStatusString: String = resources.getString(R.string.stop)
+    val pauseStatusString: String = resources.getString(R.string.stop)
 
     val playIconRes: Int = R.drawable.ic_play
     val notificationSmallIconRes: Int = R.drawable.ic_notification
-    val stopIconRes: Int = R.drawable.ic_stop
+    val pauseIconRes: Int = R.drawable.ic_stop
 }

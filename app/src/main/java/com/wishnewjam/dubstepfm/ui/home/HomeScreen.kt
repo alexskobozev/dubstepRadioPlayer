@@ -75,10 +75,10 @@ private fun MainView(homeViewModel: HomeViewModel) {
                         .fillMaxWidth()) {
             val state: UiState? by homeViewModel.playButtonState.observeAsState()
             val playButtonResource = if (state == UiState.Play) {
-                R.drawable.ic_stop
+                R.drawable.ic_play
             }
             else {
-                R.drawable.ic_play
+                R.drawable.ic_stop
             }
             Image(modifier = Modifier
                     .fillMaxHeight()

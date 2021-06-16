@@ -18,7 +18,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.wishnewjam.dubstepfm.legacy.DubstepApp
 import com.wishnewjam.dubstepfm.legacy.NavigationViewModel
 import com.wishnewjam.dubstepfm.legacy.Tools.logDebug
-import com.wishnewjam.dubstepfm.ui.state.UiState
 import com.wishnewjam.dubstepfm.playback.MainService
 import com.wishnewjam.dubstepfm.ui.home.HomeViewModelImpl
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,6 +28,8 @@ import dagger.hilt.android.AndroidEntryPoint
 // view states when reopen activity after stop/ from notifications
 // leaks
 // сервис пропадает
+// стопнуть воспр, удалить активити, нажать плей в уведомлении - дублируется
+// сервис перезапускается после смахивания
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -161,10 +162,12 @@ class MainActivity : AppCompatActivity() {
             DubstepApp(navigationViewModel,
                     homeViewModel)
         }
-        homeViewModel.playButtonState.observe(this) {
-            when (it) {
-                is UiState.Play -> mediaController?.transportControls?.play()
-                is UiState.Stop -> mediaController?.transportControls?.stop()
+        homeViewModel.userIntentPlayState.observe(this) {
+            if (it == null) return@observe
+            if (it) {
+                mediaController?.transportControls?.play()
+            } else {
+                mediaController?.transportControls?.pause()
             }
         }
 
@@ -207,7 +210,7 @@ class MainActivity : AppCompatActivity() {
                 showBitrateChooser()
                 true
             }
-            else                -> super.onOptionsItemSelected(item)
+            else -> super.onOptionsItemSelected(item)
         }
     }
 

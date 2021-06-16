@@ -5,9 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.wishnewjam.dubstepfm.ui.state.MediaState
-import com.wishnewjam.dubstepfm.ui.state.UiState
 import com.wishnewjam.dubstepfm.ui.ResourcesProvider
+import com.wishnewjam.dubstepfm.ui.state.PlaybackState
+import com.wishnewjam.dubstepfm.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -16,65 +16,88 @@ class HomeViewModelImpl @Inject constructor(val resourcesProvider: ResourcesProv
         HomeViewModel {
 
     private val _playButtonState = MutableLiveData<UiState>().apply {
-        value = UiState.Stop
+        value = UiState.Play
     }
 
     private val _nowPlaying: MutableLiveData<String?> = MutableLiveData(null)
     private val _statusText: MutableLiveData<String?> = MutableLiveData(null)
-    private val _mediaState = MutableLiveData<MediaState>().apply {
-        value = MediaState.Stop
+    private val _userIntentPlayState: MutableLiveData<Boolean?> = MutableLiveData(null)
+    private val _playbackState = MutableLiveData<PlaybackState>().apply {
+        value = PlaybackState.Stop
     }
 
     override val playButtonState: LiveData<UiState> = _playButtonState
     override val statusText: LiveData<String?> = _statusText
     override val nowPlaying: LiveData<String?> = _nowPlaying
-    override val mediaState: LiveData<MediaState> = _mediaState
+    override val playbackState: LiveData<PlaybackState> = _playbackState
+    val userIntentPlayState: LiveData<Boolean?> = _userIntentPlayState
 
-    override val statusIcon: LiveData<Int?> = Transformations.switchMap(mediaState) {
+
+    override val statusIcon: LiveData<Int?> = Transformations.switchMap(playbackState) {
         val res = when (it) {
-            is MediaState.Play  -> resourcesProvider.statusPlayIcon
-            is MediaState.Error -> resourcesProvider.statusErrorIcon
-            else                -> null
+            is PlaybackState.Play -> resourcesProvider.statusPlayIcon
+            is PlaybackState.Error -> resourcesProvider.statusErrorIcon
+            else -> null
         }
         MutableLiveData(res)
     }
 
     override fun toggleButton() {
         when (playButtonState.value) {
-            is UiState.Stop    -> _playButtonState.value = UiState.Play
-            is UiState.Play    -> _playButtonState.value = UiState.Stop
+            is UiState.Play -> {
+                _playbackState.value = PlaybackState.Loading
+                _playButtonState.value = UiState.Stop
+                _userIntentPlayState.value = true
+            }
+            is UiState.Stop -> {
+                _playButtonState.value = UiState.Play
+                _userIntentPlayState.value = false
+            }
             is UiState.Loading -> {
             }
-            is UiState.Error   -> {
+            is UiState.Error -> {
+                _playButtonState.value = UiState.Play
+                _userIntentPlayState.value = true
             }
         }
     }
 
     override fun playbackStateChanged(state: PlaybackStateCompat?) {
         when (state?.state) {
-            PlaybackStateCompat.STATE_PLAYING    -> {
-                _mediaState.value = MediaState.Play
+            PlaybackStateCompat.STATE_PLAYING -> {
+                _playbackState.value = PlaybackState.Play
                 _statusText.value = resourcesProvider.nowPlaying
+                _playButtonState.value = UiState.Stop
             }
-            PlaybackStateCompat.STATE_BUFFERING  -> {
-                _mediaState.value = MediaState.Loading
+            PlaybackStateCompat.STATE_BUFFERING -> {
+                _playbackState.value = PlaybackState.Loading
                 _statusText.value = resourcesProvider.loading
             }
             PlaybackStateCompat.STATE_CONNECTING -> {
-                _mediaState.value = MediaState.Loading
+                _playbackState.value = PlaybackState.Loading
                 _statusText.value = resourcesProvider.loading
             }
-            PlaybackStateCompat.STATE_ERROR      -> {
-                _mediaState.value = MediaState.Error
+            PlaybackStateCompat.STATE_ERROR -> {
+                _playbackState.value = PlaybackState.Error
                 _playButtonState.value = UiState.Error
                 _statusText.value =
                         "${resourcesProvider.errorText}: ${state.errorMessage}" // TODO: 13/06/2021 remove msg or leave for debug
                 _nowPlaying.value = null
             }
-            else                                 -> {
-                _mediaState.value = MediaState.Stop
+            PlaybackStateCompat.STATE_STOPPED -> {
+                _playbackState.value = PlaybackState.Stop
                 _nowPlaying.value = null
                 _statusText.value = null
+                _playButtonState.value = UiState.Play
+            }
+            PlaybackStateCompat.STATE_PAUSED -> {
+                _playbackState.value = PlaybackState.Stop
+                _nowPlaying.value = null
+                _statusText.value = null
+                _playButtonState.value = UiState.Play
+            }
+            else -> {
+
             }
         }
     }

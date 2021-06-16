@@ -29,6 +29,7 @@ class NotificationBuilder(val context: Context,
     sealed interface NotificationStatus {
         object Play : NotificationStatus
         object Stop : NotificationStatus
+        object Pause : NotificationStatus
         object Loading : NotificationStatus
         object Error : NotificationStatus
     }
@@ -50,6 +51,7 @@ class NotificationBuilder(val context: Context,
                     setContentIntent(activity)
                     setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     setSmallIcon(resourcesProvider.notificationSmallIconRes)
+                    setProgress(0, 0, false)
                     color = Color.BLACK
                     setDeleteIntent(getDeleteIntent())
                     setStyle(androidx.media.app.NotificationCompat.MediaStyle()
@@ -64,30 +66,28 @@ class NotificationBuilder(val context: Context,
         // TODO: 16/06/2021 put notify outside
         when (status) {
             NotificationStatus.Play -> {
-                addStopAction(notificationBuilder)
+                addPauseAction(notificationBuilder)
                 return notificationBuilder.build()
             }
             NotificationStatus.Loading -> {
                 notificationBuilder.setContentTitle(resourcesProvider.connectStatusString)
                 notificationBuilder.setContentText("")
-                addStopAction(notificationBuilder)
+                addPauseAction(notificationBuilder)
+                return notificationBuilder.build()
+            }
+            NotificationStatus.Pause -> {
+                addPlayAction(notificationBuilder)
+//                notifyManager.notify(NOTIFICATION_ID, notificationBuilder.build())
                 return notificationBuilder.build()
             }
             NotificationStatus.Stop -> {
-                addPlayAction(notificationBuilder)
-                notifyManager.notify(NOTIFICATION_ID, notificationBuilder.build())
-                return notificationBuilder.build()
+                return null
             }
             NotificationStatus.Error -> {
                 addPlayAction(notificationBuilder)
-                notifyManager.notify(NOTIFICATION_ID, notificationBuilder.build())
+//                notifyManager.notify(NOTIFICATION_ID, notificationBuilder.build())
                 return notificationBuilder.build()
 
-            }
-            else -> {
-                addPlayAction(notificationBuilder)
-                notifyManager.notify(NOTIFICATION_ID, notificationBuilder.build())
-                return notificationBuilder.build()
             }
         }
     }
@@ -99,14 +99,16 @@ class NotificationBuilder(val context: Context,
                         PlaybackStateCompat.ACTION_PLAY))
     }
 
-    private fun addStopAction(mBuilder: NotificationCompat.Builder) {
-        mBuilder.addAction(resourcesProvider.stopIconRes,
-                resourcesProvider.stopStatusString,
+    private fun addPauseAction(mBuilder: NotificationCompat.Builder) {
+        mBuilder.addAction(resourcesProvider.pauseIconRes,
+                resourcesProvider.pauseStatusString,
                 MediaButtonReceiver.buildMediaButtonPendingIntent(context,
-                        PlaybackStateCompat.ACTION_STOP))
+                        PlaybackStateCompat.ACTION_PAUSE))
     }
 
     private fun getDeleteIntent(): PendingIntent? {
+//        return PendingIntent.getService(context, 1337, Intent(context, MainService::class.java), FLAG_UPDATE_CURRENT)
+
         return MediaButtonReceiver.buildMediaButtonPendingIntent(context,
                 PlaybackStateCompat.ACTION_STOP)
     }

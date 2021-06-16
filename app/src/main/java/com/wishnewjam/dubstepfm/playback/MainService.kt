@@ -19,8 +19,6 @@ class MainService : MediaBrowserServiceCompat() {
         const val NOTIFICATION_ID = 43432
     }
 
-    private var audioFocusRequest: AudioFocusRequestCompat? = null
-
     @Inject
     lateinit var notificationBuilder: NotificationBuilder
 
@@ -49,15 +47,17 @@ class MainService : MediaBrowserServiceCompat() {
         sessionToken = mediaCore.token
     }
 
-    override fun onStartCommand(intent: Intent?,
-                                flags: Int,
-                                startId: Int): Int {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent != null) {
             mediaCore.handleIntent(intent)
         }
 
         // TODO: 15/06/2021 что если интент null
         return Service.START_STICKY
+    }
+
+    override fun stopService(name: Intent?): Boolean {
+        return super.stopService(name)
     }
 
     override fun onDestroy() {
