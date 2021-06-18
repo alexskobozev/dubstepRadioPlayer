@@ -13,8 +13,8 @@ import com.wishnewjam.dubstepfm.ui.state.PlayerState
 
 class MediaPlayerInstance(
     private val context: Context,
-    val stateChange: (state: PlayerState) -> Unit,
-    val metaDataChange: (metadata: String) -> Unit
+    private val stateChange: (state: PlayerState) -> Unit,
+    private val metaDataChange: (metadata: String, state: PlayerState) -> Unit
 ) : Player.Listener, DubstepMediaPlayer {
     companion object {
         private const val USER_AGENT: String = "dubstep.fm"
@@ -39,7 +39,7 @@ class MediaPlayerInstance(
         mediaPlayer.addMetadataOutput {
             if (it.length() > 0) {
                 (it.get(0) as? IcyInfo?)?.title?.let { s ->
-                    metaDataChange.invoke(s)
+                    metaDataChange.invoke(s, status)
                 }
             }
         }
@@ -59,6 +59,8 @@ class MediaPlayerInstance(
             Player.STATE_BUFFERING -> notifyStatusChanged(PlayerState.Buffering)
             Player.STATE_READY -> if (playWhenReady) {
                 notifyStatusChanged(PlayerState.Play)
+            } else {
+                notifyStatusChanged(PlayerState.Pause)
             }
             Player.STATE_IDLE, Player.STATE_ENDED -> {
             }
@@ -78,7 +80,7 @@ class MediaPlayerInstance(
         mediaPlayer.setWakeMode(C.WAKE_MODE_NONE)
         if (status is PlayerState.Play) {
             mediaPlayer.stop()
-            status = PlayerState.Stop
+            status = PlayerState.Pause
         }
     }
 
@@ -90,6 +92,7 @@ class MediaPlayerInstance(
 //    }
 
     private fun notifyStatusChanged(status: PlayerState) {
+        if (this.status == status) return
         this.status = status
         stateChange.invoke(status)
     }

@@ -72,7 +72,7 @@ class MediaCore(
             MediaPlayerInstance(
                 context = context,
                 { state -> onPlayerStateChanged(state) },
-                { track -> onTrackNameChanged(track) })
+                { track, state -> onTrackNameChanged(track, state) })
         notificationBuilder.createNotification(
             mediaPlayer,
             mediaSession!!,
@@ -181,6 +181,9 @@ class MediaCore(
             is PlayerState.Buffering -> {
                 callSessionLoading()
             }
+            is PlayerState.Pause -> {
+                callSessionPause()
+            }
             is PlayerState.Error -> {
                 onMediaPlayerError(status.errorText)
             }
@@ -189,7 +192,7 @@ class MediaCore(
         }
     }
 
-    private fun onTrackNameChanged(track: String) {
+    private fun onTrackNameChanged(track: String, state: PlayerState) {
         val builder = MediaMetadataCompat.Builder()
             .putString(
                 MediaMetadataCompat.METADATA_KEY_ARTIST,
@@ -200,6 +203,7 @@ class MediaCore(
                 track
             )
         mediaSession?.setMetadata(builder.build())
+        onPlayerStateChanged(state)
     }
 
     inner class MediaSessionCallback : MediaSessionCompat.Callback() {

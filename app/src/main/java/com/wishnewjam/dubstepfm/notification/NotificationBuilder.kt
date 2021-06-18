@@ -16,9 +16,8 @@ class NotificationBuilder(
 ) {
 
     companion object {
-        const val NOTIFICATION_ID = 43432
+        private const val NOTIFICATION_ID = 43432
     }
-
 
     fun createNotification(
         mediaPlayer: MediaPlayerInstance,

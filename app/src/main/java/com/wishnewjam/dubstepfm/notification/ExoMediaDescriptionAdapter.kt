@@ -8,7 +8,7 @@ import com.google.android.exoplayer2.ui.PlayerNotificationManager
 
 class ExoMediaDescriptionAdapter(
     controller: MediaControllerCompat?,
-    val resourcesProvider: NotificationResourceProvider,
+    resourcesProvider: NotificationResourceProvider,
     val logoProvider: LogoProvider
 ) :
     PlayerNotificationManager.MediaDescriptionAdapter {

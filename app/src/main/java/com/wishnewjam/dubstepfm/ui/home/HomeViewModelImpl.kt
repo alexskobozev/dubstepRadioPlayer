@@ -45,6 +45,7 @@ class HomeViewModelImpl @Inject constructor(private val resourcesProvider: Resou
     override val statusIcon: LiveData<Int?> = Transformations.switchMap(playbackState) {
         val res = when (it) {
             is PlaybackState.Play -> resourcesProvider.statusPlayIcon
+            is PlaybackState.Stop -> resourcesProvider.statusPlayIcon // TODO: 18/06/2021 change for pause or stop
             is PlaybackState.Error -> resourcesProvider.statusErrorIcon
             else -> null
         }
@@ -101,8 +102,8 @@ class HomeViewModelImpl @Inject constructor(private val resourcesProvider: Resou
             }
             PlaybackStateCompat.STATE_PAUSED -> {
                 _playbackState.value = PlaybackState.Stop
-                _nowPlaying.value = null
-                _statusText.value = null
+//                _nowPlaying.value = null
+//                _statusText.value = null
                 _playButtonState.value = UiState.Play
             }
             else -> {
