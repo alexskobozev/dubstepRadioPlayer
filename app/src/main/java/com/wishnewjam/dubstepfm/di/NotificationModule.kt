@@ -1,6 +1,7 @@
 package com.wishnewjam.dubstepfm.di
 
 import android.content.Context
+import com.wishnewjam.dubstepfm.notification.LogoProvider
 import com.wishnewjam.dubstepfm.notification.NotificationBuilder
 import com.wishnewjam.dubstepfm.notification.NotificationResourceProvider
 import dagger.Module
@@ -16,7 +17,14 @@ class NotificationModule {
 
     @Provides
     @Singleton
-    fun provideNotificationBuilder(@ApplicationContext context: Context): NotificationBuilder {
-        return NotificationBuilder(context, NotificationResourceProvider(resources = context.resources))
+    fun provideNotificationBuilder(
+        @ApplicationContext context: Context,
+        logoProvider: LogoProvider
+    ): NotificationBuilder {
+        return NotificationBuilder(
+            context,
+            NotificationResourceProvider(resources = context.resources),
+            logoProvider
+        )
     }
 }

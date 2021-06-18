@@ -28,4 +28,8 @@
     <string name="send_errors_to_server">Send errors to server</string>
     <string name="logo_content_desc">Dubstep.fm logo</string>
     <string name="initial_status">Nothing is playing</string>
+
+
+    <string name="channel_name">Playback notifications</string>
+    <string name="channel_description">Notifications about playback and playback buttons</string>
 </resources>

@@ -57,6 +57,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:${AndroidX.CONSTRAINT}")
     implementation("androidx.preference:preference-ktx:${AndroidX.PREFERENCES}")
     implementation("com.google.android.exoplayer:exoplayer-core:${Libs.EXOPLAYER}")
+    implementation("com.google.android.exoplayer:exoplayer-ui:${Libs.EXOPLAYER}")
 
     debugImplementation("com.squareup.leakcanary:leakcanary-android:${Libs.LEAK}")
 

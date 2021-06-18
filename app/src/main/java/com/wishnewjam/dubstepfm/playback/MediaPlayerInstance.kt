@@ -24,6 +24,7 @@ class MediaPlayerInstance(
     private var currentUrl: CurrentUrl = CurrentUrl(context)
     private val mediaPlayer: SimpleExoPlayer = SimpleExoPlayer.Builder(context)
         .build()
+    val exoPlayer: Player = mediaPlayer
 
     init {
         mediaPlayer.addListener(this)
@@ -66,6 +67,7 @@ class MediaPlayerInstance(
     }
 
     override fun callPlay() {
+        mediaPlayer.setWakeMode(C.WAKE_MODE_NETWORK)
         Tools.logDebug { "Call play, status: $status" }
         if (status !is PlayerState.Play && status != PlayerState.Buffering) {
             play()
@@ -73,6 +75,7 @@ class MediaPlayerInstance(
     }
 
     override fun callStop() {
+        mediaPlayer.setWakeMode(C.WAKE_MODE_NONE)
         if (status is PlayerState.Play) {
             mediaPlayer.stop()
             status = PlayerState.Stop

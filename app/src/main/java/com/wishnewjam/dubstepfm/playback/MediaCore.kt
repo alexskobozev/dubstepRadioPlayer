@@ -16,15 +16,13 @@ import android.view.KeyEvent
 import androidx.media.session.MediaButtonReceiver
 import com.wishnewjam.dubstepfm.MainActivity
 import com.wishnewjam.dubstepfm.legacy.Tools
-import com.wishnewjam.dubstepfm.notification.LogoProvider
 import com.wishnewjam.dubstepfm.notification.NotificationBuilder
 import com.wishnewjam.dubstepfm.ui.state.PlayerState
 
 class MediaCore(
     private val notificationBuilder: NotificationBuilder,
-    private val logoProvider: LogoProvider,
-    private val startForeground: (Notification) -> Unit,
-    private val stopForeground: (Notification?) -> Unit
+    private val showNotificationListener: (Int, Notification) -> Unit,
+    private val hideNotificationListener: () -> Unit
 ) {
 
     var token: MediaSessionCompat.Token? = null
@@ -75,6 +73,12 @@ class MediaCore(
                 context = context,
                 { state -> onPlayerStateChanged(state) },
                 { track -> onTrackNameChanged(track) })
+        notificationBuilder.createNotification(
+            mediaPlayer,
+            mediaSession!!,
+            showNotificationListener,
+            hideNotificationListener
+        )
         mediaPlayerInstance = mediaPlayer
     }
 
@@ -101,17 +105,11 @@ class MediaCore(
                 .setState(
                     PlaybackStateCompat.STATE_PLAYING,
                     PLAYBACK_POSITION_UNKNOWN,
-                    0.0f
+                    1.0f
                 )
                 .setActions(PlaybackStateCompat.ACTION_PAUSE)
                 .build()
         )
-        val notification =
-            notificationBuilder.buildNotification(
-                mediaSession,
-                NotificationBuilder.NotificationStatus.Play
-            )
-        startForeground(notification)
     }
 
     private fun callSessionLoading() {
@@ -120,7 +118,7 @@ class MediaCore(
                 .setState(
                     PlaybackStateCompat.STATE_BUFFERING,
                     PLAYBACK_POSITION_UNKNOWN,
-                    0.0f
+                    1.0f
                 )
                 .setActions(PlaybackStateCompat.ACTION_PAUSE)
                 .build()
@@ -152,32 +150,6 @@ class MediaCore(
         )
     }
 
-    private fun dispatchPlay() {
-        val notification =
-            notificationBuilder.buildNotification(
-                mediaSession,
-                NotificationBuilder.NotificationStatus.Loading
-            )
-        startForeground(notification)
-        mediaPlayerInstance?.callPlay()
-        startForeground(notification)
-    }
-
-    private fun dispatchStop() {
-        mediaPlayerInstance?.callStop()
-        stopForeground(null)
-    }
-
-    private fun dispatchPause() {
-        mediaPlayerInstance?.callStop()
-        val notification =
-            notificationBuilder.buildNotification(
-                mediaSession,
-                NotificationBuilder.NotificationStatus.Pause
-            )
-        stopForeground(notification)
-    }
-
     fun destroy() {
         try {
             mediaPlayerInstance?.destroy()
@@ -198,12 +170,6 @@ class MediaCore(
 
     private fun onMediaPlayerError(error: String) {
         callSessionError(error)
-        val notification =
-            notificationBuilder.buildNotification(
-                mediaSession,
-                NotificationBuilder.NotificationStatus.Error
-            )
-        stopForeground(notification)
     }
 
     private fun onPlayerStateChanged(status: PlayerState) {
@@ -233,21 +199,7 @@ class MediaCore(
                 MediaMetadataCompat.METADATA_KEY_TITLE,
                 track
             )
-            .putLong(
-                MediaMetadataCompat.METADATA_KEY_DURATION,
-                10000
-            )
-        logoProvider.updateMetadataBuilderWithLogo(builder)
         mediaSession?.setMetadata(builder.build())
-        notificationBuilder.updateMetaData(mediaSession)
-    }
-
-    private fun startForeground(notification: Notification?) {
-        startForeground.invoke(notification ?: return)
-    }
-
-    private fun stopForeground(notification: Notification?) {
-        stopForeground.invoke(notification)
     }
 
     inner class MediaSessionCallback : MediaSessionCompat.Callback() {
@@ -278,21 +230,21 @@ class MediaCore(
                 callSessionPlay()
             } else {
                 callSessionLoading()
-                dispatchPlay()
+                mediaPlayerInstance?.callPlay()
             }
         }
 
         override fun onPause() {
             super.onPause()
             Tools.logDebug { "mediaSessionCallback: onPause" }
-            dispatchPause()
+            mediaPlayerInstance?.callStop()
 
         }
 
         override fun onStop() {
             super.onStop()
             Tools.logDebug { "mediaSessionCallback: onStop" }
-            dispatchStop()
+            mediaPlayerInstance?.callStop()
         }
     }
 
@@ -303,20 +255,20 @@ class MediaCore(
             if (action == KeyEvent.ACTION_DOWN) {
                 if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
                     callSessionPause()
-                    dispatchPause()
+                    mediaPlayerInstance?.callStop()
                 } else if (event.keyCode == KeyEvent.KEYCODE_MEDIA_STOP) {
                     callSessionStop()
-                    dispatchStop()
+                    mediaPlayerInstance?.callStop()
                 } else if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
                     callSessionLoading()
-                    dispatchPlay()
+                    mediaPlayerInstance?.callPlay()
                 } else if (event.keyCode == KeyEvent.KEYCODE_HEADSETHOOK || event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
                     if (mediaSession?.controller?.playbackState?.playbackState == STATE_PLAYING) {
                         callSessionStop()
-                        dispatchStop()
+                        mediaPlayerInstance?.callStop()
                     } else {
                         callSessionLoading()
-                        dispatchPlay()
+                        mediaPlayerInstance?.callPlay()
                     }
                 }
                 return true
