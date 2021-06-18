@@ -5,6 +5,9 @@ import com.wishnewjam.dubstepfm.R
 
 class ResourcesProvider(val resources: Resources) {
 
+    val playButtonPlayIcon: Int = R.drawable.ic_play
+    val playButtonStopIcon: Int = R.drawable.ic_stop
+
     val statusErrorIcon: Int = R.drawable.ic_error
     val statusPlayIcon: Int = R.drawable.ic_play
 

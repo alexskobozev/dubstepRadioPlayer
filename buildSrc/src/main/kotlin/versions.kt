@@ -22,13 +22,13 @@ object AndroidX {
 }
 
 object Libs {
-    const val EXOPLAYER = "2.14.0"
-    const val LEAK = "2.6"
-    const val KTX = "1.3.2"
+    const val EXOPLAYER = "2.14.1"
+    const val LEAK = "2.7"
+    const val KTX = "1.5.0"
     const val FIREBASE = "19.0.0"
     const val FIREBASE_CRASH = "17.3.1"
     const val MATERIAL_DIALOGS = "3.3.0"
-    const val HILT = "2.36"
+    const val HILT = "2.37"
 }
 
 object Test {

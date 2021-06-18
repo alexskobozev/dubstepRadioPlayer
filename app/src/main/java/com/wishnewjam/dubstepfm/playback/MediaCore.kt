@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.media.session.PlaybackState.PLAYBACK_POSITION_UNKNOWN
 import android.media.session.PlaybackState.STATE_PLAYING
+import android.os.Build
 import android.os.Bundle
 import android.os.ResultReceiver
 import android.support.v4.media.MediaMetadataCompat
@@ -14,16 +15,17 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.view.KeyEvent
 import androidx.media.session.MediaButtonReceiver
 import com.wishnewjam.dubstepfm.MainActivity
-import com.wishnewjam.dubstepfm.legacy.MediaPlayerInstance
 import com.wishnewjam.dubstepfm.legacy.Tools
 import com.wishnewjam.dubstepfm.notification.LogoProvider
 import com.wishnewjam.dubstepfm.notification.NotificationBuilder
 import com.wishnewjam.dubstepfm.ui.state.PlayerState
 
-class MediaCore(val notificationBuilder: NotificationBuilder,
-                val logoProvider: LogoProvider,
-                val startForeground: (Notification) -> Unit,
-                val stopForeground: () -> Unit) {
+class MediaCore(
+    private val notificationBuilder: NotificationBuilder,
+    private val logoProvider: LogoProvider,
+    private val startForeground: (Notification) -> Unit,
+    private val stopForeground: (Notification?) -> Unit
+) {
 
     var token: MediaSessionCompat.Token? = null
         private set
@@ -32,85 +34,130 @@ class MediaCore(val notificationBuilder: NotificationBuilder,
     private var mediaPlayerInstance: MediaPlayerInstance? = null
 
     fun init(context: Context) {
-        mediaSession = MediaSessionCompat(context,
-                "PlayerService")
+        mediaSession = MediaSessionCompat(
+            context,
+            "PlayerService"
+        )
         mediaSession?.run {
-            setPlaybackState(PlaybackStateCompat.Builder()
-                    .setState(PlaybackStateCompat.STATE_PLAYING,
-                            0,
-                            0f)
-                    .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE)
-                    .build())
             val stateBuilder = PlaybackStateCompat.Builder()
-                    .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_STOP)
+                .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_STOP)
             setPlaybackState(stateBuilder.build())
 
+            val notificationFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            } else {
+                PendingIntent.FLAG_UPDATE_CURRENT
+            }
+
             val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
-            val mediaPendingIntent: PendingIntent = PendingIntent.getBroadcast(context,
-                    0,
-                    mediaButtonIntent,
-                    0)
+            val mediaPendingIntent: PendingIntent = PendingIntent.getBroadcast(
+                context,
+                0,
+                mediaButtonIntent,
+                notificationFlags
+            )
             setMediaButtonReceiver(mediaPendingIntent)
             setCallback(MediaSessionCallback())
-            setSessionActivity(PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), 0))
+            setSessionActivity(
+                PendingIntent.getActivity(
+                    context,
+                    0,
+                    Intent(context, MainActivity::class.java),
+                    notificationFlags
+                )
+            )
             isActive = true
             token = sessionToken
-            notificationBuilder.mediaController = controller
-            notificationBuilder.token = sessionToken
         }
 
-        val mediaPlayer = MediaPlayerInstance(context = context) { state -> onPlayerStateChanged(state) }
+        val mediaPlayer =
+            MediaPlayerInstance(
+                context = context,
+                { state -> onPlayerStateChanged(state) },
+                { track -> onTrackNameChanged(track) })
         mediaPlayerInstance = mediaPlayer
     }
 
-    fun callSessionError(error: String) {
-        mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_ERROR,
-                        PLAYBACK_POSITION_UNKNOWN,
-                        0.0f)
+    private fun callSessionError(error: String) {
+        mediaSession?.setPlaybackState(
+            PlaybackStateCompat.Builder()
+                .setState(
+                    PlaybackStateCompat.STATE_ERROR,
+                    PLAYBACK_POSITION_UNKNOWN,
+                    0.0f
+                )
                 .setActions(PlaybackStateCompat.ACTION_PLAY)
-                .setErrorMessage(PlaybackStateCompat.ERROR_CODE_APP_ERROR,
-                        error)
-                .build())
+                .setErrorMessage(
+                    PlaybackStateCompat.ERROR_CODE_APP_ERROR,
+                    error
+                )
+                .build()
+        )
     }
 
-    fun callSessionPlay() {
-        mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PLAYING,
-                        PLAYBACK_POSITION_UNKNOWN,
-                        0.0f)
+    private fun callSessionPlay() {
+        mediaSession?.setPlaybackState(
+            PlaybackStateCompat.Builder()
+                .setState(
+                    PlaybackStateCompat.STATE_PLAYING,
+                    PLAYBACK_POSITION_UNKNOWN,
+                    0.0f
+                )
                 .setActions(PlaybackStateCompat.ACTION_PAUSE)
-                .build())
+                .build()
+        )
+        val notification =
+            notificationBuilder.buildNotification(
+                mediaSession,
+                NotificationBuilder.NotificationStatus.Play
+            )
+        startForeground(notification)
+    }
+
+    private fun callSessionLoading() {
+        mediaSession?.setPlaybackState(
+            PlaybackStateCompat.Builder()
+                .setState(
+                    PlaybackStateCompat.STATE_BUFFERING,
+                    PLAYBACK_POSITION_UNKNOWN,
+                    0.0f
+                )
+                .setActions(PlaybackStateCompat.ACTION_PAUSE)
+                .build()
+        )
     }
 
     private fun callSessionPause() {
-        mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PAUSED,
-                        PLAYBACK_POSITION_UNKNOWN,
-                        0.0f)
+        mediaSession?.setPlaybackState(
+            PlaybackStateCompat.Builder()
+                .setState(
+                    PlaybackStateCompat.STATE_PAUSED,
+                    PLAYBACK_POSITION_UNKNOWN,
+                    0.0f
+                )
                 .setActions(PlaybackStateCompat.ACTION_PLAY)
-                .build())
+                .build()
+        )
     }
 
-    fun callSessionLoading() {
-        mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_BUFFERING,
-                        PLAYBACK_POSITION_UNKNOWN,
-                        0.0f)
-                .setActions(PlaybackStateCompat.ACTION_PAUSE)
-                .build())
-    }
-
-    fun callSessionStop() {
-        mediaSession?.setPlaybackState(PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_STOPPED,
-                        PLAYBACK_POSITION_UNKNOWN,
-                        0.0f)
-                .build())
+    private fun callSessionStop() {
+        mediaSession?.setPlaybackState(
+            PlaybackStateCompat.Builder()
+                .setState(
+                    PlaybackStateCompat.STATE_STOPPED,
+                    PLAYBACK_POSITION_UNKNOWN,
+                    0.0f
+                )
+                .build()
+        )
     }
 
     private fun dispatchPlay() {
-        val notification = notificationBuilder.buildNotification(NotificationBuilder.NotificationStatus.Loading)
+        val notification =
+            notificationBuilder.buildNotification(
+                mediaSession,
+                NotificationBuilder.NotificationStatus.Loading
+            )
         startForeground(notification)
         mediaPlayerInstance?.callPlay()
         startForeground(notification)
@@ -118,14 +165,17 @@ class MediaCore(val notificationBuilder: NotificationBuilder,
 
     private fun dispatchStop() {
         mediaPlayerInstance?.callStop()
-        notificationBuilder.buildNotification(NotificationBuilder.NotificationStatus.Stop)
-        stopForeground()
+        stopForeground(null)
     }
 
     private fun dispatchPause() {
         mediaPlayerInstance?.callStop()
-        val notification = notificationBuilder.buildNotification(NotificationBuilder.NotificationStatus.Pause)
-        startForeground(notification)
+        val notification =
+            notificationBuilder.buildNotification(
+                mediaSession,
+                NotificationBuilder.NotificationStatus.Pause
+            )
+        stopForeground(notification)
     }
 
     fun destroy() {
@@ -140,36 +190,26 @@ class MediaCore(val notificationBuilder: NotificationBuilder,
     }
 
     fun handleIntent(intent: Intent) {
-        MediaButtonReceiver.handleIntent(mediaSession,
-                intent)
+        MediaButtonReceiver.handleIntent(
+            mediaSession,
+            intent
+        )
     }
 
     private fun onMediaPlayerError(error: String) {
         callSessionError(error)
-        val not = notificationBuilder.buildNotification(NotificationBuilder.NotificationStatus.Error)
-        startForeground(not)
+        val notification =
+            notificationBuilder.buildNotification(
+                mediaSession,
+                NotificationBuilder.NotificationStatus.Error
+            )
+        stopForeground(notification)
     }
 
     private fun onPlayerStateChanged(status: PlayerState) {
         Tools.logDebug { "mediaPlayerCallback: onPlayerStateChanged, status = $status" }
         when (status) {
             is PlayerState.Play -> {
-                val trackName = status.trackName
-                if (trackName != null) {
-                    val builder = MediaMetadataCompat.Builder()
-                            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST,
-                                    "")
-                            .putString(MediaMetadataCompat.METADATA_KEY_TITLE,
-                                    trackName)
-                            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION,
-                                    10000)
-
-                    logoProvider.updateMetadataBuilderWithLogo(builder)
-                    val metadataCompat = builder.build()
-                    mediaSession?.setMetadata(metadataCompat)
-                    val notification = notificationBuilder.updateNotification()
-                    startForeground(notification)
-                }
                 callSessionPlay()
             }
             is PlayerState.Buffering -> {
@@ -183,12 +223,31 @@ class MediaCore(val notificationBuilder: NotificationBuilder,
         }
     }
 
+    private fun onTrackNameChanged(track: String) {
+        val builder = MediaMetadataCompat.Builder()
+            .putString(
+                MediaMetadataCompat.METADATA_KEY_ARTIST,
+                ""
+            )
+            .putString(
+                MediaMetadataCompat.METADATA_KEY_TITLE,
+                track
+            )
+            .putLong(
+                MediaMetadataCompat.METADATA_KEY_DURATION,
+                10000
+            )
+        logoProvider.updateMetadataBuilderWithLogo(builder)
+        mediaSession?.setMetadata(builder.build())
+        notificationBuilder.updateMetaData(mediaSession)
+    }
+
     private fun startForeground(notification: Notification?) {
         startForeground.invoke(notification ?: return)
     }
 
-    private fun stopForeground() {
-        stopForeground.invoke()
+    private fun stopForeground(notification: Notification?) {
+        stopForeground.invoke(notification)
     }
 
     inner class MediaSessionCallback : MediaSessionCompat.Callback() {
@@ -202,9 +261,11 @@ class MediaCore(val notificationBuilder: NotificationBuilder,
             return handleMediaButtonIntent(event)
         }
 
-        override fun onCommand(command: String?,
-                               extras: Bundle?,
-                               cb: ResultReceiver?) {
+        override fun onCommand(
+            command: String?,
+            extras: Bundle?,
+            cb: ResultReceiver?
+        ) {
             Tools.logDebug { "mediaSessionCallback: onCommand $command" }
             super.onCommand(command, extras, cb)
         }
@@ -213,43 +274,12 @@ class MediaCore(val notificationBuilder: NotificationBuilder,
         override fun onPlay() {
             super.onPlay()
             Tools.logDebug { "mediaSessionCallback: onPlay" }
-
-//            val am = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            // Request audio focus for playback, this registers the afChangeListener
-
-//            val audioFocusRequest =
-//                    AudioFocusRequestCompat.Builder(AudioManagerCompat.AUDIOFOCUS_GAIN)
-//                            .run {
-//                                setOnAudioFocusChangeListener(afChangeListener)
-//                                setAudioAttributes(AudioAttributesCompat.Builder()
-//                                        .run {
-//                                            setContentType(AudioAttributesCompat.CONTENT_TYPE_MUSIC)
-//                                            build()
-//                                        })
-//                                build()
-//                            }
-//
-//            val result = AudioManagerCompat.requestAudioFocus(am,
-//                    audioFocusRequest)
-//            if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-//                // Start the service
-//                startService(Intent(context,
-//                        MediaBrowserService::class.java))
-//                // Set the session active  (and update metadata and state)
-//                mediaSession.isActive = true
-//                // start the player (custom call)
-//                player.start()
-//                // Register BECOME_NOISY BroadcastReceiver
-//                registerReceiver(myNoisyAudioStreamReceiver,
-//                        intentFilter)
-//                // Put the service in the foreground, post notification
-//                service.startForeground(id,
-//                        myPlayerNotification)
-//            }
-
-            //////
-            callSessionLoading()
-            dispatchPlay()
+            if (mediaPlayerInstance?.isPlaying() == true) {
+                callSessionPlay()
+            } else {
+                callSessionLoading()
+                dispatchPlay()
+            }
         }
 
         override fun onPause() {

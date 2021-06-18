@@ -12,8 +12,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModelImpl @Inject constructor(val resourcesProvider: ResourcesProvider) : ViewModel(),
-        HomeViewModel {
+class HomeViewModelImpl @Inject constructor(private val resourcesProvider: ResourcesProvider) :
+    ViewModel(),
+    HomeViewModel {
 
     private val _playButtonState = MutableLiveData<UiState>().apply {
         value = UiState.Play
@@ -26,12 +27,20 @@ class HomeViewModelImpl @Inject constructor(val resourcesProvider: ResourcesProv
         value = PlaybackState.Stop
     }
 
-    override val playButtonState: LiveData<UiState> = _playButtonState
+    override val initialPlayButtonState: Int = resourcesProvider.playButtonPlayIcon
+
+    val userIntentPlayState: LiveData<Boolean?> = _userIntentPlayState
     override val statusText: LiveData<String?> = _statusText
     override val nowPlaying: LiveData<String?> = _nowPlaying
     override val playbackState: LiveData<PlaybackState> = _playbackState
-    val userIntentPlayState: LiveData<Boolean?> = _userIntentPlayState
 
+    override val playButtonRes: LiveData<Int> = Transformations.switchMap(_playButtonState) {
+        val res = when (it) {
+            is UiState.Play, UiState.Error -> resourcesProvider.playButtonPlayIcon
+            else -> resourcesProvider.playButtonStopIcon
+        }
+        MutableLiveData(res)
+    }
 
     override val statusIcon: LiveData<Int?> = Transformations.switchMap(playbackState) {
         val res = when (it) {
@@ -43,7 +52,7 @@ class HomeViewModelImpl @Inject constructor(val resourcesProvider: ResourcesProv
     }
 
     override fun toggleButton() {
-        when (playButtonState.value) {
+        when (_playButtonState.value) {
             is UiState.Play -> {
                 _playbackState.value = PlaybackState.Loading
                 _playButtonState.value = UiState.Stop
@@ -81,7 +90,7 @@ class HomeViewModelImpl @Inject constructor(val resourcesProvider: ResourcesProv
                 _playbackState.value = PlaybackState.Error
                 _playButtonState.value = UiState.Error
                 _statusText.value =
-                        "${resourcesProvider.errorText}: ${state.errorMessage}" // TODO: 13/06/2021 remove msg or leave for debug
+                    "${resourcesProvider.errorText}: ${state.errorMessage}" // TODO: 13/06/2021 remove msg or leave for debug
                 _nowPlaying.value = null
             }
             PlaybackStateCompat.STATE_STOPPED -> {

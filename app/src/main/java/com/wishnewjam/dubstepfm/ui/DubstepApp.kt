@@ -1,4 +1,4 @@
-package com.wishnewjam.dubstepfm.legacy
+package com.wishnewjam.dubstepfm.ui
 
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -8,19 +8,15 @@ import com.wishnewjam.dubstepfm.ui.home.HomeViewModelImpl
 import com.wishnewjam.theme.DubstepTheme
 
 @Composable
-fun DubstepApp(navigationViewModel: NavigationViewModel,
-               homeViewModel: HomeViewModelImpl) {
+fun DubstepApp(homeViewModel: HomeViewModelImpl) {
     DubstepTheme {
-        AppContent(navigationViewModel = navigationViewModel,
-                homeViewModel = homeViewModel)
+        AppContent(homeViewModel = homeViewModel)
     }
 }
 
 @Composable
-private fun AppContent(navigationViewModel: NavigationViewModel,
-                       homeViewModel: HomeViewModelImpl) {
+private fun AppContent(homeViewModel: HomeViewModelImpl) {
     Surface(color = MaterialTheme.colors.background) {
-        HomeScreen(navigateTo = navigationViewModel::navigateTo,
-                homeViewModel = homeViewModel)
+        HomeScreen(homeViewModel = homeViewModel)
     }
 }

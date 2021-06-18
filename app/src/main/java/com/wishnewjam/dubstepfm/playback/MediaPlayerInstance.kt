@@ -1,4 +1,4 @@
-package com.wishnewjam.dubstepfm.legacy
+package com.wishnewjam.dubstepfm.playback
 
 import android.content.Context
 import androidx.core.net.toUri
@@ -7,10 +7,15 @@ import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.metadata.icy.IcyInfo
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.wishnewjam.dubstepfm.playback.DubstepMediaPlayer
+import com.wishnewjam.dubstepfm.legacy.CurrentUrl
+import com.wishnewjam.dubstepfm.legacy.Tools
 import com.wishnewjam.dubstepfm.ui.state.PlayerState
 
-class MediaPlayerInstance(private val context: Context, val stateChange: (state: PlayerState) -> Unit) : Player.Listener, DubstepMediaPlayer {
+class MediaPlayerInstance(
+    private val context: Context,
+    val stateChange: (state: PlayerState) -> Unit,
+    val metaDataChange: (metadata: String) -> Unit
+) : Player.Listener, DubstepMediaPlayer {
     companion object {
         private const val USER_AGENT: String = "dubstep.fm"
     }
@@ -18,20 +23,22 @@ class MediaPlayerInstance(private val context: Context, val stateChange: (state:
     private var status: PlayerState = PlayerState.Undefined
     private var currentUrl: CurrentUrl = CurrentUrl(context)
     private val mediaPlayer: SimpleExoPlayer = SimpleExoPlayer.Builder(context)
-            .build()
+        .build()
 
     init {
         mediaPlayer.addListener(this)
         val attributes = AudioAttributes.Builder()
-                .setUsage(C.USAGE_MEDIA)
-                .setContentType(C.CONTENT_TYPE_MUSIC)
-                .build()
-        mediaPlayer.setAudioAttributes(attributes,
-                false)
+            .setUsage(C.USAGE_MEDIA)
+            .setContentType(C.CONTENT_TYPE_MUSIC)
+            .build()
+        mediaPlayer.setAudioAttributes(
+            attributes,
+            true
+        )
         mediaPlayer.addMetadataOutput {
             if (it.length() > 0) {
                 (it.get(0) as? IcyInfo?)?.title?.let { s ->
-                    notifyStatusChanged(PlayerState.Play(s))
+                    metaDataChange.invoke(s)
                 }
             }
         }
@@ -43,14 +50,17 @@ class MediaPlayerInstance(private val context: Context, val stateChange: (state:
         notifyStatusChanged(PlayerState.Error(errorText = "${error.message}"))
     }
 
-    override fun onPlayerStateChanged(playWhenReady: Boolean,
-                                      playbackState: Int) {
+    override fun onPlayerStateChanged(
+        playWhenReady: Boolean,
+        playbackState: Int
+    ) {
         when (playbackState) {
             Player.STATE_BUFFERING -> notifyStatusChanged(PlayerState.Buffering)
             Player.STATE_READY -> if (playWhenReady) {
-                notifyStatusChanged(PlayerState.Play(null))
+                notifyStatusChanged(PlayerState.Play)
             }
-            Player.STATE_IDLE -> return
+            Player.STATE_IDLE, Player.STATE_ENDED -> {
+            }
         }
         Tools.logDebug { "exoPlayer: onPlayerStateChanged: playWhenReady = $playWhenReady, playbackState = $playbackState " }
     }
@@ -83,10 +93,12 @@ class MediaPlayerInstance(private val context: Context, val stateChange: (state:
 
     private fun play() {
         val source = currentUrl.currentUrl.toUri()
-        val dataSourceFactory = DefaultDataSourceFactory(context,
-                USER_AGENT)
+        val dataSourceFactory = DefaultDataSourceFactory(
+            context,
+            USER_AGENT
+        )
         val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(MediaItem.fromUri(source))
+            .createMediaSource(MediaItem.fromUri(source))
         mediaPlayer.playWhenReady = true
         mediaPlayer.setMediaSource(mediaSource)
         mediaPlayer.prepare()
@@ -94,5 +106,9 @@ class MediaPlayerInstance(private val context: Context, val stateChange: (state:
 
     fun destroy() {
         mediaPlayer.release()
+    }
+
+    fun isPlaying(): Boolean {
+        return status == PlayerState.Play
     }
 }

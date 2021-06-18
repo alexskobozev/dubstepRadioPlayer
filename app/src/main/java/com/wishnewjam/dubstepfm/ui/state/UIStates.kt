@@ -2,7 +2,7 @@ package com.wishnewjam.dubstepfm.ui.state
 
 sealed class PlayerState {
     object Undefined : PlayerState()
-    class Play(val trackName: String?) : PlayerState()
+    object Play : PlayerState()
     object Stop : PlayerState()
     class Error(val errorText: String) : PlayerState()
     object Buffering : PlayerState()
