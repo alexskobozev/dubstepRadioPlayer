@@ -1,13 +1,15 @@
 package com.wishnewjam.dubstepfm.ui.home
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
@@ -26,18 +28,70 @@ fun HomeScreen(homeViewModel: HomeViewModel) {
 
         TopAppBar(title = { Text(text = title) },
             actions = {
-                IconButton(onClick = {}) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_settings),
-                        contentDescription = stringResource(id = R.string.action_settings)
-                    )
-                }
+                DropdownDemo()
+//                IconButton(onClick = {}) {
+//                    Icon(
+//                        painter = painterResource(R.drawable.ic_settings),
+//                        contentDescription = stringResource(id = R.string.action_settings)
+//                    )
+//                }
             })
     },
         content = {
             StatusView(homeViewModel)
             MainView(homeViewModel)
         })
+}
+
+@Composable
+fun DropdownDemo() {
+    var expanded by remember { mutableStateOf(false) }
+    val items = listOf("24 kbps", "64 kbps", "128 kbps", "256 kbps")
+    var selectedIndex by remember { mutableStateOf(0) }
+    Box(modifier = Modifier
+        .wrapContentSize(Alignment.TopStart)) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .height(48.dp)
+                .padding(8.dp)
+                .clickable(onClick = { expanded = true })) {
+            Image(
+                painter = painterResource(R.drawable.ic_more),
+                contentDescription = stringResource(R.string.choose_bitrate)
+            )
+            val fontFamily = FontFamily(
+                Font(
+                    R.font.montserrat_regular,
+                    FontWeight.Normal
+                ),
+                Font(
+                    R.font.montserrat_semibold,
+                    FontWeight.Bold
+                )
+            )
+            Text(items[selectedIndex],
+                color = Color.White,
+                fontWeight = FontWeight.Normal,
+                fontFamily = fontFamily)
+
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .background(Color.Gray)
+        ) {
+            items.forEachIndexed { index, s ->
+                DropdownMenuItem(onClick = {
+                    selectedIndex = index
+                    expanded = false
+                }) {
+                    Text(text = s)
+                }
+            }
+        }
+    }
 }
 
 @Composable
