@@ -22,7 +22,7 @@ import com.wishnewjam.dubstepfm.ui.state.PlayerState
 class MediaCore(
     private val notificationBuilder: NotificationBuilder,
     private val showNotificationListener: (Int, Notification) -> Unit,
-    private val hideNotificationListener: () -> Unit
+    private val hideNotificationListener: () -> Unit,
 ) {
 
     var token: MediaSessionCompat.Token? = null
@@ -70,20 +70,13 @@ class MediaCore(
 
         val mediaPlayer =
             MediaPlayerInstance(
-                context = context,
-                { state -> onPlayerStateChanged(state) },
-                { track, state -> onTrackNameChanged(track, state) })
-        notificationBuilder.createNotification(
-            mediaPlayer,
-            mediaSession!!,
-            showNotificationListener,
-            hideNotificationListener
-        )
+                context = context
+            ) { state -> onPlayerStateChanged(state) }
         mediaPlayerInstance = mediaPlayer
     }
 
-    private fun callSessionError(error: String) {
-        mediaSession?.setPlaybackState(
+    private fun callSessionError(mediaSession: MediaSessionCompat, error: String) {
+        mediaSession.setPlaybackState(
             PlaybackStateCompat.Builder()
                 .setState(
                     PlaybackStateCompat.STATE_ERROR,
@@ -99,8 +92,8 @@ class MediaCore(
         )
     }
 
-    private fun callSessionPlay() {
-        mediaSession?.setPlaybackState(
+    private fun callSessionPlay(mediaSession: MediaSessionCompat) {
+        mediaSession.setPlaybackState(
             PlaybackStateCompat.Builder()
                 .setState(
                     PlaybackStateCompat.STATE_PLAYING,
@@ -112,8 +105,8 @@ class MediaCore(
         )
     }
 
-    private fun callSessionLoading() {
-        mediaSession?.setPlaybackState(
+    private fun callSessionLoading(mediaSession: MediaSessionCompat) {
+        mediaSession.setPlaybackState(
             PlaybackStateCompat.Builder()
                 .setState(
                     PlaybackStateCompat.STATE_BUFFERING,
@@ -125,8 +118,8 @@ class MediaCore(
         )
     }
 
-    private fun callSessionPause() {
-        mediaSession?.setPlaybackState(
+    private fun callSessionPause(mediaSession: MediaSessionCompat) {
+        mediaSession.setPlaybackState(
             PlaybackStateCompat.Builder()
                 .setState(
                     PlaybackStateCompat.STATE_PAUSED,
@@ -138,8 +131,8 @@ class MediaCore(
         )
     }
 
-    private fun callSessionStop() {
-        mediaSession?.setPlaybackState(
+    private fun callSessionStop(mediaSession: MediaSessionCompat) {
+        mediaSession.setPlaybackState(
             PlaybackStateCompat.Builder()
                 .setState(
                     PlaybackStateCompat.STATE_STOPPED,
@@ -168,42 +161,46 @@ class MediaCore(
         )
     }
 
-    private fun onMediaPlayerError(error: String) {
-        callSessionError(error)
-    }
-
     private fun onPlayerStateChanged(status: PlayerState) {
-        Tools.logDebug { "mediaPlayerCallback: onPlayerStateChanged, status = $status" }
+        Tools.logDebug { "mediaPlayerCallback: onPlayerStateChanged, status = $status trackName ${status.trackName}" }
+        val trackName = status.trackName
+        val session = mediaSession ?: return
+        val player = mediaPlayerInstance ?: return
+        mediaPlayerInstance ?: return
+        if (trackName != null) {
+            val builder = MediaMetadataCompat.Builder()
+                .putString(
+                    MediaMetadataCompat.METADATA_KEY_ARTIST,
+                    ""
+                )
+                .putString(
+                    MediaMetadataCompat.METADATA_KEY_TITLE,
+                    trackName
+                )
+            mediaSession?.setMetadata(builder.build())
+            notificationBuilder.createNotification(
+                player,
+                session,
+                showNotificationListener,
+                hideNotificationListener
+            )
+        }
         when (status) {
             is PlayerState.Play -> {
-                callSessionPlay()
+                callSessionPlay(session)
             }
             is PlayerState.Buffering -> {
-                callSessionLoading()
+                callSessionLoading(session)
             }
             is PlayerState.Pause -> {
-                callSessionPause()
+                callSessionPause(session)
             }
             is PlayerState.Error -> {
-                onMediaPlayerError(status.errorText)
+                callSessionError(session, status.errorText)
             }
             else -> {
             }
         }
-    }
-
-    private fun onTrackNameChanged(track: String, state: PlayerState) {
-        val builder = MediaMetadataCompat.Builder()
-            .putString(
-                MediaMetadataCompat.METADATA_KEY_ARTIST,
-                ""
-            )
-            .putString(
-                MediaMetadataCompat.METADATA_KEY_TITLE,
-                track
-            )
-        mediaSession?.setMetadata(builder.build())
-        onPlayerStateChanged(state)
     }
 
     inner class MediaSessionCallback : MediaSessionCompat.Callback() {
@@ -220,7 +217,7 @@ class MediaCore(
         override fun onCommand(
             command: String?,
             extras: Bundle?,
-            cb: ResultReceiver?
+            cb: ResultReceiver?,
         ) {
             Tools.logDebug { "mediaSessionCallback: onCommand $command" }
             super.onCommand(command, extras, cb)
@@ -230,10 +227,11 @@ class MediaCore(
         override fun onPlay() {
             super.onPlay()
             Tools.logDebug { "mediaSessionCallback: onPlay" }
+            val session = mediaSession ?: return
             if (mediaPlayerInstance?.isPlaying() == true) {
-                callSessionPlay()
+                callSessionPlay(session)
             } else {
-                callSessionLoading()
+                callSessionLoading(session)
                 mediaPlayerInstance?.callPlay()
             }
         }
@@ -254,29 +252,29 @@ class MediaCore(
 
 
     private fun handleMediaButtonIntent(event: KeyEvent?): Boolean {
-        if (event != null) {
-            val action = event.action
-            if (action == KeyEvent.ACTION_DOWN) {
-                if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
-                    callSessionPause()
+        if (event == null) return false
+        val session = mediaSession ?: return false
+        val action = event.action
+        if (action == KeyEvent.ACTION_DOWN) {
+            if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
+                callSessionPause(session)
+                mediaPlayerInstance?.callStop()
+            } else if (event.keyCode == KeyEvent.KEYCODE_MEDIA_STOP) {
+                callSessionStop(session)
+                mediaPlayerInstance?.callStop()
+            } else if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
+                callSessionLoading(session)
+                mediaPlayerInstance?.callPlay()
+            } else if (event.keyCode == KeyEvent.KEYCODE_HEADSETHOOK || event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
+                if (mediaSession?.controller?.playbackState?.playbackState == STATE_PLAYING) {
+                    callSessionStop(session)
                     mediaPlayerInstance?.callStop()
-                } else if (event.keyCode == KeyEvent.KEYCODE_MEDIA_STOP) {
-                    callSessionStop()
-                    mediaPlayerInstance?.callStop()
-                } else if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
-                    callSessionLoading()
+                } else {
+                    callSessionLoading(session)
                     mediaPlayerInstance?.callPlay()
-                } else if (event.keyCode == KeyEvent.KEYCODE_HEADSETHOOK || event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
-                    if (mediaSession?.controller?.playbackState?.playbackState == STATE_PLAYING) {
-                        callSessionStop()
-                        mediaPlayerInstance?.callStop()
-                    } else {
-                        callSessionLoading()
-                        mediaPlayerInstance?.callPlay()
-                    }
                 }
-                return true
             }
+            return true
         }
         return false
     }

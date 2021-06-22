@@ -23,7 +23,7 @@ class MainService : MediaBrowserServiceCompat() {
 
     override fun onLoadChildren(
         parentId: String,
-        result: Result<MutableList<MediaBrowserCompat.MediaItem>>
+        result: Result<MutableList<MediaBrowserCompat.MediaItem>>,
     ) {
         result.sendResult(mutableListOf())
     }
@@ -31,7 +31,7 @@ class MainService : MediaBrowserServiceCompat() {
     override fun onGetRoot(
         clientPackageName: String,
         clientUid: Int,
-        rootHints: Bundle?
+        rootHints: Bundle?,
     ): BrowserRoot {
         return BrowserRoot("dubstep.fm", null)
     }
@@ -40,9 +40,11 @@ class MainService : MediaBrowserServiceCompat() {
         super.onCreate()
 
         mediaCore =
-            MediaCore(notificationBuilder,
+            MediaCore(
+                notificationBuilder,
                 { id, notification -> startForeground(id, notification) },
-                { stopForeground(false) })
+                { stopForeground(false) },
+            )
         mediaCore.init(this)
         sessionToken = mediaCore.token
     }

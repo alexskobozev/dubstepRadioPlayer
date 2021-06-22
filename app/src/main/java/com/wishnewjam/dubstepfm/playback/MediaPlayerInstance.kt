@@ -14,12 +14,12 @@ import com.wishnewjam.dubstepfm.ui.state.PlayerState
 class MediaPlayerInstance(
     private val context: Context,
     private val stateChange: (state: PlayerState) -> Unit,
-    private val metaDataChange: (metadata: String, state: PlayerState) -> Unit
 ) : Player.Listener, DubstepMediaPlayer {
     companion object {
         private const val USER_AGENT: String = "dubstep.fm"
     }
 
+    private var trackName: String? = null
     private var status: PlayerState = PlayerState.Undefined
     private var currentUrl: CurrentUrl = CurrentUrl(context)
     private val mediaPlayer: SimpleExoPlayer = SimpleExoPlayer.Builder(context)
@@ -39,7 +39,9 @@ class MediaPlayerInstance(
         mediaPlayer.addMetadataOutput {
             if (it.length() > 0) {
                 (it.get(0) as? IcyInfo?)?.title?.let { s ->
-                    metaDataChange.invoke(s, status)
+                    trackName = s
+                    status.trackName = s
+                    notifyStatusChanged(status)
                 }
             }
         }
@@ -53,14 +55,19 @@ class MediaPlayerInstance(
 
     override fun onPlayerStateChanged(
         playWhenReady: Boolean,
-        playbackState: Int
+        playbackState: Int,
     ) {
         when (playbackState) {
             Player.STATE_BUFFERING -> notifyStatusChanged(PlayerState.Buffering)
-            Player.STATE_READY -> if (playWhenReady) {
-                notifyStatusChanged(PlayerState.Play)
-            } else {
-                notifyStatusChanged(PlayerState.Pause)
+            Player.STATE_READY -> {
+                val state =
+                    if (playWhenReady) {
+                        PlayerState.Play
+                    } else {
+                        PlayerState.Pause
+                    }
+                state.trackName = trackName
+                notifyStatusChanged(state)
             }
             Player.STATE_IDLE, Player.STATE_ENDED -> {
             }
@@ -82,6 +89,7 @@ class MediaPlayerInstance(
             mediaPlayer.stop()
             status = PlayerState.Pause
         }
+        trackName = null
     }
 
 //    fun changeUrl(newUrl: String) {
@@ -92,12 +100,13 @@ class MediaPlayerInstance(
 //    }
 
     private fun notifyStatusChanged(status: PlayerState) {
-        if (this.status == status) return
+        if (this.status == status && this.status.trackName == status.trackName) return
         this.status = status
         stateChange.invoke(status)
     }
 
     private fun play() {
+        trackName = null
         val source = currentUrl.currentUrl.toUri()
         val dataSourceFactory = DefaultDataSourceFactory(
             context,
@@ -111,6 +120,7 @@ class MediaPlayerInstance(
     }
 
     fun destroy() {
+        trackName = null
         mediaPlayer.release()
     }
 

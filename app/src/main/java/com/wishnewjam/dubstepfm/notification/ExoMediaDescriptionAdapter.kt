@@ -9,7 +9,7 @@ import com.google.android.exoplayer2.ui.PlayerNotificationManager
 class ExoMediaDescriptionAdapter(
     controller: MediaControllerCompat?,
     resourcesProvider: NotificationResourceProvider,
-    val logoProvider: LogoProvider
+    private val logoProvider: LogoProvider,
 ) :
     PlayerNotificationManager.MediaDescriptionAdapter {
 
@@ -40,7 +40,7 @@ class ExoMediaDescriptionAdapter(
 
     override fun getCurrentLargeIcon(
         player: Player,
-        callback: PlayerNotificationManager.BitmapCallback
+        callback: PlayerNotificationManager.BitmapCallback,
     ): Bitmap? {
         return logoProvider.getLogoBitmap()
     }

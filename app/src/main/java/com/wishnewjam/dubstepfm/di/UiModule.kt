@@ -27,29 +27,4 @@ class UiModule {
     fun provideLogoProvider(@ApplicationContext context: Context): LogoProvider {
         return LogoProvider(context.resources, MainScope(), Dispatchers.IO)
     }
-
-//    @Provides
-//    @Singleton
-//    fun provideContext(): Context {
-//        return context
-//    }
-
-//    @Provides
-//    @Singleton
-//    fun provideOkHttpClient(): OkHttpClient {
-//        return OkHttpClient.Builder()
-//                .addInterceptor(HttpRequestInterceptor())
-//                .build()
-//    }
-//
-//    @Provides
-//    @Singleton
-//    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
-//        return Retrofit.Builder()
-//                .client(okHttpClient)
-//                .baseUrl("https://pokeapi.co/api/v2/")
-//                .addConverterFactory(MoshiConverterFactory.create())
-//                .build()
-//    }
-//}
 }

@@ -7,14 +7,14 @@ import android.graphics.Color
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.core.app.NotificationCompat
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
+import com.wishnewjam.dubstepfm.legacy.Tools
 import com.wishnewjam.dubstepfm.playback.MediaPlayerInstance
 
 class NotificationBuilder(
     private val context: Context,
     private val resourcesProvider: NotificationResourceProvider,
-    private val logoProvider: LogoProvider
+    private val logoProvider: LogoProvider,
 ) {
-
     companion object {
         private const val NOTIFICATION_ID = 43432
     }
@@ -23,13 +23,10 @@ class NotificationBuilder(
         mediaPlayer: MediaPlayerInstance,
         mediaSession: MediaSessionCompat,
         showNotificationListener: (Int, Notification) -> Unit,
-        hideNotificationListener: () -> Unit
+        hideNotificationListener: () -> Unit,
     ) {
         val mediaDescriptionAdapter =
-            ExoMediaDescriptionAdapter(
-                mediaSession.controller,
-                resourcesProvider, logoProvider
-            )
+            ExoMediaDescriptionAdapter(mediaSession.controller, resourcesProvider, logoProvider)
         val listener = object : PlayerNotificationManager.NotificationListener {
             override fun onNotificationCancelled(notificationId: Int, dismissedByUser: Boolean) {
                 super.onNotificationCancelled(notificationId, dismissedByUser)
@@ -40,10 +37,14 @@ class NotificationBuilder(
             override fun onNotificationPosted(
                 notificationId: Int,
                 notification: Notification,
-                ongoing: Boolean
+                ongoing: Boolean,
             ) {
                 super.onNotificationPosted(notificationId, notification, ongoing)
-                showNotificationListener.invoke(notificationId, notification)
+                if (ongoing) {
+                    showNotificationListener.invoke(notificationId, notification)
+                } else {
+                    hideNotificationListener.invoke()
+                }
             }
         }
         val notificationManager =
@@ -51,7 +52,7 @@ class NotificationBuilder(
                 context,
                 NOTIFICATION_ID,
                 resourcesProvider.channelId,
-                mediaDescriptionAdapter
+                mediaDescriptionAdapter!!
             )
                 .setChannelNameResourceId(resourcesProvider.channelNameResourceId)
                 .setChannelDescriptionResourceId(resourcesProvider.channelDescriptionResourceId)
@@ -64,6 +65,7 @@ class NotificationBuilder(
         notificationManager.setColor(Color.BLACK)
         notificationManager.setUsePlayPauseActions(true)
         notificationManager.setPlayer(mediaPlayer.exoPlayer)
+        notificationManager.invalidate()
     }
 
 }
