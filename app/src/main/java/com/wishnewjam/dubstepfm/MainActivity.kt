@@ -9,8 +9,6 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.view.Menu
-import android.view.MenuItem
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -22,9 +20,6 @@ import dagger.hilt.android.AndroidEntryPoint
 
 
 // TODOLIST
-// leaks
-// сервис пропадает при смахивании андроид 12
-// сикбар на нотификейшене
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -107,6 +102,10 @@ class MainActivity : AppCompatActivity() {
                 mediaController?.transportControls?.pause()
             }
         }
+
+        homeViewModel.currentRadioStream.observe(this) {
+            mediaController?.transportControls?.playFromUri(it.uri, null)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -137,30 +136,4 @@ class MainActivity : AppCompatActivity() {
             ?.unregisterCallback(controllerCallback)
         mediaBrowser?.disconnect()
     }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater = menuInflater
-        inflater.inflate(
-            R.menu.main,
-            menu
-        )
-        return super.onCreateOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // TODO: 18/06/2021 rmove menu completely
-        return when (item.itemId) {
-            R.id.action_bitrate -> {
-                showBitrateChooser()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
-
-    private fun showBitrateChooser() {
-//        val bitrateFragment = ChooseBitrateDialogFragment()
-//        bitrateFragment.show(supportFragmentManager, "bitrate")
-    }
-
 }

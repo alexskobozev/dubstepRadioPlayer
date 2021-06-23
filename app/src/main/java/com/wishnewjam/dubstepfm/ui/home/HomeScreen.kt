@@ -28,7 +28,7 @@ fun HomeScreen(homeViewModel: HomeViewModel) {
 
         TopAppBar(title = { Text(text = title) },
             actions = {
-                DropdownDemo()
+                DropdownDemo(homeViewModel)
 //                IconButton(onClick = {}) {
 //                    Icon(
 //                        painter = painterResource(R.drawable.ic_settings),
@@ -44,10 +44,10 @@ fun HomeScreen(homeViewModel: HomeViewModel) {
 }
 
 @Composable
-fun DropdownDemo() {
+fun DropdownDemo(homeViewModel: HomeViewModel) {
     var expanded by remember { mutableStateOf(false) }
-    val items = listOf("24 kbps", "64 kbps", "128 kbps", "256 kbps")
-    var selectedIndex by remember { mutableStateOf(0) }
+    val items = homeViewModel.allStreams
+    val selectedIndex by homeViewModel.currentRadioStream.observeAsState(homeViewModel.defaultStream)
     Box(modifier = Modifier
         .wrapContentSize(Alignment.TopStart)) {
         Row(verticalAlignment = Alignment.CenterVertically,
@@ -70,7 +70,7 @@ fun DropdownDemo() {
                     FontWeight.Bold
                 )
             )
-            Text(items[selectedIndex],
+            Text(selectedIndex.name,
                 color = Color.White,
                 fontWeight = FontWeight.Normal,
                 fontFamily = fontFamily)
@@ -84,10 +84,10 @@ fun DropdownDemo() {
         ) {
             items.forEachIndexed { index, s ->
                 DropdownMenuItem(onClick = {
-                    selectedIndex = index
+                    homeViewModel.updateStream(items[index])
                     expanded = false
                 }) {
-                    Text(text = s)
+                    Text(text = s.name)
                 }
             }
         }

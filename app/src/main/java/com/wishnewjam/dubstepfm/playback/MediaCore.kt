@@ -6,12 +6,14 @@ import android.content.Context
 import android.content.Intent
 import android.media.session.PlaybackState.PLAYBACK_POSITION_UNKNOWN
 import android.media.session.PlaybackState.STATE_PLAYING
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.ResultReceiver
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import android.view.KeyEvent
 import androidx.media.session.MediaButtonReceiver
 import com.wishnewjam.dubstepfm.MainActivity
@@ -214,15 +216,6 @@ class MediaCore(
             return handleMediaButtonIntent(event)
         }
 
-        override fun onCommand(
-            command: String?,
-            extras: Bundle?,
-            cb: ResultReceiver?,
-        ) {
-            Tools.logDebug { "mediaSessionCallback: onCommand $command" }
-            super.onCommand(command, extras, cb)
-        }
-
 
         override fun onPlay() {
             super.onPlay()
@@ -247,6 +240,11 @@ class MediaCore(
             super.onStop()
             Tools.logDebug { "mediaSessionCallback: onStop" }
             mediaPlayerInstance?.callStop()
+        }
+
+        override fun onPlayFromUri(uri: Uri?, extras: Bundle?) {
+            super.onPlayFromUri(uri, extras)
+            Tools.logDebug { "onPlayFromUri() called with: uri = $uri, extras = $extras" }
         }
     }
 
