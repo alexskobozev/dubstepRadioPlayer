@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.wishnewjam.dubstepfm.R
+import com.wishnewjam.dubstepfm.data.RadioStream
 import com.wishnewjam.dubstepfm.ui.ThemedPreview
 
 @Composable
@@ -47,7 +48,10 @@ fun HomeScreen(homeViewModel: HomeViewModel) {
 fun DropdownDemo(homeViewModel: HomeViewModel) {
     var expanded by remember { mutableStateOf(false) }
     val items = homeViewModel.allStreams
-    val selectedIndex by homeViewModel.currentRadioStream.observeAsState(homeViewModel.defaultStream)
+    val radioStream by homeViewModel.currentRadioStream.collectAsState(RadioStream.unknown)
+
+    if (radioStream == RadioStream.unknown) return
+
     Box(modifier = Modifier
         .wrapContentSize(Alignment.TopStart)) {
         Row(verticalAlignment = Alignment.CenterVertically,
@@ -70,7 +74,7 @@ fun DropdownDemo(homeViewModel: HomeViewModel) {
                     FontWeight.Bold
                 )
             )
-            Text(selectedIndex.name,
+            Text(radioStream.name,
                 color = Color.White,
                 fontWeight = FontWeight.Normal,
                 fontFamily = fontFamily)

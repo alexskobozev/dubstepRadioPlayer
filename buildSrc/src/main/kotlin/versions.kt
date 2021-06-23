@@ -22,6 +22,7 @@ object AndroidX {
 }
 
 object Libs {
+    const val DATASTORE = "1.0.0-beta02"
     const val EXOPLAYER = "2.14.1"
     const val LEAK = "2.7"
     const val KTX = "1.5.0"

@@ -52,7 +52,7 @@ class NotificationBuilder(
                 context,
                 NOTIFICATION_ID,
                 resourcesProvider.channelId,
-                mediaDescriptionAdapter!!
+                mediaDescriptionAdapter
             )
                 .setChannelNameResourceId(resourcesProvider.channelNameResourceId)
                 .setChannelDescriptionResourceId(resourcesProvider.channelDescriptionResourceId)

@@ -9,20 +9,20 @@ import android.media.session.PlaybackState.STATE_PLAYING
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.ResultReceiver
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import android.view.KeyEvent
 import androidx.media.session.MediaButtonReceiver
 import com.wishnewjam.dubstepfm.MainActivity
+import com.wishnewjam.dubstepfm.data.RadioStreamRepo
 import com.wishnewjam.dubstepfm.legacy.Tools
 import com.wishnewjam.dubstepfm.notification.NotificationBuilder
 import com.wishnewjam.dubstepfm.ui.state.PlayerState
 
 class MediaCore(
     private val notificationBuilder: NotificationBuilder,
+    private val radioStreamRepo: RadioStreamRepo,
     private val showNotificationListener: (Int, Notification) -> Unit,
     private val hideNotificationListener: () -> Unit,
 ) {
@@ -72,6 +72,7 @@ class MediaCore(
 
         val mediaPlayer =
             MediaPlayerInstance(
+                radioStreamRepo.stream.uri,
                 context = context
             ) { state -> onPlayerStateChanged(state) }
         mediaPlayerInstance = mediaPlayer
@@ -244,7 +245,8 @@ class MediaCore(
 
         override fun onPlayFromUri(uri: Uri?, extras: Bundle?) {
             super.onPlayFromUri(uri, extras)
-            Tools.logDebug { "onPlayFromUri() called with: uri = $uri, extras = $extras" }
+            if (uri == null) return
+            mediaPlayerInstance?.onPlayFromUri(uri)
         }
     }
 

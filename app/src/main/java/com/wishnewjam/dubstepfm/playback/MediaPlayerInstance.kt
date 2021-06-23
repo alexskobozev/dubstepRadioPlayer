@@ -1,17 +1,17 @@
 package com.wishnewjam.dubstepfm.playback
 
 import android.content.Context
-import androidx.core.net.toUri
+import android.net.Uri
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.metadata.icy.IcyInfo
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.wishnewjam.dubstepfm.legacy.CurrentUrl
 import com.wishnewjam.dubstepfm.legacy.Tools
 import com.wishnewjam.dubstepfm.ui.state.PlayerState
 
 class MediaPlayerInstance(
+    private var playUri: Uri,
     private val context: Context,
     private val stateChange: (state: PlayerState) -> Unit,
 ) : Player.Listener, DubstepMediaPlayer {
@@ -21,7 +21,6 @@ class MediaPlayerInstance(
 
     private var trackName: String? = null
     private var status: PlayerState = PlayerState.Undefined
-    private var currentUrl: CurrentUrl = CurrentUrl(context)
     private val mediaPlayer: SimpleExoPlayer = SimpleExoPlayer.Builder(context)
         .build()
     val exoPlayer: Player = mediaPlayer
@@ -77,7 +76,7 @@ class MediaPlayerInstance(
 
     override fun callPlay() {
         mediaPlayer.setWakeMode(C.WAKE_MODE_NETWORK)
-        Tools.logDebug { "Call play, status: $status" }
+        Tools.logDebug { "Call play, status: $status uri $playUri" }
         if (status !is PlayerState.Play && status != PlayerState.Buffering) {
             play()
         }
@@ -92,13 +91,6 @@ class MediaPlayerInstance(
         trackName = null
     }
 
-//    fun changeUrl(newUrl: String) {
-//        if (currentUrl.currentUrl != newUrl) {
-//            currentUrl.updateUrl(newUrl)
-//            play()
-//        }
-//    }
-
     private fun notifyStatusChanged(status: PlayerState) {
         if (this.status == status && this.status.trackName == status.trackName) return
         this.status = status
@@ -107,13 +99,12 @@ class MediaPlayerInstance(
 
     private fun play() {
         trackName = null
-        val source = currentUrl.currentUrl.toUri()
         val dataSourceFactory = DefaultDataSourceFactory(
             context,
             USER_AGENT
         )
         val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(MediaItem.fromUri(source))
+            .createMediaSource(MediaItem.fromUri(playUri))
         mediaPlayer.playWhenReady = true
         mediaPlayer.setMediaSource(mediaSource)
         mediaPlayer.prepare()
@@ -126,5 +117,11 @@ class MediaPlayerInstance(
 
     fun isPlaying(): Boolean {
         return status == PlayerState.Play
+    }
+
+    fun onPlayFromUri(uri: Uri) {
+        if (playUri == uri) return
+        playUri = uri
+        if (status == PlayerState.Play) play()
     }
 }

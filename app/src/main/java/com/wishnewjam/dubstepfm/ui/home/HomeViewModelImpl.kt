@@ -6,25 +6,24 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.wishnewjam.dubstepfm.data.RadioStream
+import com.wishnewjam.dubstepfm.data.RadioStreamRepo
 import com.wishnewjam.dubstepfm.ui.ResourcesProvider
 import com.wishnewjam.dubstepfm.ui.state.PlaybackState
 import com.wishnewjam.dubstepfm.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModelImpl @Inject constructor(private val resourcesProvider: ResourcesProvider) :
+class HomeViewModelImpl @Inject constructor(
+    private val resourcesProvider: ResourcesProvider,
+    private val streamRepo: RadioStreamRepo,
+) :
     ViewModel(),
     HomeViewModel {
 
-    override val defaultStream: RadioStream = RadioStream.RadioStream128()
-
     private val _playButtonState = MutableLiveData<UiState>().apply {
         value = UiState.Play
-    }
-
-    private val _stream = MutableLiveData<RadioStream>().apply {
-        value = defaultStream
     }
 
     private val _nowPlaying: MutableLiveData<String?> = MutableLiveData(null)
@@ -45,7 +44,7 @@ class HomeViewModelImpl @Inject constructor(private val resourcesProvider: Resou
     override val statusText: LiveData<String?> = _statusText
     override val nowPlaying: LiveData<String?> = _nowPlaying
     override val playbackState: LiveData<PlaybackState> = _playbackState
-    override val currentRadioStream: LiveData<RadioStream> = _stream
+    override val currentRadioStream: Flow<RadioStream> = streamRepo.radioStream
 
     override val playButtonRes: LiveData<Int> = Transformations.switchMap(_playButtonState) {
         val res = when (it) {
@@ -85,9 +84,7 @@ class HomeViewModelImpl @Inject constructor(private val resourcesProvider: Resou
         }
     }
 
-    override fun updateStream(radioStream: RadioStream) {
-        _stream.value = radioStream
-    }
+    override fun updateStream(radioStream: RadioStream) = streamRepo.updateStream(radioStream)
 
     override fun playbackStateChanged(state: PlaybackStateCompat?) {
         when (state?.state) {

@@ -21,7 +21,7 @@ android {
         getByName("release") {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android.txt"),
-                    "proguard-rules.pro")
+                "proguard-rules.pro")
         }
     }
     packagingOptions {
@@ -58,7 +58,7 @@ dependencies {
     implementation("androidx.preference:preference-ktx:${AndroidX.PREFERENCES}")
     implementation("com.google.android.exoplayer:exoplayer-core:${Libs.EXOPLAYER}")
     implementation("com.google.android.exoplayer:exoplayer-ui:${Libs.EXOPLAYER}")
-
+    implementation("androidx.datastore:datastore-preferences:${Libs.DATASTORE}")
     debugImplementation("com.squareup.leakcanary:leakcanary-android:${Libs.LEAK}")
 
     implementation("androidx.core:core-ktx:${Libs.KTX}")

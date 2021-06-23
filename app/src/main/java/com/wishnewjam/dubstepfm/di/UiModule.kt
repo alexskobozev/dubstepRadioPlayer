@@ -1,6 +1,8 @@
 package com.wishnewjam.dubstepfm.di
 
 import android.content.Context
+import com.wishnewjam.dubstepfm.data.RadioStreamRepo
+import com.wishnewjam.dubstepfm.data.StreamsDataSource
 import com.wishnewjam.dubstepfm.notification.LogoProvider
 import com.wishnewjam.dubstepfm.ui.ResourcesProvider
 import dagger.Module
@@ -26,5 +28,17 @@ class UiModule {
     @Singleton
     fun provideLogoProvider(@ApplicationContext context: Context): LogoProvider {
         return LogoProvider(context.resources, MainScope(), Dispatchers.IO)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRadioStreamRepo(streamsDataSource: StreamsDataSource): RadioStreamRepo {
+        return RadioStreamRepo(streamsDataSource, MainScope(), Dispatchers.IO)
+    }
+
+    @Provides
+    @Singleton
+    fun provideStreamsDataSource(@ApplicationContext context: Context): StreamsDataSource {
+        return StreamsDataSource(context)
     }
 }

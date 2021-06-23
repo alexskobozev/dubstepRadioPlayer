@@ -12,17 +12,26 @@ import android.support.v4.media.session.PlaybackStateCompat
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.wishnewjam.dubstepfm.data.RadioStreamRepo
 import com.wishnewjam.dubstepfm.legacy.Tools.logDebug
 import com.wishnewjam.dubstepfm.playback.MainService
 import com.wishnewjam.dubstepfm.ui.DubstepApp
 import com.wishnewjam.dubstepfm.ui.home.HomeViewModelImpl
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 
 // TODOLIST
+// если быстро жать плей/стоп, то будет кака
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var radioStreamRepo: RadioStreamRepo
 
     private var mediaBrowser: MediaBrowserCompat? = null
 
@@ -103,8 +112,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        homeViewModel.currentRadioStream.observe(this) {
-            mediaController?.transportControls?.playFromUri(it.uri, null)
+        lifecycleScope.launch {
+            radioStreamRepo.radioStream
+                .collect { value ->
+                    mediaController?.transportControls?.playFromUri(value.uri, null)
+                }
         }
     }
 

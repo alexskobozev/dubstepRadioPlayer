@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import androidx.media.MediaBrowserServiceCompat
+import com.wishnewjam.dubstepfm.data.RadioStreamRepo
 import com.wishnewjam.dubstepfm.notification.LogoProvider
 import com.wishnewjam.dubstepfm.notification.NotificationBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -18,6 +19,9 @@ class MainService : MediaBrowserServiceCompat() {
 
     @Inject
     lateinit var logoProvider: LogoProvider
+
+    @Inject
+    lateinit var radioStreamRepo: RadioStreamRepo
 
     private lateinit var mediaCore: MediaCore
 
@@ -42,6 +46,7 @@ class MainService : MediaBrowserServiceCompat() {
         mediaCore =
             MediaCore(
                 notificationBuilder,
+                radioStreamRepo,
                 { id, notification -> startForeground(id, notification) },
                 { stopForeground(false) },
             )

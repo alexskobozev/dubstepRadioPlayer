@@ -6,9 +6,10 @@ import androidx.lifecycle.MutableLiveData
 import com.wishnewjam.dubstepfm.R
 import com.wishnewjam.dubstepfm.data.RadioStream
 import com.wishnewjam.dubstepfm.ui.state.PlaybackState
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 class HomeViewModelPreview : HomeViewModel {
-    override val defaultStream: RadioStream = RadioStream.RadioStream128()
     override val initialPlayButtonState: Int = R.drawable.ic_play
     override val nowPlaying: LiveData<String?> = MutableLiveData("Now playing something")
     override val allStreams: Array<RadioStream> = arrayOf(RadioStream.RadioStream24(),
@@ -26,7 +27,6 @@ class HomeViewModelPreview : HomeViewModel {
     override val playbackState: LiveData<PlaybackState> = MutableLiveData(PlaybackState.Stop)
     override val statusIcon: LiveData<Int?> = MutableLiveData(R.drawable.ic_play)
     override val playButtonRes: LiveData<Int> = MutableLiveData(R.drawable.ic_play)
-    override val currentRadioStream: LiveData<RadioStream> =
-        MutableLiveData(RadioStream.RadioStream128())
+    override val currentRadioStream: Flow<RadioStream> = flow { RadioStream.default }
     override val statusText: LiveData<String?> = MutableLiveData("Status")
 }

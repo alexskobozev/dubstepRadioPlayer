@@ -4,10 +4,10 @@ import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.LiveData
 import com.wishnewjam.dubstepfm.data.RadioStream
 import com.wishnewjam.dubstepfm.ui.state.PlaybackState
+import kotlinx.coroutines.flow.Flow
 
 interface HomeViewModel {
 
-    val defaultStream : RadioStream
     val allStreams: Array<RadioStream>
     val initialPlayButtonState: Int
     val nowPlaying: LiveData<String?>
@@ -22,5 +22,5 @@ interface HomeViewModel {
     val playbackState: LiveData<PlaybackState>
     val statusIcon: LiveData<Int?>
     val playButtonRes: LiveData<Int>
-    val currentRadioStream: LiveData<RadioStream>
+    val currentRadioStream: Flow<RadioStream>
 }

@@ -10,4 +10,10 @@ sealed class RadioStream(val bitrate: Int) {
     class RadioStream64 : RadioStream(64)
     class RadioStream128 : RadioStream(128)
     class RadioStream256 : RadioStream(256)
+    class RadioStreamUnknown : RadioStream(0)
+
+    companion object{
+        val default = RadioStream128()
+        val unknown = RadioStream128()
+    }
 }
