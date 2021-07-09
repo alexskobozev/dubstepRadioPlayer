@@ -27,13 +27,13 @@ class UiModule {
     @Provides
     @Singleton
     fun provideLogoProvider(@ApplicationContext context: Context): LogoProvider {
-        return LogoProvider(context.resources, MainScope(), Dispatchers.IO)
+        return LogoProvider(context.resources, MainScope())
     }
 
     @Provides
     @Singleton
     fun provideRadioStreamRepo(streamsDataSource: StreamsDataSource): RadioStreamRepo {
-        return RadioStreamRepo(streamsDataSource, MainScope(), Dispatchers.IO)
+        return RadioStreamRepo(streamsDataSource, MainScope())
     }
 
     @Provides

@@ -6,8 +6,6 @@ sealed class PlayerState {
     object Pause : PlayerState()
     class Error(val errorText: String) : PlayerState()
     object Buffering : PlayerState()
-
-    var trackName : String? = null
 }
 
 sealed interface UiState {

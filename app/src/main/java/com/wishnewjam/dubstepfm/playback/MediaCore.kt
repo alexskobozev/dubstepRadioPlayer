@@ -32,6 +32,7 @@ class MediaCore(
 
     private var mediaSession: MediaSessionCompat? = null
     private var mediaPlayerInstance: MediaPlayerInstance? = null
+    private var currentUri: Uri? = null
 
     fun init(context: Context) {
         mediaSession = MediaSessionCompat(
@@ -72,8 +73,8 @@ class MediaCore(
 
         val mediaPlayer =
             MediaPlayerInstance(
-                radioStreamRepo.stream.uri,
-                context = context
+                context = context,
+                { trackName -> updateTrackName(trackName) }
             ) { state -> onPlayerStateChanged(state) }
         mediaPlayerInstance = mediaPlayer
     }
@@ -164,30 +165,32 @@ class MediaCore(
         )
     }
 
-    private fun onPlayerStateChanged(status: PlayerState) {
-        Tools.logDebug { "mediaPlayerCallback: onPlayerStateChanged, status = $status trackName ${status.trackName}" }
-        val trackName = status.trackName
-        val session = mediaSession ?: return
+    private fun updateTrackName(trackName: String) {
         val player = mediaPlayerInstance ?: return
-        mediaPlayerInstance ?: return
-        if (trackName != null) {
-            val builder = MediaMetadataCompat.Builder()
-                .putString(
-                    MediaMetadataCompat.METADATA_KEY_ARTIST,
-                    ""
-                )
-                .putString(
-                    MediaMetadataCompat.METADATA_KEY_TITLE,
-                    trackName
-                )
-            mediaSession?.setMetadata(builder.build())
-            notificationBuilder.createNotification(
-                player,
-                session,
-                showNotificationListener,
-                hideNotificationListener
+        val session = mediaSession ?: return
+
+        val builder = MediaMetadataCompat.Builder()
+            .putString(
+                MediaMetadataCompat.METADATA_KEY_ARTIST,
+                ""
             )
-        }
+            .putString(
+                MediaMetadataCompat.METADATA_KEY_TITLE,
+                trackName
+            )
+        mediaSession?.setMetadata(builder.build())
+        notificationBuilder.createNotification(
+            player,
+            session,
+            showNotificationListener,
+            hideNotificationListener
+        )
+    }
+
+    private fun onPlayerStateChanged(status: PlayerState) {
+        Tools.logDebug { "mediaPlayerCallback: onPlayerStateChanged, status = $status" }
+        val session = mediaSession ?: return
+        mediaPlayerInstance ?: return
         when (status) {
             is PlayerState.Play -> {
                 callSessionPlay(session)
@@ -218,17 +221,17 @@ class MediaCore(
         }
 
 
-        override fun onPlay() {
-            super.onPlay()
-            Tools.logDebug { "mediaSessionCallback: onPlay" }
-            val session = mediaSession ?: return
-            if (mediaPlayerInstance?.isPlaying() == true) {
-                callSessionPlay(session)
-            } else {
-                callSessionLoading(session)
-                mediaPlayerInstance?.callPlay()
-            }
-        }
+//        override fun onPlay() {
+//            super.onPlay()
+//            Tools.logDebug { "mediaSessionCallback: onPlay" }
+//            val session = mediaSession ?: return
+//            if (mediaPlayerInstance?.isPlaying() == true) {
+//                callSessionPlay(session)
+//            } else {
+//                callSessionLoading(session)
+//                mediaPlayerInstance?.callPlay()
+//            }
+//        }
 
         override fun onPause() {
             super.onPause()
@@ -245,8 +248,24 @@ class MediaCore(
 
         override fun onPlayFromUri(uri: Uri?, extras: Bundle?) {
             super.onPlayFromUri(uri, extras)
-            if (uri == null) return
-            mediaPlayerInstance?.onPlayFromUri(uri)
+            Tools.logDebug { "MediaCore: onPlayFromUri ${uri.toString()}" }
+            if (uri == null) {
+                return
+            }
+            if (mediaPlayerInstance?.isPlaying() == false && currentUri == uri) {
+                return
+            }
+            val session = mediaSession ?: return
+            callSessionLoading(session)
+            mediaPlayerInstance?.callPlay(uri)
+
+//            val session = mediaSession ?: return
+//            if (mediaPlayerInstance?.isPlaying() == true) {
+//                callSessionPlay(session)
+//            } else {
+//                callSessionLoading(session)
+//                mediaPlayerInstance?.callPlay(uri = )
+//            }
         }
     }
 
@@ -263,15 +282,23 @@ class MediaCore(
                 callSessionStop(session)
                 mediaPlayerInstance?.callStop()
             } else if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
-                callSessionLoading(session)
-                mediaPlayerInstance?.callPlay()
+                currentUri?.let {
+                    mediaPlayerInstance?.callPlay(it)
+                    callSessionLoading(session)
+                }?.also {
+                    mediaPlayerInstance?.callStop()
+                }
             } else if (event.keyCode == KeyEvent.KEYCODE_HEADSETHOOK || event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
                 if (mediaSession?.controller?.playbackState?.playbackState == STATE_PLAYING) {
                     callSessionStop(session)
                     mediaPlayerInstance?.callStop()
                 } else {
-                    callSessionLoading(session)
-                    mediaPlayerInstance?.callPlay()
+                    currentUri?.let {
+                        mediaPlayerInstance?.callPlay(it)
+                        callSessionLoading(session)
+                    }?.also {
+                        mediaPlayerInstance?.callStop()
+                    }
                 }
             }
             return true

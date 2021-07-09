@@ -92,6 +92,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     private fun applyMetadata(metadata: MediaMetadataCompat?) {
+        lifecycleScope
         val artist = metadata?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
         val track = metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
         if (artist != null && track != null) {

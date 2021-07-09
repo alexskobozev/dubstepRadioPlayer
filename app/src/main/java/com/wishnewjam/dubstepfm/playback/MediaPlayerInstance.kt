@@ -9,17 +9,15 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.wishnewjam.dubstepfm.legacy.Tools
 import com.wishnewjam.dubstepfm.ui.state.PlayerState
+import kotlinx.coroutines.flow.callbackFlow
 
 class MediaPlayerInstance(
-    private var playUri: Uri,
     private val context: Context,
+    private val trackNameChange: (trackName: String) -> Unit,
     private val stateChange: (state: PlayerState) -> Unit,
-) : Player.Listener, DubstepMediaPlayer {
-    companion object {
-        private const val USER_AGENT: String = "dubstep.fm"
-    }
+) : DubstepMediaPlayer,
+    Player.Listener {
 
-    private var trackName: String? = null
     private var status: PlayerState = PlayerState.Undefined
     private val mediaPlayer: SimpleExoPlayer = SimpleExoPlayer.Builder(context)
         .build()
@@ -38,9 +36,7 @@ class MediaPlayerInstance(
         mediaPlayer.addMetadataOutput {
             if (it.length() > 0) {
                 (it.get(0) as? IcyInfo?)?.title?.let { s ->
-                    trackName = s
-                    status.trackName = s
-                    notifyStatusChanged(status)
+                    trackNameChange.invoke(s)
                 }
             }
         }
@@ -65,7 +61,6 @@ class MediaPlayerInstance(
                     } else {
                         PlayerState.Pause
                     }
-                state.trackName = trackName
                 notifyStatusChanged(state)
             }
             Player.STATE_IDLE, Player.STATE_ENDED -> {
@@ -74,12 +69,10 @@ class MediaPlayerInstance(
         Tools.logDebug { "exoPlayer: onPlayerStateChanged: playWhenReady = $playWhenReady, playbackState = $playbackState " }
     }
 
-    override fun callPlay() {
+    override fun callPlay(uri: Uri) {
         mediaPlayer.setWakeMode(C.WAKE_MODE_NETWORK)
-        Tools.logDebug { "Call play, status: $status uri $playUri" }
-        if (status !is PlayerState.Play && status != PlayerState.Buffering) {
-            play()
-        }
+        Tools.logDebug { "Call play, status: $status uri $uri" }
+        play(uri)
     }
 
     override fun callStop() {
@@ -88,40 +81,31 @@ class MediaPlayerInstance(
             mediaPlayer.stop()
             status = PlayerState.Pause
         }
-        trackName = null
     }
 
     private fun notifyStatusChanged(status: PlayerState) {
-        if (this.status == status && this.status.trackName == status.trackName) return
+        if (this.status == status) return
         this.status = status
         stateChange.invoke(status)
     }
 
-    private fun play() {
-        trackName = null
+    private fun play(uri: Uri) {
         val dataSourceFactory = DefaultDataSourceFactory(
             context,
-            USER_AGENT
+            null
         )
         val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(MediaItem.fromUri(playUri))
+            .createMediaSource(MediaItem.fromUri(uri))
         mediaPlayer.playWhenReady = true
         mediaPlayer.setMediaSource(mediaSource)
         mediaPlayer.prepare()
     }
 
     fun destroy() {
-        trackName = null
         mediaPlayer.release()
     }
 
     fun isPlaying(): Boolean {
         return status == PlayerState.Play
-    }
-
-    fun onPlayFromUri(uri: Uri) {
-        if (playUri == uri) return
-        playUri = uri
-        if (status == PlayerState.Play) play()
     }
 }
