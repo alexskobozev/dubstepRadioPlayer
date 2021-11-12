@@ -7,13 +7,13 @@ plugins {
 }
 
 android {
-    compileSdk = 30
+    compileSdk = 31
 
     defaultConfig {
         multiDexEnabled = true
         applicationId = "com.wishnewjam.dubstepfm"
         minSdk = 21
-        targetSdk = 30
+        targetSdk = 31
         versionCode = 10306
         versionName = "1.3.6"
     }
@@ -36,8 +36,6 @@ android {
         useIR = true
     }
     buildFeatures {
-        dataBinding = true
-        viewBinding = true
         compose = true
     }
 
@@ -53,11 +51,12 @@ android {
 dependencies {
     implementation("androidx.multidex:multidex:${AndroidX.MULTIDEX}")
     implementation("androidx.appcompat:appcompat:${AndroidX.APPCOMPAT}")
-    implementation("androidx.media:media:${AndroidX.MEDIA}")
-    implementation("androidx.constraintlayout:constraintlayout:${AndroidX.CONSTRAINT}")
     implementation("androidx.preference:preference-ktx:${AndroidX.PREFERENCES}")
-    implementation("com.google.android.exoplayer:exoplayer-core:${Libs.EXOPLAYER}")
-    implementation("com.google.android.exoplayer:exoplayer-ui:${Libs.EXOPLAYER}")
+
+    implementation("androidx.media3:media3-ui:1.0.0-alpha01")
+    implementation("androidx.media3:media3-exoplayer:1.0.0-alpha01")
+    implementation("androidx.media3:media3-session:1.0.0-alpha01")
+
     implementation("androidx.datastore:datastore-preferences:${Libs.DATASTORE}")
     debugImplementation("com.squareup.leakcanary:leakcanary-android:${Libs.LEAK}")
 

@@ -1,4 +1,4 @@
-package com.wishnewjam.dubstepfm.ui.home
+package com.wishnewjam.dubstepfm.presentation.main.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -18,18 +18,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.wishnewjam.dubstepfm.R
-import com.wishnewjam.dubstepfm.data.RadioStream
+import com.wishnewjam.dubstepfm.data.RadioStreamEntity
+import com.wishnewjam.dubstepfm.presentation.main.MainViewModel
 import com.wishnewjam.dubstepfm.ui.ThemedPreview
+import com.wishnewjam.dubstepfm.ui.home.HomeViewModel
+import com.wishnewjam.dubstepfm.ui.home.HomeViewModelPreview
 
 @Composable
-fun HomeScreen(homeViewModel: HomeViewModel) {
+fun MainScreen(viewModel: MainViewModel) {
     Scaffold(topBar = {
         val title = stringResource(id = R.string.app_name)
 
 
         TopAppBar(title = { Text(text = title) },
             actions = {
-                DropdownDemo(homeViewModel)
+                DropdownDemo(viewModel)
 //                IconButton(onClick = {}) {
 //                    Icon(
 //                        painter = painterResource(R.drawable.ic_settings),
@@ -39,18 +42,18 @@ fun HomeScreen(homeViewModel: HomeViewModel) {
             })
     },
         content = {
-            StatusView(homeViewModel)
-            MainView(homeViewModel)
+            StatusView(viewModel)
+            MainView(viewModel)
         })
 }
 
 @Composable
-fun DropdownDemo(homeViewModel: HomeViewModel) {
+fun DropdownDemo(homeViewModel: MainViewModel) {
     var expanded by remember { mutableStateOf(false) }
-    val items = homeViewModel.allStreams
-    val radioStream by homeViewModel.currentRadioStream.collectAsState(RadioStream.unknown)
+    val items = homeViewModel.allStreamEntities
+    val radioStream by homeViewModel.currentRadioStreamEntity.collectAsState(RadioStreamEntity.unknown)
 
-    if (radioStream == RadioStream.unknown) return
+    if (radioStream == RadioStreamEntity.unknown) return
 
     Box(modifier = Modifier
         .wrapContentSize(Alignment.TopStart)) {
@@ -191,10 +194,10 @@ private fun StatusIcon(iconRes: Int?) {
     }
 }
 
-@Preview
-@Composable
-fun HomeScreenPreview() {
-    ThemedPreview(darkTheme = true) {
-        HomeScreen(homeViewModel = HomeViewModelPreview())
-    }
-}
+//@Preview
+//@Composable
+//fun HomeScreenPreview() {
+//    ThemedPreview(darkTheme = true) {
+//        MainScreen(viewModel = HomeViewModelPreview())
+//    }
+//}

@@ -1,12 +1,11 @@
 package com.wishnewjam.dubstepfm.ui.home
 
-import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.wishnewjam.dubstepfm.data.RadioStream
-import com.wishnewjam.dubstepfm.data.RadioStreamRepo
+import com.wishnewjam.dubstepfm.data.RadioStreamEntity
+import com.wishnewjam.dubstepfm.data.repository.RadioStreamRepositoryImpl
 import com.wishnewjam.dubstepfm.ui.ResourcesProvider
 import com.wishnewjam.dubstepfm.ui.state.PlaybackState
 import com.wishnewjam.dubstepfm.ui.state.UiState
@@ -17,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModelImpl @Inject constructor(
     private val resourcesProvider: ResourcesProvider,
-    private val streamRepo: RadioStreamRepo,
+    private val streamRepositoryImpl: RadioStreamRepositoryImpl,
 ) :
     ViewModel(),
     HomeViewModel {
@@ -33,10 +32,10 @@ class HomeViewModelImpl @Inject constructor(
         value = PlaybackState.Stop
     }
 
-    override val allStreams: Array<RadioStream> = arrayOf(RadioStream.RadioStream24(),
-        RadioStream.RadioStream64(),
-        RadioStream.RadioStream128(),
-        RadioStream.RadioStream256())
+    override val allStreamEntities: Array<RadioStreamEntity> = arrayOf(RadioStreamEntity.RadioStream24(),
+        RadioStreamEntity.RadioStream64(),
+        RadioStreamEntity.RadioStream128(),
+        RadioStreamEntity.RadioStream256())
 
     override val initialPlayButtonState: Int = resourcesProvider.playButtonPlayIcon
 
@@ -44,7 +43,7 @@ class HomeViewModelImpl @Inject constructor(
     override val statusText: LiveData<String?> = _statusText
     override val nowPlaying: LiveData<String?> = _nowPlaying
     override val playbackState: LiveData<PlaybackState> = _playbackState
-    override val currentRadioStream: Flow<RadioStream> = streamRepo.radioStream
+    override val currentRadioStreamEntity: Flow<RadioStreamEntity> = streamRepositoryImpl.radioStream
 
     override val playButtonRes: LiveData<Int> = Transformations.switchMap(_playButtonState) {
         val res = when (it) {
@@ -84,47 +83,7 @@ class HomeViewModelImpl @Inject constructor(
         }
     }
 
-    override fun updateStream(radioStream: RadioStream) = streamRepo.updateStream(radioStream)
-
-    override fun playbackStateChanged(state: PlaybackStateCompat?) {
-        when (state?.state) {
-            PlaybackStateCompat.STATE_PLAYING -> {
-                _playbackState.value = PlaybackState.Play
-                _statusText.value = resourcesProvider.nowPlaying
-                _playButtonState.value = UiState.Stop
-            }
-            PlaybackStateCompat.STATE_BUFFERING -> {
-                _playbackState.value = PlaybackState.Loading
-                _statusText.value = resourcesProvider.loading
-            }
-            PlaybackStateCompat.STATE_CONNECTING -> {
-                _playbackState.value = PlaybackState.Loading
-                _statusText.value = resourcesProvider.loading
-            }
-            PlaybackStateCompat.STATE_ERROR -> {
-                _playbackState.value = PlaybackState.Error
-                _playButtonState.value = UiState.Error
-                _statusText.value =
-                    "${resourcesProvider.errorText}: ${state.errorMessage}" // TODO: 13/06/2021 remove msg or leave for debug
-                _nowPlaying.value = null
-            }
-            PlaybackStateCompat.STATE_STOPPED -> {
-                _playbackState.value = PlaybackState.Stop
-                _nowPlaying.value = null
-                _statusText.value = null
-                _playButtonState.value = UiState.Play
-            }
-            PlaybackStateCompat.STATE_PAUSED -> {
-                _playbackState.value = PlaybackState.Stop
-//                _nowPlaying.value = null
-//                _statusText.value = null
-                _playButtonState.value = UiState.Play
-            }
-            else -> {
-
-            }
-        }
-    }
+    override fun updateStream(radioStreamEntity: RadioStreamEntity) = streamRepositoryImpl.updateStream(radioStreamEntity)
 
     fun nowPlayingTextChanged(track: String) {
         _nowPlaying.value = track

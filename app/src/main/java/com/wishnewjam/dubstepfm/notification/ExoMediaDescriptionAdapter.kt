@@ -2,12 +2,12 @@ package com.wishnewjam.dubstepfm.notification
 
 import android.app.PendingIntent
 import android.graphics.Bitmap
-import android.support.v4.media.session.MediaControllerCompat
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.ui.PlayerNotificationManager
+import androidx.media3.common.Player
+import androidx.media3.session.MediaController
+import androidx.media3.session.PlayerNotificationManager
 
 class ExoMediaDescriptionAdapter(
-    controller: MediaControllerCompat?,
+    controller: MediaController?,
     resourcesProvider: NotificationResourceProvider,
     private val logoProvider: LogoProvider,
 ) :
@@ -18,11 +18,10 @@ class ExoMediaDescriptionAdapter(
     private var contentSubtitle: String? = null
 
     init {
-        val mediaMetadata = controller?.metadata
-        val description = mediaMetadata?.description
+        val mediaMetadata = controller?.mediaMetadata
         contentIntent = controller?.sessionActivity
-        contentTitle = description?.title?.toString() ?: resourcesProvider.connectStatusString
-        contentSubtitle = description?.subtitle?.toString()
+        contentTitle = mediaMetadata?.title?.toString() ?: resourcesProvider.connectStatusString
+        contentSubtitle = mediaMetadata?.subtitle?.toString()
     }
 
 
@@ -38,11 +37,22 @@ class ExoMediaDescriptionAdapter(
         return contentSubtitle
     }
 
+    override fun getCurrentSubText(player: Player): CharSequence? {
+        TODO("Not yet implemented")
+    }
+
     override fun getCurrentLargeIcon(
         player: Player,
-        callback: PlayerNotificationManager.BitmapCallback,
+        callback: androidx.media3.session.PlayerNotificationManager.BitmapCallback
     ): Bitmap? {
-        return logoProvider.getLogoBitmap()
+        TODO("Not yet implemented")
     }
+
+//    override fun getCurrentLargeIcon(
+//        player: Player,
+//        callback: PlayerNotificationManager.BitmapCallback,
+//    ): Bitmap? {
+//        return logoProvider.getLogoBitmap()
+//    }
 
 }

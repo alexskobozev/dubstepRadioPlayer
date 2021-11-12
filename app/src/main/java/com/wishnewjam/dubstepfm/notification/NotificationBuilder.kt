@@ -1,14 +1,14 @@
 package com.wishnewjam.dubstepfm.notification
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
 import android.graphics.Color
-import android.support.v4.media.session.MediaSessionCompat
 import androidx.core.app.NotificationCompat
-import com.google.android.exoplayer2.ui.PlayerNotificationManager
-import com.wishnewjam.dubstepfm.legacy.Tools
-import com.wishnewjam.dubstepfm.playback.MediaPlayerInstance
+import androidx.media3.common.Player
+import androidx.media3.session.MediaSession
+import androidx.media3.session.PlayerNotificationManager
 
 class NotificationBuilder(
     private val context: Context,
@@ -19,14 +19,15 @@ class NotificationBuilder(
         private const val NOTIFICATION_ID = 43432
     }
 
+    @SuppressLint("UnsafeOptInUsageError")
     fun createNotification(
-        mediaPlayer: MediaPlayerInstance,
-        mediaSession: MediaSessionCompat,
+        mediaPlayer: Player,
+        mediaSession: MediaSession,
         showNotificationListener: (Int, Notification) -> Unit,
         hideNotificationListener: () -> Unit,
     ) {
         val mediaDescriptionAdapter =
-            ExoMediaDescriptionAdapter(mediaSession.controller, resourcesProvider, logoProvider)
+            ExoMediaDescriptionAdapter(null, resourcesProvider, logoProvider) // TODO: 03.11.2021 controller
         val listener = object : PlayerNotificationManager.NotificationListener {
             override fun onNotificationCancelled(notificationId: Int, dismissedByUser: Boolean) {
                 super.onNotificationCancelled(notificationId, dismissedByUser)
@@ -52,8 +53,8 @@ class NotificationBuilder(
                 context,
                 NOTIFICATION_ID,
                 resourcesProvider.channelId,
-                mediaDescriptionAdapter
             )
+                .setMediaDescriptionAdapter(mediaDescriptionAdapter)
                 .setChannelNameResourceId(resourcesProvider.channelNameResourceId)
                 .setChannelDescriptionResourceId(resourcesProvider.channelDescriptionResourceId)
                 .setNotificationListener(listener)
@@ -61,10 +62,10 @@ class NotificationBuilder(
                 .build()
         notificationManager.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         notificationManager.setSmallIcon(resourcesProvider.notificationSmallIconRes)
-        notificationManager.setMediaSessionToken(mediaSession.sessionToken)
+//        notificationManager.setMediaSessionToken(mediaSession.token) todo token
         notificationManager.setColor(Color.BLACK)
         notificationManager.setUsePlayPauseActions(true)
-        notificationManager.setPlayer(mediaPlayer.exoPlayer)
+        notificationManager.setPlayer(mediaPlayer)
         notificationManager.invalidate()
     }
 
