@@ -1,5 +1,9 @@
 [versions]
 
+version-kotlin-bom = "1.8.0"
+version-kotlin-compiler-ext = "1.2.0-rc02" # Jetpack Compose compiler version
+version-kotlin-coroutines = "1.6.4"
+
 androidSdk-minSdkVersion = "23"
 androidSdk-compileSdkVersion = "33"
 androidSdk-targetSdkVersion = "33"
@@ -7,7 +11,7 @@ androidSdk-buildToolsVersion = "30.0.3"
 
 javaVersion = "11"
 
-version-plugin-agp = "4.1.2"
+version-plugin-agp = "7.4.1"
 version-plugin-versions = "0.36.0"
 version-plugin-google = "4.3.4"
 version-plugin-crashlytics = "2.3.0"
@@ -18,6 +22,8 @@ version-androidx-media = "1.2.1"
 version-androidx-constraint = "2.0.4"
 version-androidx-lifecycle = "2.2.0"
 
+version-firebase-billOfMaterials = "31.1.1"
+
 version-library-exoplayer = "2.12.3"
 version-library-leak = "2.5"
 version-library-wang = "2.1.3"
@@ -27,3 +33,13 @@ version-library-firebase-crashlytics = "17.3.0"
 version-library-material-dialogs = "3.3.0"
 
 [libraries]
+
+plugin-kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "version-kotlin-bom" }
+plugin-android-gradle = { module = "com.android.tools.build:gradle", version.ref = "version-plugin-agp" }
+plugin-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics-gradle", version.ref = "version-plugin-crashlytics" }
+plugin-googleServices = { module = "com.google.gms:google-services", version.ref = "version-plugin-google" }
+
+firebase-billOfMaterials = { module = "com.google.firebase:firebase-bom", version.ref = "version-firebase-billOfMaterials" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }

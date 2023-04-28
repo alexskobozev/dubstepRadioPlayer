@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    id("kotlin-android-extensions")
     id("com.google.firebase.crashlytics")
 }
 
@@ -32,6 +31,7 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
+    namespace = "com.wishnewjam.dubstepfm"
 }
 
 dependencies {
