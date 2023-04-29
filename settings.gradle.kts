@@ -14,9 +14,4 @@ dependencyResolutionManagement {
         google()
         maven(url = "https://dl.bintray.com/drummer-aidan/maven/")
     }
-    versionCatalogs {
-        create("libs") {
-            // from(files("gradle/libs.versions.toml"))
-        }
-    }
 }

@@ -1,7 +1,7 @@
 const val KOTLIN_VERSION = "1.8.0"
 
 object Plugins {
-    const val AGP = "7.4.1"
+    const val AGP = "8.0.0"
     const val VERSIONS = "0.36.0"
 
     // don't update https://stackoverflow.com/questions/54498721/why-im-getting-java-lang-arrayindexoutofboundsexception-when-i-add-the-plugin-co

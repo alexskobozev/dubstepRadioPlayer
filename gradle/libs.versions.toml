@@ -11,7 +11,7 @@ androidSdk-buildToolsVersion = "30.0.3"
 
 javaVersion = "11"
 
-version-plugin-agp = "7.4.1"
+version-plugin-agp = "8.0.0"
 version-plugin-versions = "0.36.0"
 version-plugin-google = "4.3.4"
 version-plugin-crashlytics = "2.3.0"
@@ -34,12 +34,19 @@ version-library-material-dialogs = "3.3.0"
 
 [libraries]
 
-plugin-kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "version-kotlin-bom" }
-plugin-android-gradle = { module = "com.android.tools.build:gradle", version.ref = "version-plugin-agp" }
-plugin-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics-gradle", version.ref = "version-plugin-crashlytics" }
-plugin-googleServices = { module = "com.google.gms:google-services", version.ref = "version-plugin-google" }
-
 firebase-billOfMaterials = { module = "com.google.firebase:firebase-bom", version.ref = "version-firebase-billOfMaterials" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "version-androidx-appcompat" }
+
+[plugins]
+
+android-application = { id = "com.android.application", version.ref = "version-plugin-agp" }
+kotlin-gradle = { id = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "version-kotlin-bom" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "version-kotlin-bom" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "version-kotlin-bom" }
+android-gradle = { id = "com.android.tools.build:gradle", version.ref = "version-plugin-agp" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "version-plugin-crashlytics" }
+google-services = { id = "com.google.gms.google-services", version.ref = "version-plugin-google" }

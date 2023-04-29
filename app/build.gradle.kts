@@ -1,7 +1,8 @@
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("com.google.firebase.crashlytics")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.kapt)
 }
 
 android {
@@ -36,7 +37,7 @@ android {
 
 dependencies {
     implementation ("androidx.multidex:multidex:${AndroidX.MULTIDEX}")
-    implementation ("androidx.appcompat:appcompat:${AndroidX.APPCOMPAT}")
+    implementation(libs.androidx.appcompat)
     implementation ("androidx.media:media:${AndroidX.MEDIA}")
     implementation ("androidx.constraintlayout:constraintlayout:${AndroidX.CONSTRAINT}")
     implementation ("com.google.android.exoplayer:exoplayer-core:${Libs.EXOPLAYER}")
@@ -53,4 +54,4 @@ dependencies {
 
     implementation ("com.afollestad.material-dialogs:core:${Libs.MATERIAL_DIALOGS}")
 }
-apply(mapOf("plugin" to "com.google.gms.google-services"))
+// apply(mapOf("plugin" to "com.google.gms.google-services"))
