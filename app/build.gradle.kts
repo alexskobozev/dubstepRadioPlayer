@@ -26,17 +26,19 @@ android {
         exclude("META-INF/atomicfu.kotlin_module")
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        jvmTarget = JavaVersion.VERSION_11.toString()
     }
     namespace = "com.wishnewjam.dubstepfm"
+
+
 }
 
 dependencies {
-    implementation ("androidx.multidex:multidex:${AndroidX.MULTIDEX}")
+    implementation(libs.libraries.multidex)
     implementation(libs.androidx.appcompat)
     implementation ("androidx.media:media:${AndroidX.MEDIA}")
     implementation ("androidx.constraintlayout:constraintlayout:${AndroidX.CONSTRAINT}")

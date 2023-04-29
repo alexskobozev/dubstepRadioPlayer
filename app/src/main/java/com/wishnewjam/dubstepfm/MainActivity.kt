@@ -13,7 +13,13 @@ import android.text.method.LinkMovementMethod
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
+import android.widget.CheckBox
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
 import com.afollestad.materialdialogs.MaterialDialog
@@ -22,10 +28,6 @@ import com.afollestad.materialdialogs.customview.customView
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
 import com.wishnewjam.dubstepfm.Tools.toastDebug
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.dialog_consent.view.*
-import kotlinx.android.synthetic.main.info_layout.*
-import kotlinx.android.synthetic.main.loading_layout.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -85,7 +87,7 @@ class MainActivity : AppCompatActivity() {
         val track = metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
         if (artist != null && track != null) {
             val nowPlayingText = "${getString(R.string.now_playing)} $track"
-            tv_nowplaying.text = nowPlayingText
+            findViewById<CheckBox>(R.id.tv_nowplaying).text = nowPlayingText
         }
     }
 
@@ -95,7 +97,7 @@ class MainActivity : AppCompatActivity() {
         val mediaController = MediaControllerCompat.getMediaController(this)
 
         playButton?.setOnClickListener {
-            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) tv_nowplaying.setText(
+            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) findViewById<CheckBox>(R.id.tv_nowplaying).setText(
                     R.string.gathering_info)
             mediaController.transportControls.play()
         }
@@ -169,30 +171,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showLoading() {
-        ll_loading.visibility = View.VISIBLE
-        progressBar.visibility = View.VISIBLE
-        iv_status.visibility = View.INVISIBLE
+        findViewById<LinearLayout>(R.id.ll_loading).visibility = View.VISIBLE
+        findViewById<ProgressBar>(R.id.progressBar).visibility = View.VISIBLE
+        findViewById<CheckBox>(R.id.iv_status).visibility = View.INVISIBLE
     }
 
     private fun showStopped() {
-        ll_loading.visibility = View.GONE
-        iv_status.setImageResource(R.drawable.ic_stop)
-        progressBar.visibility = View.INVISIBLE
-        iv_status.visibility = View.VISIBLE
+        findViewById<LinearLayout>(R.id.ll_loading).visibility = View.GONE
+        findViewById<ImageView>(R.id.iv_status).setImageResource(R.drawable.ic_stop)
+        findViewById<ProgressBar>(R.id.progressBar).visibility = View.INVISIBLE
+        findViewById<ImageView>(R.id.iv_status).visibility = View.VISIBLE
     }
 
     private fun showPlaying() {
-        ll_loading.visibility = View.GONE
-        progressBar.visibility = View.INVISIBLE
-        iv_status.visibility = View.VISIBLE
-        iv_status.setImageResource(R.drawable.ic_play)
+        findViewById<LinearLayout>(R.id.ll_loading).visibility = View.GONE
+        findViewById<ProgressBar>(R.id.progressBar).visibility = View.INVISIBLE
+        findViewById<ImageView>(R.id.iv_status).visibility = View.VISIBLE
+        findViewById<ImageView>(R.id.iv_status).setImageResource(R.drawable.ic_play)
     }
 
     private fun showError() {
-        ll_loading.visibility = View.GONE
-        progressBar.visibility = View.INVISIBLE
-        iv_status.visibility = View.VISIBLE
-        iv_status.setImageResource(R.drawable.ic_stop)
+        findViewById<LinearLayout>(R.id.ll_loading).visibility = View.GONE
+        findViewById<ProgressBar>(R.id.progressBar).visibility = View.INVISIBLE
+        findViewById<ImageView>(R.id.iv_status).visibility = View.VISIBLE
+        findViewById<ImageView>(R.id.iv_status).setImageResource(R.drawable.ic_stop)
         toastDebug({ getString(R.string.error) }, this)
     }
 
@@ -203,9 +205,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun showConsentDialog() {
         val customView =
-                layoutInflater.inflate(R.layout.dialog_consent, root_view,
+                layoutInflater.inflate(R.layout.dialog_consent, findViewById<ViewGroup>(R.id.root_view),
                         false)
-        customView.tv_consent.movementMethod = LinkMovementMethod.getInstance()
+        customView.findViewById<TextView>(R.id.tv_consent).movementMethod = LinkMovementMethod.getInstance()
 
         MaterialDialog(this).cancelable(false)
                 .title(res = R.string.question_to_consent)
