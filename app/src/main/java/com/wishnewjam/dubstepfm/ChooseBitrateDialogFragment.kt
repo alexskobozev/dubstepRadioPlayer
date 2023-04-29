@@ -30,9 +30,9 @@ class ChooseBitrateDialogFragment : androidx.fragment.app.DialogFragment(),
         }
         mediaViewModel = ViewModelProviders.of(this)
                 .get(MediaViewModel::class.java)
-        // TODO:
-        // mediaViewModel.currentUrl.observe(this,
-        //         Observer<String> { t -> t?.let { colorize(it) } })
+
+        mediaViewModel.currentUrl.observe(this,
+                Observer<String> { t -> t?.let { colorize(it) } })
 
         v.findViewById<CheckBox>(R.id.chb_consent).isChecked = mediaViewModel.userConsent.value ?: true
         v.findViewById<CheckBox>(R.id.chb_consent).setOnCheckedChangeListener { _, isChecked ->

@@ -3,6 +3,7 @@ package com.wishnewjam.dubstepfm
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -80,13 +81,13 @@ class MainService : MediaBrowserServiceCompat() {
             val mediaButtonIntent = Intent(Intent.ACTION_MEDIA_BUTTON)
             val mediaPendingIntent: PendingIntent =
                     PendingIntent.getBroadcast(applicationContext, 0,
-                            mediaButtonIntent, 0)
+                            mediaButtonIntent, FLAG_IMMUTABLE)
             it.setMediaButtonReceiver(mediaPendingIntent)
             it.setCallback(Callback())
             it.setSessionActivity(
                     PendingIntent.getActivity(applicationContext, 0,
                             Intent(applicationContext,
-                                    MainActivity::class.java), 0))
+                                    MainActivity::class.java), FLAG_IMMUTABLE))
             sessionToken = it.sessionToken
             it.isActive = true
         }

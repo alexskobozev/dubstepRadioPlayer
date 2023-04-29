@@ -15,7 +15,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
@@ -87,7 +86,7 @@ class MainActivity : AppCompatActivity() {
         val track = metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
         if (artist != null && track != null) {
             val nowPlayingText = "${getString(R.string.now_playing)} $track"
-            findViewById<CheckBox>(R.id.tv_nowplaying).text = nowPlayingText
+            findViewById<TextView>(R.id.tv_nowplaying).text = nowPlayingText
         }
     }
 
@@ -97,8 +96,11 @@ class MainActivity : AppCompatActivity() {
         val mediaController = MediaControllerCompat.getMediaController(this)
 
         playButton?.setOnClickListener {
-            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) findViewById<CheckBox>(R.id.tv_nowplaying).setText(
-                    R.string.gathering_info)
+            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) findViewById<TextView>(
+                R.id.tv_nowplaying
+            ).setText(
+                R.string.gathering_info
+            )
             mediaController.transportControls.play()
         }
 
@@ -173,7 +175,7 @@ class MainActivity : AppCompatActivity() {
     private fun showLoading() {
         findViewById<LinearLayout>(R.id.ll_loading).visibility = View.VISIBLE
         findViewById<ProgressBar>(R.id.progressBar).visibility = View.VISIBLE
-        findViewById<CheckBox>(R.id.iv_status).visibility = View.INVISIBLE
+        findViewById<ImageView>(R.id.iv_status).visibility = View.INVISIBLE
     }
 
     private fun showStopped() {

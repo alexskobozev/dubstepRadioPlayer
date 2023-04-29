@@ -1,41 +1,29 @@
 [versions]
 
 version-kotlin-bom = "1.8.21"
-version-kotlin-compiler-ext = "1.2.0-rc02" # Jetpack Compose compiler version
-version-kotlin-coroutines = "1.6.4"
-
-androidSdk-minSdkVersion = "23"
-androidSdk-compileSdkVersion = "33"
-androidSdk-targetSdkVersion = "33"
-androidSdk-buildToolsVersion = "30.0.3"
-
-javaVersion = "11"
 
 version-plugin-agp = "7.4.1"
-version-plugin-versions = "0.36.0"
-version-plugin-google = "4.3.4"
-version-plugin-crashlytics = "2.3.0"
+version-plugin-google = "4.3.15"
+version-plugin-crashlytics = "2.9.5"
 
 version-androidx-multidex = "2.0.1"
 version-androidx-appcompat = "1.2.0"
-version-androidx-media = "1.2.1"
+version-androidx-media = "1.6.0"
 version-androidx-constraint = "2.0.4"
 version-androidx-lifecycle = "2.2.0"
 
-version-firebase-billOfMaterials = "31.1.1"
+version-firebase-billOfMaterials = "31.5.0"
 
 version-library-exoplayer = "2.12.3"
-version-library-leak = "2.5"
+version-library-leak = "2.10"
 version-library-wang = "2.1.3"
 version-library-ktx = "1.3.2"
-version-library-firebase = "18.0.1"
-version-library-firebase-crashlytics = "17.3.0"
 version-library-material-dialogs = "3.3.0"
 
 [libraries]
 
 firebase-billOfMaterials = { module = "com.google.firebase:firebase-bom", version.ref = "version-firebase-billOfMaterials" }
-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+firebase-crashlytics-ktx = { module = "com.google.firebase:firebase-crashlytics-ktx" }
 
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "version-androidx-appcompat" }
 androidx-media = { module = "androidx.media:media", version.ref = "version-androidx-media" }

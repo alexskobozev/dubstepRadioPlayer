@@ -11,6 +11,7 @@ pluginManagement {
 dependencyResolutionManagement {
     repositories {
         jcenter()
+        mavenCentral()
         google()
         maven(url = "https://dl.bintray.com/drummer-aidan/maven/")
     }

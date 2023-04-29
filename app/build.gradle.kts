@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.firebase.crashlytics)
     alias(libs.plugins.google.services)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
@@ -33,8 +34,6 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
     namespace = "com.wishnewjam.dubstepfm"
-
-
 }
 
 dependencies {
@@ -49,7 +48,7 @@ dependencies {
     implementation(libs.libraries.material.dialogs)
 
     implementation(platform(libs.firebase.billOfMaterials))
-    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.crashlytics.ktx)
 
     debugImplementation (libs.libraries.leak)
 }
