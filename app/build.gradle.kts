@@ -40,20 +40,16 @@ android {
 dependencies {
     implementation(libs.libraries.multidex)
     implementation(libs.androidx.appcompat)
-    implementation ("androidx.media:media:${AndroidX.MEDIA}")
-    implementation ("androidx.constraintlayout:constraintlayout:${AndroidX.CONSTRAINT}")
-    implementation ("com.google.android.exoplayer:exoplayer-core:${Libs.EXOPLAYER}")
+    implementation(libs.androidx.media)
+    implementation(libs.androidx.constraint)
+    implementation(libs.androidx.ktx)
+    implementation(libs.androidx.lifecycle.extensions)
+    implementation(libs.exoplayer.core)
+    implementation(libs.libraries.wang)
+    implementation(libs.libraries.material.dialogs)
 
-    debugImplementation ("com.squareup.leakcanary:leakcanary-android:${Libs.LEAK}")
+    implementation(platform(libs.firebase.billOfMaterials))
+    implementation(libs.firebase.crashlytics)
 
-    implementation ("com.wang.avi:library:${Libs.WANG}")
-    implementation ("androidx.core:core-ktx:${Libs.KTX}")
-
-    implementation ("com.google.firebase:firebase-core:${Libs.FIREBASE}")
-    implementation ("com.google.firebase:firebase-crashlytics:${Libs.FIREBASE_CRASH}")
-
-    implementation ("androidx.lifecycle:lifecycle-extensions:${AndroidX.LIFECYCLE}")
-
-    implementation ("com.afollestad.material-dialogs:core:${Libs.MATERIAL_DIALOGS}")
+    debugImplementation (libs.libraries.leak)
 }
-// apply(mapOf("plugin" to "com.google.gms.google-services"))

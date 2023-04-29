@@ -35,13 +35,20 @@ version-library-material-dialogs = "3.3.0"
 [libraries]
 
 firebase-billOfMaterials = { module = "com.google.firebase:firebase-bom", version.ref = "version-firebase-billOfMaterials" }
-firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
-firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "version-androidx-appcompat" }
+androidx-media = { module = "androidx.media:media", version.ref = "version-androidx-media" }
+androidx-constraint = { module = "androidx.constraintlayout:constraintlayout", version.ref = "version-androidx-constraint" }
+androidx-ktx = { module = "androidx.core:core-ktx", version.ref = "version-library-ktx" }
+androidx-lifecycle-extensions = { module = "androidx.lifecycle:lifecycle-extensions", version.ref = "version-androidx-lifecycle" }
+
+exoplayer-core = { module = "com.google.android.exoplayer:exoplayer-core", version.ref = "version-library-exoplayer" }
 
 libraries-multidex = { module = "androidx.multidex:multidex", version.ref = "version-androidx-multidex" }
+libraries-wang = { module = "com.wang.avi:library", version.ref = "version-library-wang" }
+libraries-material-dialogs = { module = "com.afollestad.material-dialogs:core", version.ref = "version-library-material-dialogs" }
+libraries-leak = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "version-library-leak" }
 
 [plugins]
 
