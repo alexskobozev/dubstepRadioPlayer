@@ -1,6 +1,6 @@
 [versions]
 
-version-kotlin-bom = "1.8.0"
+version-kotlin-bom = "1.8.21"
 version-kotlin-compiler-ext = "1.2.0-rc02" # Jetpack Compose compiler version
 version-kotlin-coroutines = "1.6.4"
 
