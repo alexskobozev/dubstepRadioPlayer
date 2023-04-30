@@ -6,12 +6,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import kotlinx.android.synthetic.main.dialogfragment_bitrate.view.*
 
 class ChooseBitrateDialogFragment : androidx.fragment.app.DialogFragment(),
         View.OnClickListener {
@@ -23,22 +23,23 @@ class ChooseBitrateDialogFragment : androidx.fragment.app.DialogFragment(),
                               savedInstanceState: Bundle?): View? {
         val v = inflater.inflate(R.layout.dialogfragment_bitrate, container,
                 false)
-        items = arrayListOf(v.tv_bitrate_24, v.tv_bitrate_64, v.tv_bitrate_128,
-                v.tv_bitrate_256)
+        items = arrayListOf(v.findViewById(R.id.tv_bitrate_24), v.findViewById(R.id.tv_bitrate_64), v.findViewById(R.id.tv_bitrate_128),
+            v.findViewById(R.id.tv_bitrate_256))
         for (item in items) {
             item.setOnClickListener(this)
         }
         mediaViewModel = ViewModelProviders.of(this)
                 .get(MediaViewModel::class.java)
+
         mediaViewModel.currentUrl.observe(this,
                 Observer<String> { t -> t?.let { colorize(it) } })
 
-        v.chb_consent.isChecked = mediaViewModel.userConsent.value ?: true
-        v.chb_consent.setOnCheckedChangeListener { _, isChecked ->
+        v.findViewById<CheckBox>(R.id.chb_consent).isChecked = mediaViewModel.userConsent.value ?: true
+        v.findViewById<CheckBox>(R.id.chb_consent).setOnCheckedChangeListener { _, isChecked ->
             mediaViewModel.changeConsent(isChecked)
         }
 
-        v.tv_privacy_policy.setOnClickListener {
+        v.findViewById<TextView>(R.id.tv_privacy_policy).setOnClickListener {
             startActivity(
                     Intent(Intent.ACTION_VIEW, Links.PRIVACY_POLICY.toUri()))
         }
