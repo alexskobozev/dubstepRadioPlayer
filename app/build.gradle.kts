@@ -37,18 +37,20 @@ android {
 }
 
 dependencies {
-    implementation(libs.libraries.multidex)
+    implementation(platform(libs.firebase.billOfMaterials))
+
     implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.media)
     implementation(libs.androidx.constraint)
     implementation(libs.androidx.ktx)
     implementation(libs.androidx.lifecycle.extensions)
-    implementation(libs.exoplayer.core)
-    implementation(libs.libraries.wang)
-    implementation(libs.libraries.material.dialogs)
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
 
-    implementation(platform(libs.firebase.billOfMaterials))
     implementation(libs.firebase.crashlytics.ktx)
+
+    implementation(libs.libraries.material.dialogs)
+    implementation(libs.libraries.multidex)
+    implementation(libs.libraries.wang)
 
     debugImplementation (libs.libraries.leak)
 }
