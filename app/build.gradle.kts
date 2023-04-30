@@ -1,18 +1,19 @@
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("kotlin-android-extensions")
-    id("com.google.firebase.crashlytics")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.kapt)
 }
 
 android {
-    compileSdkVersion(30)
+    compileSdkVersion(33)
 
     defaultConfig {
         multiDexEnabled = true
         applicationId = "com.wishnewjam.dubstepfm"
         minSdkVersion(16)
-        targetSdkVersion(30)
+        targetSdkVersion(33)
         versionCode = 10306
         versionName = "1.3.6"
     }
@@ -26,31 +27,28 @@ android {
         exclude("META-INF/atomicfu.kotlin_module")
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        jvmTarget = JavaVersion.VERSION_11.toString()
     }
+    namespace = "com.wishnewjam.dubstepfm"
 }
 
 dependencies {
-    implementation ("androidx.multidex:multidex:${AndroidX.MULTIDEX}")
-    implementation ("androidx.appcompat:appcompat:${AndroidX.APPCOMPAT}")
-    implementation ("androidx.media:media:${AndroidX.MEDIA}")
-    implementation ("androidx.constraintlayout:constraintlayout:${AndroidX.CONSTRAINT}")
-    implementation ("com.google.android.exoplayer:exoplayer-core:${Libs.EXOPLAYER}")
+    implementation(libs.libraries.multidex)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.media)
+    implementation(libs.androidx.constraint)
+    implementation(libs.androidx.ktx)
+    implementation(libs.androidx.lifecycle.extensions)
+    implementation(libs.exoplayer.core)
+    implementation(libs.libraries.wang)
+    implementation(libs.libraries.material.dialogs)
 
-    debugImplementation ("com.squareup.leakcanary:leakcanary-android:${Libs.LEAK}")
+    implementation(platform(libs.firebase.billOfMaterials))
+    implementation(libs.firebase.crashlytics.ktx)
 
-    implementation ("com.wang.avi:library:${Libs.WANG}")
-    implementation ("androidx.core:core-ktx:${Libs.KTX}")
-
-    implementation ("com.google.firebase:firebase-core:${Libs.FIREBASE}")
-    implementation ("com.google.firebase:firebase-crashlytics:${Libs.FIREBASE_CRASH}")
-
-    implementation ("androidx.lifecycle:lifecycle-extensions:${AndroidX.LIFECYCLE}")
-
-    implementation ("com.afollestad.material-dialogs:core:${Libs.MATERIAL_DIALOGS}")
+    debugImplementation (libs.libraries.leak)
 }
-apply(mapOf("plugin" to "com.google.gms.google-services"))
