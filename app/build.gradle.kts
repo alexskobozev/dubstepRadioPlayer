@@ -12,7 +12,7 @@ android {
     defaultConfig {
         multiDexEnabled = true
         applicationId = "com.wishnewjam.dubstepfm"
-        minSdkVersion(16)
+        minSdkVersion(21)
         targetSdkVersion(33)
         versionCode = 10306
         versionName = "1.3.6"
@@ -33,18 +33,29 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
+    buildFeatures {
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.androidx.compose.compiler.get()
+    }
     namespace = "com.wishnewjam.dubstepfm"
 }
 
 dependencies {
-    implementation(platform(libs.firebase.billOfMaterials))
+    implementation(platform(libs.firebase.bom))
+    implementation(platform(libs.androidx.compose.bom))
 
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.constraint)
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.ktx)
-    implementation(libs.androidx.lifecycle.extensions)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.session)
+
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.runtime.livedata)
+    implementation(libs.androidx.compose.ui)
 
     implementation(libs.firebase.crashlytics.ktx)
 
