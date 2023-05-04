@@ -1,47 +1,54 @@
 [versions]
 
-version-androidx-appcompat = "1.2.0"
-version-androidx-constraint = "2.0.4"
-version-androidx-lifecycle = "2.2.0"
-version-androidx-media3 = "1.0.1"
-version-androidx-multidex = "2.0.1"
+androidx-media3 = "1.0.1"
+androidx-multidex = "2.0.1"
 
-version-firebase-billOfMaterials = "31.5.0"
+androidx-activity-compose = "1.7.1"
+androidx-compose-bom = "2023.04.01"
+androidx-compose-compiler = "1.4.6"
 
-version-kotlin-bom = "1.8.21"
+firebase-bom = "31.5.0"
 
-version-library-ktx = "1.3.2"
-version-library-leak = "2.10"
-version-library-material-dialogs = "3.3.0"
-version-library-wang = "2.1.3"
+kotlin-bom = "1.8.20"
 
-version-plugin-agp = "7.4.1"
-version-plugin-crashlytics = "2.9.5"
-version-plugin-google = "4.3.15"
+library-ktx = "1.3.2"
+library-leak = "2.10"
+library-material-dialogs = "3.3.0"
+library-wang = "2.1.3"
+
+plugin-agp = "7.4.1"
+plugin-crashlytics = "2.9.5"
+plugin-google = "4.3.15"
 
 [libraries]
 
-androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "version-androidx-appcompat" }
-androidx-constraint = { module = "androidx.constraintlayout:constraintlayout", version.ref = "version-androidx-constraint" }
-androidx-ktx = { module = "androidx.core:core-ktx", version.ref = "version-library-ktx" }
-androidx-lifecycle-extensions = { module = "androidx.lifecycle:lifecycle-extensions", version.ref = "version-androidx-lifecycle" }
-androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "version-androidx-media3" }
-androidx-media3-ui = { module = "'androidx.media3:media3-ui", version.ref = "version-androidx-media3" }
+androidx-ktx = { module = "androidx.core:core-ktx", version.ref = "library-ktx" }
+androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "androidx-media3" }
+androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "androidx-media3" }
+androidx-media3-session = { module = "androidx.media3:media3-session", version.ref = "androidx-media3" }
 
-firebase-billOfMaterials = { module = "com.google.firebase:firebase-bom", version.ref = "version-firebase-billOfMaterials" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity-compose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidx-compose-bom" }
+androidx-compose-compiler = { group = "androidx.compose.compiler", name = "compiler", version.ref = "androidx-compose-compiler" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata" }
+
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-crashlytics-ktx = { module = "com.google.firebase:firebase-crashlytics-ktx" }
 
-libraries-leak = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "version-library-leak" }
-libraries-material-dialogs = { module = "com.afollestad.material-dialogs:core", version.ref = "version-library-material-dialogs" }
-libraries-multidex = { module = "androidx.multidex:multidex", version.ref = "version-androidx-multidex" }
-libraries-wang = { module = "com.wang.avi:library", version.ref = "version-library-wang" }
+libraries-leak = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "library-leak" }
+libraries-material-dialogs = { module = "com.afollestad.material-dialogs:core", version.ref = "library-material-dialogs" }
+libraries-multidex = { module = "androidx.multidex:multidex", version.ref = "androidx-multidex" }
+libraries-wang = { module = "com.wang.avi:library", version.ref = "library-wang" }
 
 [plugins]
 
-android-application = { id = "com.android.application", version.ref = "version-plugin-agp" }
-android-gradle = { id = "com.android.tools.build:gradle", version.ref = "version-plugin-agp" }
-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "version-plugin-crashlytics" }
-google-services = { id = "com.google.gms.google-services", version.ref = "version-plugin-google" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "version-kotlin-bom" }
-kotlin-gradle = { id = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "version-kotlin-bom" }
-kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "version-kotlin-bom" }
+android-application = { id = "com.android.application", version.ref = "plugin-agp" }
+android-gradle = { id = "com.android.tools.build:gradle", version.ref = "plugin-agp" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "plugin-crashlytics" }
+google-services = { id = "com.google.gms.google-services", version.ref = "plugin-google" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin-bom" }
+kotlin-gradle = { id = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin-bom" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin-bom" }
