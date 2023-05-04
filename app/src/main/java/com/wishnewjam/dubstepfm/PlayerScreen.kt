@@ -122,7 +122,7 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
             Box(
                 modifier = Modifier
                     .wrapContentSize()
-                    .background(DubstepFMRadioPlayerTheme.colorScheme.),
+                    .background(Color.Black),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

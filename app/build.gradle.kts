@@ -10,7 +10,6 @@ android {
     compileSdkVersion(33)
 
     defaultConfig {
-        multiDexEnabled = true
         applicationId = "com.wishnewjam.dubstepfm"
         minSdkVersion(21)
         targetSdkVersion(33)
@@ -60,7 +59,7 @@ dependencies {
     implementation(libs.firebase.crashlytics.ktx)
 
     implementation(libs.libraries.material.dialogs)
-    implementation(libs.libraries.multidex)
+    implementation(libs.libraries.timber)
     implementation(libs.libraries.wang)
 
     debugImplementation (libs.libraries.leak)
