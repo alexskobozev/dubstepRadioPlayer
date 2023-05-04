@@ -1,6 +1,12 @@
 package com.wishnewjam.dubstepfm
 
-import androidx.multidex.MultiDexApplication
+import android.app.Application
+import timber.log.Timber
 
-class MyApplication : MultiDexApplication() {
+class MyApplication : Application() {
+
+    override fun onCreate() {
+        super.onCreate()
+        Timber.plant(Timber.DebugTree())
+    }
 }

@@ -14,6 +14,7 @@ kotlin-bom = "1.8.20"
 library-ktx = "1.3.2"
 library-leak = "2.10"
 library-material-dialogs = "3.3.0"
+library-timber = "5.0.1"
 library-wang = "2.1.3"
 
 plugin-agp = "7.4.1"
@@ -41,6 +42,7 @@ firebase-crashlytics-ktx = { module = "com.google.firebase:firebase-crashlytics-
 libraries-leak = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "library-leak" }
 libraries-material-dialogs = { module = "com.afollestad.material-dialogs:core", version.ref = "library-material-dialogs" }
 libraries-multidex = { module = "androidx.multidex:multidex", version.ref = "androidx-multidex" }
+libraries-timber = { module = "com.jakewharton.timber:timber", version.ref = "library-timber" }
 libraries-wang = { module = "com.wang.avi:library", version.ref = "library-wang" }
 
 [plugins]

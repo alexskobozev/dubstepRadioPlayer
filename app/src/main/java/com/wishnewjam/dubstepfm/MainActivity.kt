@@ -1,11 +1,15 @@
 package com.wishnewjam.dubstepfm
 
+import android.content.ComponentName
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.MoreExecutors
 
 class MainActivity : ComponentActivity() {
 
@@ -31,11 +35,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        playerViewModel.onStart(this)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         // Unbind the service when the activity is destroyed
         if (::radioServiceConnection.isInitialized) {
-            radioServiceConnection.unbindService()
+            // radioServiceConnection.unbindService()
         }
     }
 }
