@@ -42,6 +42,9 @@ android {
 }
 
 dependencies {
+    implementation(project(":metadata:data"))
+    implementation(project(":di"))
+
     implementation(platform(libs.firebase.bom))
     implementation(platform(libs.androidx.compose.bom))
 
@@ -57,6 +60,10 @@ dependencies {
     implementation(libs.androidx.compose.ui)
 
     implementation(libs.firebase.crashlytics.ktx)
+
+    implementation(libs.libraries.dagger)
+    implementation(libs.libraries.dagger.android)
+    kapt(libs.libraries.dagger.compiler)
 
     implementation(libs.libraries.material.dialogs)
     implementation(libs.libraries.timber)

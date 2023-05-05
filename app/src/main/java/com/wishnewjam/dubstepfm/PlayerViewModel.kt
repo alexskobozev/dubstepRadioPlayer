@@ -5,6 +5,8 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.media3.common.Metadata
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
@@ -71,6 +73,7 @@ class PlayerViewModel(private val radioServiceConnection: RadioServiceConnection
     //     }
     // }
 
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     fun onStart(context: Context) {
         val sessionToken = SessionToken(
             context,
@@ -83,6 +86,7 @@ class PlayerViewModel(private val radioServiceConnection: RadioServiceConnection
             {
                 Timber.d("MediaController instance initiated")
                 player = controllerFuture.get()
+                _nowPlayingText.value = player!!.mediaMetadata.toString()
             },
             MoreExecutors.directExecutor()
         )
