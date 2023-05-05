@@ -1,5 +1,10 @@
 @file:Suppress("UnstableApiUsage")
 
+include(":di")
+include(":metadata:data")
+include(":metadata:domain")
+
+
 include(":app")
 
 pluginManagement {
