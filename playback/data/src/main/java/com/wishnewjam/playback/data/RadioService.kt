@@ -1,39 +1,43 @@
-package com.wishnewjam.dubstepfm
+package com.wishnewjam.playback.data
 
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import androidx.media3.common.Metadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Player.COMMAND_PLAY_PAUSE
 import androidx.media3.common.Player.COMMAND_STOP
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
-import androidx.media3.extractor.metadata.icy.IcyInfo
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionResult
-import com.wishnewjam.dubstepfm.data.DefaultStreamRepository
-import com.wishnewjam.dubstepfm.data.usecase.DefaultSaveMetadataUseCase
-import com.wishnewjam.dubstepfm.domain.StreamRepository
-import com.wishnewjam.dubstepfm.domain.usecase.SaveMetaDataUseCase
+import com.wishnewjam.playback.data.usecase.SaveMetaDataUseCase
+import com.wishnewjam.stream.domain.StreamRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-
+import javax.inject.Inject
+import com.wishnewjam.playback.data.di.DaggerRadioServiceComponent
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class RadioService : MediaSessionService() {
-
-    private val streamRepository: StreamRepository = DefaultStreamRepository()
-    private val saveMetadataUseCase: SaveMetaDataUseCase = DefaultSaveMetadataUseCase()
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private var mediaSession: MediaSession? = null
 
+    @Inject
+    lateinit var saveMetaDataUseCase: SaveMetaDataUseCase
+
+    @Inject
+    lateinit var streamRepository: StreamRepository
+
     override fun onCreate() {
         super.onCreate()
+        DaggerRadioServiceComponent.factory().create(
+            metadataApi = apiContainer().getFeature(),
+            streamApi = apiContainer().getFeature(),
+        ).inject(this)
         mediaSession = createMediaSession()
     }
 
@@ -111,8 +115,9 @@ class RadioService : MediaSessionService() {
         // radioNotificationManager.hideNotification()
     }
 
-    private suspend fun updateMetadata(metadata: Metadata) {
-        (metadata[0] as IcyInfo).title
+    private suspend fun updateMetadata(metadata: androidx.media3.common.Metadata) {
+        saveMetaDataUseCase.saveMetaData(metadata)
+
         // streamRepository.setCurrentMetadata(metadata)
         withContext(Dispatchers.Main) {
             val mediaMetadata = MediaMetadata.Builder()

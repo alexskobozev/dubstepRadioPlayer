@@ -1,8 +1,16 @@
 @file:Suppress("UnstableApiUsage")
 
+
+
 include(":di")
 include(":metadata:data")
 include(":metadata:domain")
+include(":playback:data")
+include(":playback:domain")
+include(":playback:presentation")
+include(":stream:data")
+include(":stream:domain")
+
 
 
 include(":app")
@@ -16,7 +24,7 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    // repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         jcenter()
         mavenCentral()

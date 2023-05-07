@@ -7,12 +7,12 @@ plugins {
 }
 
 android {
-    compileSdkVersion(33)
+    compileSdkVersion(libs.versions.system.compile.sdk.get().toInt())
 
     defaultConfig {
         applicationId = "com.wishnewjam.dubstepfm"
-        minSdkVersion(21)
-        targetSdkVersion(33)
+        minSdkVersion(libs.versions.system.min.sdk.get())
+        targetSdkVersion(libs.versions.system.target.sdk.get())
         versionCode = 10306
         versionName = "1.3.6"
     }
@@ -26,11 +26,11 @@ android {
         exclude("META-INF/atomicfu.kotlin_module")
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
     buildFeatures {
         compose = true
@@ -41,12 +41,18 @@ android {
     namespace = "com.wishnewjam.dubstepfm"
 }
 
+kotlin {
+    jvmToolchain(8)
+}
+
 dependencies {
     implementation(project(":metadata:data"))
+    implementation(project(":stream:data"))
     implementation(project(":di"))
 
     implementation(platform(libs.firebase.bom))
     implementation(platform(libs.androidx.compose.bom))
+    implementation(platform(libs.kotlin.bom))
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.ktx)
@@ -60,6 +66,8 @@ dependencies {
     implementation(libs.androidx.compose.ui)
 
     implementation(libs.firebase.crashlytics.ktx)
+
+    implementation(libs.kotlin.coroutines.core)
 
     implementation(libs.libraries.dagger)
     implementation(libs.libraries.dagger.android)

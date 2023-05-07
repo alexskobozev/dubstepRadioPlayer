@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.kapt)
 }
 
 kotlin {
@@ -7,8 +8,11 @@ kotlin {
 }
 
 dependencies {
-    api(project(":di"))
+    api(project(":stream:domain"))
 
     implementation(platform(libs.kotlin.bom))
     implementation(libs.kotlin.coroutines.core)
+
+    implementation(libs.libraries.dagger)
+    kapt(libs.libraries.dagger.compiler)
 }
