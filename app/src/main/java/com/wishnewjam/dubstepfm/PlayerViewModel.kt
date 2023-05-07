@@ -5,8 +5,6 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.media3.common.Metadata
-import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
@@ -77,7 +75,7 @@ class PlayerViewModel(private val radioServiceConnection: RadioServiceConnection
     fun onStart(context: Context) {
         val sessionToken = SessionToken(
             context,
-            ComponentName(context, RadioService::class.java)
+            ComponentName(context, com.wishnewjam.playback.RadioService::class.java)
         )
         Timber.d("Building MediaController")
         val controllerFuture =

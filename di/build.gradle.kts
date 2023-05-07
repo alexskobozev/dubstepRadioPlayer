@@ -3,5 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.kapt)
 }
 
+kotlin {
+    jvmToolchain(8)
+}
+
 dependencies {
 }
