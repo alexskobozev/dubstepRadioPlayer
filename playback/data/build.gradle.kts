@@ -41,6 +41,7 @@ kotlin {
 
 dependencies {
 
+    implementation(project(":commons:android"))
     implementation(project(":metadata:domain"))
     implementation(project(":stream:domain"))
 

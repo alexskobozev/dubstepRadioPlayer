@@ -1,4 +1,4 @@
-package com.wishnewjam.dubstepfm
+package com.wishnewjam.playback.data
 
 import androidx.media3.common.Metadata
 import androidx.media3.common.PlaybackException
