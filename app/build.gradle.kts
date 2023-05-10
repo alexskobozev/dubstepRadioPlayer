@@ -46,6 +46,8 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":playback:data"))
+    implementation(project(":playback:presentation"))
     implementation(project(":metadata:data"))
     implementation(project(":stream:data"))
     implementation(project(":di"))

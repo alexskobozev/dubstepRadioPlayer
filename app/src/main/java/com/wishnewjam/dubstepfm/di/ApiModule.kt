@@ -4,6 +4,7 @@ import android.app.Application
 import com.wishnewjam.di.Api
 import com.wishnewjam.metadata.data.di.DaggerMetadataComponent
 import com.wishnewjam.metadata.domain.MetadataApi
+import com.wishnewjam.stream.data.di.DaggerStreamComponent
 import com.wishnewjam.stream.domain.StreamApi
 import dagger.Module
 import dagger.Provides

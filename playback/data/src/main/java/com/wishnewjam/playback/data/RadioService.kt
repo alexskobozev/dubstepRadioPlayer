@@ -2,6 +2,7 @@ package com.wishnewjam.playback.data
 
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Metadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Player.COMMAND_PLAY_PAUSE
@@ -11,19 +12,24 @@ import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionResult
+import com.wishnewjam.commons.android.apiContainer
+import com.wishnewjam.di.getFeature
+import com.wishnewjam.playback.data.di.DaggerRadioServiceComponent
 import com.wishnewjam.playback.data.usecase.SaveMetaDataUseCase
 import com.wishnewjam.stream.domain.StreamRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
-import com.wishnewjam.playback.data.di.DaggerRadioServiceComponent
+
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class RadioService : MediaSessionService() {
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val uiScope = CoroutineScope(Dispatchers.Main)
     private var mediaSession: MediaSession? = null
 
     @Inject
@@ -70,30 +76,34 @@ class RadioService : MediaSessionService() {
             ) = events.printDebug()
         })
 
-        val session = MediaSession.Builder(this, player)
+        return MediaSession.Builder(this, player)
             .setCallback(
                 object : MediaSession.Callback {
                     override fun onPlayerCommandRequest(
                         session: MediaSession,
                         controller: MediaSession.ControllerInfo,
                         playerCommand: Int
-                    ): Int {
-                        // controller.packageName == "com.android.bluetooth" todo   handle case
-                        Timber.d("Got command to session from ${controller.packageName}: ${playerCommand.commandToString()}")
-                        when (playerCommand) {
-                            COMMAND_PLAY_PAUSE -> playRadio()
-                            COMMAND_STOP -> stopRadio()
-                        }
-                        return SessionResult.RESULT_SUCCESS
-                    }
+                    ): Int = requestPlayerCommand(controller, playerCommand)
                 }
             )
             .build()
-        return session
     }
 
-    private fun playRadio() {
-        val streamUrl = streamRepository.getStreamUrl("medium") // TODO: choose
+    private fun requestPlayerCommand(
+        controller: MediaSession.ControllerInfo,
+        playerCommand: Int
+    ): Int {
+        // controller.packageName == "com.android.bluetooth" todo   handle case
+        Timber.d("Got command to session from ${controller.packageName}: ${playerCommand.commandToString()}")
+        when (playerCommand) {
+            COMMAND_PLAY_PAUSE -> uiScope.launch { playRadio() }
+            COMMAND_STOP -> stopRadio()
+        }
+        return SessionResult.RESULT_SUCCESS
+    }
+
+    private suspend fun playRadio() {
+        val streamUrl = streamRepository.currentStreamUrl.last() // TODO: choose
         Timber.d("Service: play command with uri $streamUrl")
         val mediaItem = MediaItem.fromUri(streamUrl)
         val session = mediaSession!! // TODO: relax

@@ -3,6 +3,7 @@
 
 
 include(":di")
+include(":commons:android")
 include(":metadata:data")
 include(":metadata:domain")
 include(":playback:data")
