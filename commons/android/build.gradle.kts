@@ -9,12 +9,22 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.system.min.sdk.get().toInt()
-        targetSdk = libs.versions.system.target.sdk.get().toInt()
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.toVersion(libs.versions.system.java.get().toInt())
+        targetCompatibility = JavaVersion.toVersion(libs.versions.system.java.get().toInt())
     }
 }
 
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(libs.versions.system.java.get().toInt())
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(libs.versions.system.java.get().toInt()))
+    }
 }
 
 dependencies {
