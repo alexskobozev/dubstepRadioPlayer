@@ -11,7 +11,6 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.system.min.sdk.get().toInt()
-        targetSdk = libs.versions.system.target.sdk.get().toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -27,16 +26,22 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.toVersion(libs.versions.system.java.get().toInt())
+        targetCompatibility = JavaVersion.toVersion(libs.versions.system.java.get().toInt())
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        jvmTarget = libs.versions.system.java.get()
     }
 }
 
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(libs.versions.system.java.get().toInt())
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(libs.versions.system.java.get().toInt()))
+    }
 }
 
 dependencies {

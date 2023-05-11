@@ -7,12 +7,12 @@ plugins {
 }
 
 android {
-    compileSdkVersion(libs.versions.system.compile.sdk.get().toInt())
+    compileSdk = libs.versions.system.compile.sdk.get().toInt()
 
     defaultConfig {
         applicationId = "com.wishnewjam.dubstepfm"
-        minSdkVersion(libs.versions.system.min.sdk.get())
-        targetSdkVersion(libs.versions.system.target.sdk.get())
+        minSdk = libs.versions.system.min.sdk.get().toInt()
+        targetSdk = libs.versions.system.target.sdk.get().toInt()
         versionCode = 10306
         versionName = "1.3.6"
     }
@@ -26,11 +26,11 @@ android {
         exclude("META-INF/atomicfu.kotlin_module")
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.toVersion(libs.versions.system.java.get().toInt())
+        targetCompatibility = JavaVersion.toVersion(libs.versions.system.java.get().toInt())
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        jvmTarget = libs.versions.system.java.get()
     }
     buildFeatures {
         compose = true
@@ -42,7 +42,7 @@ android {
 }
 
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(libs.versions.system.java.get().toInt())
 }
 
 dependencies {
@@ -79,5 +79,5 @@ dependencies {
     implementation(libs.libraries.timber)
     implementation(libs.libraries.wang)
 
-    debugImplementation (libs.libraries.leak)
+    debugImplementation(libs.libraries.leak)
 }

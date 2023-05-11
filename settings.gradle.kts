@@ -1,7 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-
-
 include(":di")
 include(":commons:android")
 include(":metadata:data")
@@ -11,8 +9,6 @@ include(":playback:domain")
 include(":playback:presentation")
 include(":stream:data")
 include(":stream:domain")
-
-
 
 include(":app")
 
@@ -24,8 +20,12 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
+}
+
 dependencyResolutionManagement {
-    // repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         jcenter()
         mavenCentral()
