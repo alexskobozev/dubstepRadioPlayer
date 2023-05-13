@@ -46,7 +46,9 @@ java {
 
 dependencies {
 
+    implementation(project(":commons:android"))
     implementation(project(":metadata:domain"))
+    implementation(project(":playback:domain"))
 
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
@@ -55,6 +57,7 @@ dependencies {
 
     implementation(libs.libraries.dagger)
     implementation(libs.libraries.dagger.android)
+    implementation(project(mapOf("path" to ":playback:data")))
     kapt(libs.libraries.dagger.compiler)
     implementation(libs.libraries.timber)
 

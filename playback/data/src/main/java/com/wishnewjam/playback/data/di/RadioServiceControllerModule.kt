@@ -6,7 +6,7 @@ import dagger.Binds
 import dagger.Module
 
 @Module
-interface RadioServiceModule {
+interface RadioServiceControllerModule {
     @Binds
     fun saveMetaDataUseCase(real: DefaultSaveMetadataUseCase): SaveMetaDataUseCase
 }

@@ -40,6 +40,7 @@ kotlin {
 
 dependencies {
 
+    api(project(":playback:domain"))
     implementation(project(":commons:android"))
     implementation(project(":metadata:domain"))
     implementation(project(":stream:domain"))
