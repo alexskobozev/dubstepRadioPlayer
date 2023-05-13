@@ -13,17 +13,13 @@ import com.google.common.util.concurrent.MoreExecutors
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var radioServiceConnection: RadioServiceConnection
     private val playerViewModel: PlayerViewModel by viewModels {
         // Provide the radioServiceConnection to the ViewModel
-        PlayerViewModelFactory(radioServiceConnection)
+        PlayerViewModelFactory()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Initialize the radioServiceConnection
-        radioServiceConnection = RadioServiceConnection(applicationContext)
 
         setContent {
             DubstepFMRadioPlayerTheme {
@@ -38,13 +34,5 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         playerViewModel.onStart(this)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        // Unbind the service when the activity is destroyed
-        if (::radioServiceConnection.isInitialized) {
-            // radioServiceConnection.unbindService()
-        }
     }
 }
