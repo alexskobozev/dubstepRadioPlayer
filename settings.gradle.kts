@@ -7,7 +7,6 @@ include(":metadata:domain")
 include(":playback:data")
 include(":playback:domain")
 include(":playback:presentation")
-include(":playback:stub")
 include(":stream:data")
 include(":stream:domain")
 
