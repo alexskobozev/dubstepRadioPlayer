@@ -5,7 +5,8 @@
         android:name="com.wishnewjam.playback.presentation.RadioService"
         android:foregroundServiceType="mediaPlayback"
         android:enabled="true"
-        android:exported="true">
+        android:exported="true"
+        android:permission="an">
         <intent-filter>
             <action android:name="androidx.media3.session.MediaSessionService"/>
         </intent-filter>
