@@ -11,7 +11,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.wishnewjam.playback.presentation.RadioService
 import timber.log.Timber
 
-class PlayerViewModel(private val radioServiceConnection: RadioServiceConnection) : ViewModel() {
+class PlayerViewModel() : ViewModel() {
     private var player: MediaController? = null // TODO: put mediacontroller to another file
 
     // LiveData or StateFlow objects for the UI to observe
