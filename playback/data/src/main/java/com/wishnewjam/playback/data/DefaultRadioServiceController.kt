@@ -14,8 +14,8 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionResult
 import com.wishnewjam.commons.android.apiContainer
 import com.wishnewjam.di.getFeature
-import com.wishnewjam.playback.data.di.DaggerRadioServiceComponent
 import com.wishnewjam.playback.data.usecase.SaveMetaDataUseCase
+import com.wishnewjam.playback.domain.RadioServiceController
 import com.wishnewjam.stream.domain.StreamRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,13 +24,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
-
+import com.wishnewjam.playback.data.di.DaggerRadioServiceControllerComponent
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-class RadioService : MediaSessionService() {
+class DefaultRadioServiceController @Inject constructor(): RadioServiceController {
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private val uiScope = CoroutineScope(Dispatchers.Main)
     private var mediaSession: MediaSession? = null
+
+    lateinit var mediaSessionService: MediaSessionService
 
     @Inject
     lateinit var saveMetaDataUseCase: SaveMetaDataUseCase
@@ -38,18 +40,18 @@ class RadioService : MediaSessionService() {
     @Inject
     lateinit var streamRepository: StreamRepository
 
-    override fun onCreate() {
-        super.onCreate()
-        DaggerRadioServiceComponent.factory().create(
-            metadataApi = apiContainer().getFeature(),
-            streamApi = apiContainer().getFeature(),
+    override fun create(mediaSessionService: MediaSessionService) {
+        DaggerRadioServiceControllerComponent.factory().create(
+            metadataApi = mediaSessionService.apiContainer().getFeature(),
+            streamApi = mediaSessionService.apiContainer().getFeature(),
         ).inject(this)
+        this.mediaSessionService = mediaSessionService
         mediaSession = createMediaSession()
     }
 
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     private fun createMediaSession(): MediaSession {
-        val player = ExoPlayer.Builder(this)
+        val player = ExoPlayer.Builder(mediaSessionService)
             .build()
         player.addAnalyticsListener(object : AnalyticsListener {
             override fun onMetadata(
@@ -76,7 +78,7 @@ class RadioService : MediaSessionService() {
             ) = events.printDebug()
         })
 
-        return MediaSession.Builder(this, player)
+        return MediaSession.Builder(mediaSessionService, player)
             .setCallback(
                 object : MediaSession.Callback {
                     override fun onPlayerCommandRequest(
@@ -144,17 +146,16 @@ class RadioService : MediaSessionService() {
         }
     }
 
-    override fun onDestroy() {
+    override fun destroy() {
         Timber.d("Destroy radio service")
         mediaSession?.run {
             player.release()
             release()
             mediaSession = null
         }
-        super.onDestroy()
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
+    override fun getSession(): MediaSession? {
         return mediaSession
     }
 

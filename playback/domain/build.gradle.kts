@@ -8,6 +8,7 @@ kotlin {
 
 dependencies {
     api(project(":di"))
+    implementation(project(":playback:stub"))
 
     implementation(platform(libs.kotlin.bom))
     implementation(libs.kotlin.coroutines.core)

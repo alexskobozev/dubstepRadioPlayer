@@ -4,6 +4,8 @@ import android.app.Application
 import com.wishnewjam.di.Api
 import com.wishnewjam.metadata.data.di.DaggerMetadataComponent
 import com.wishnewjam.metadata.domain.MetadataApi
+import com.wishnewjam.playback.data.di.DaggerPlaybackApiComponent
+import com.wishnewjam.playback.domain.PlaybackApi
 import com.wishnewjam.stream.data.di.DaggerStreamComponent
 import com.wishnewjam.stream.domain.StreamApi
 import dagger.Module
@@ -32,6 +34,14 @@ class ApiModule {
     @IntoMap
     @ClassKey(StreamApi::class)
     fun streamApi(streamApi: StreamApi): Api = streamApi
+
+    @Apis
+    @Provides
+    @Reusable
+    @IntoMap
+    @ClassKey(PlaybackApi::class)
+    fun playbackApi(playbackApi: PlaybackApi): Api = playbackApi
+
 }
 
 @Module
@@ -43,4 +53,14 @@ class LibsModule(private val application: Application) {
     @Provides
     @Reusable
     fun stream(): StreamApi = DaggerStreamComponent.create()
+
+    @Provides
+    @Reusable
+    fun playback(
+        metadataApi: MetadataApi,
+        streamApi: StreamApi,
+    ): PlaybackApi = DaggerPlaybackApiComponent.factory().create(
+        metadataApi = metadataApi,
+        streamApi = streamApi,
+    )
 }
