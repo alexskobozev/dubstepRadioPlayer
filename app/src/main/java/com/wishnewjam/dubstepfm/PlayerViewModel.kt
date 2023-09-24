@@ -11,7 +11,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.wishnewjam.playback.presentation.RadioService
 import timber.log.Timber
 
-class PlayerViewModel() : ViewModel() {
+class PlayerViewModel : ViewModel() {
     private var player: MediaController? = null // TODO: put mediacontroller to another file
 
     // LiveData or StateFlow objects for the UI to observe
@@ -91,8 +91,4 @@ class PlayerViewModel() : ViewModel() {
         )
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        // radioServiceConnection.unbindService()
-    }
 }
