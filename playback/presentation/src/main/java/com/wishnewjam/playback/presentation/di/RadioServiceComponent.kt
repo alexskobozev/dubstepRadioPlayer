@@ -1,6 +1,5 @@
 package com.wishnewjam.playback.presentation.di
 
-import com.wishnewjam.metadata.domain.MetadataApi
 import com.wishnewjam.playback.domain.PlaybackApi
 import com.wishnewjam.playback.presentation.RadioService
 import dagger.Component

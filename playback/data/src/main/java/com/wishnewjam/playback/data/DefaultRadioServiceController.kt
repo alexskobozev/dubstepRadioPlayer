@@ -14,6 +14,7 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionResult
 import com.wishnewjam.commons.android.apiContainer
 import com.wishnewjam.di.getFeature
+import com.wishnewjam.playback.data.di.DaggerRadioServiceControllerComponent
 import com.wishnewjam.playback.data.usecase.SaveMetaDataUseCase
 import com.wishnewjam.playback.domain.RadioServiceController
 import com.wishnewjam.stream.domain.StreamRepository
@@ -24,7 +25,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
-import com.wishnewjam.playback.data.di.DaggerRadioServiceControllerComponent
+
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class DefaultRadioServiceController @Inject constructor(): RadioServiceController {
 
@@ -127,7 +128,7 @@ class DefaultRadioServiceController @Inject constructor(): RadioServiceControlle
         // radioNotificationManager.hideNotification()
     }
 
-    private suspend fun updateMetadata(metadata: androidx.media3.common.Metadata) {
+    private suspend fun updateMetadata(metadata: Metadata) {
         saveMetaDataUseCase.saveMetaData(metadata)
 
         // streamRepository.setCurrentMetadata(metadata)
