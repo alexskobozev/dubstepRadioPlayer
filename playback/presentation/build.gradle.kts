@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.ksp)
-
 }
 
 android {
@@ -21,7 +20,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -60,5 +59,4 @@ dependencies {
     implementation(project(mapOf("path" to ":playback:data")))
     ksp(libs.libraries.dagger.compiler)
     implementation(libs.libraries.timber)
-
 }

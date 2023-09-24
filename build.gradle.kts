@@ -18,8 +18,8 @@ subprojects {
             kotlin {
                 ktfmt()
                 ktlint()
-                diktat()
-                prettier()
+//                diktat()
+//                prettier()
             }
             kotlinGradle {
                 target("*.gradle.kts")

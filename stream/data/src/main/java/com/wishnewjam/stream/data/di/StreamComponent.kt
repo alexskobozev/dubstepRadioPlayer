@@ -5,7 +5,7 @@ import dagger.Component
 
 @Component(
     modules = [
-        StreamModule::class
-    ]
+        StreamModule::class,
+    ],
 )
-interface StreamComponent: StreamApi
+interface StreamComponent : StreamApi

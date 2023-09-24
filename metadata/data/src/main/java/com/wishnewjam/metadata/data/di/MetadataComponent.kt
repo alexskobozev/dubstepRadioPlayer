@@ -5,9 +5,7 @@ import dagger.Component
 
 @Component(
     modules = [
-        MetadataModule::class
-    ]
+        MetadataModule::class,
+    ],
 )
-interface MetadataComponent : MetadataApi {
-
-}
+interface MetadataComponent : MetadataApi
