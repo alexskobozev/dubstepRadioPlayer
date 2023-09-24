@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.firebase.crashlytics)
     alias(libs.plugins.google.services)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.kotlin.ksp)
 }
 
 android {
@@ -73,7 +73,7 @@ dependencies {
 
     implementation(libs.libraries.dagger)
     implementation(libs.libraries.dagger.android)
-    kapt(libs.libraries.dagger.compiler)
+    ksp(libs.libraries.dagger.compiler)
 
     implementation(libs.libraries.material.dialogs)
     implementation(libs.libraries.timber)
