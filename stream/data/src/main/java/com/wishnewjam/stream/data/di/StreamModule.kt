@@ -11,6 +11,6 @@ interface StreamModule {
     @Binds
     @Reusable
     fun metadataRepository(
-        real: DefaultStreamRepository
+        real: DefaultStreamRepository,
     ): StreamRepository
 }

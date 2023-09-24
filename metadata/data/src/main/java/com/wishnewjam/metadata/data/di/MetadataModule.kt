@@ -11,6 +11,6 @@ interface MetadataModule {
     @Binds
     @Reusable
     fun metadataRepository(
-        real: DefaultMetadataRepository
+        real: DefaultMetadataRepository,
     ): MetadataRepository
 }
