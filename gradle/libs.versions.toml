@@ -28,6 +28,7 @@ plugin-agp = "8.1.1"
 plugin-crashlytics = "2.9.9"
 plugin-google = "4.4.0"
 plugin-versions = "0.46.0"
+plugin-ksp = "1.9.10-1.0.13"
 
 [libraries]
 
@@ -71,5 +72,5 @@ firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "
 google-services = { id = "com.google.gms.google-services", version.ref = "plugin-google" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin-bom" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-bom" }
-kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin-bom" }
+kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "plugin-ksp" }
 versions = { id = "com.github.ben-manes.versions", version.ref = "plugin-versions" }

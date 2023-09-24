@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.kotlin.ksp)
 }
 
 kotlin {
@@ -20,5 +20,5 @@ dependencies {
     implementation(libs.kotlin.coroutines.core)
 
     implementation(libs.libraries.dagger)
-    kapt(libs.libraries.dagger.compiler)
+    ksp(libs.libraries.dagger.compiler)
 }
