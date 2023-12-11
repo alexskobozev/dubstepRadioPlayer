@@ -1,4 +1,4 @@
-package com.wishnewjam.dubstepfm
+package com.wishnewjam.commons.design
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme

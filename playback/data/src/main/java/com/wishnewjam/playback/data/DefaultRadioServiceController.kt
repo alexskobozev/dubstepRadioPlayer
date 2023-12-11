@@ -1,5 +1,8 @@
 package com.wishnewjam.playback.data
 
+import android.content.Intent
+import android.os.Bundle
+import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Metadata
@@ -7,13 +10,17 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Player.COMMAND_PLAY_PAUSE
 import androidx.media3.common.Player.COMMAND_STOP
+import androidx.media3.common.Rating
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
+import com.google.common.util.concurrent.ListenableFuture
 import com.wishnewjam.commons.android.apiContainer
 import com.wishnewjam.di.getFeature
+import com.wishnewjam.metadata.domain.MetadataRepository
 import com.wishnewjam.playback.data.di.DaggerRadioServiceControllerComponent
 import com.wishnewjam.playback.data.usecase.SaveMetaDataUseCase
 import com.wishnewjam.playback.domain.RadioServiceController
@@ -59,6 +66,7 @@ class DefaultRadioServiceController @Inject constructor(): RadioServiceControlle
                 eventTime: AnalyticsListener.EventTime,
                 metadata: Metadata
             ) {
+                Timber.d( "onMetadata() called with: eventTime = $eventTime, metadata = $metadata")
                 coroutineScope.launch {
                     Timber.d("Got metadata: $metadata")
                     updateMetadata(metadata)
@@ -76,7 +84,14 @@ class DefaultRadioServiceController @Inject constructor(): RadioServiceControlle
             override fun onEvents(
                 player: Player,
                 events: AnalyticsListener.Events
-            ) = events.printDebug()
+            ) {
+                events.printDebug()
+                for (i in 0 until events.size()) {
+                    when (events[i]){
+//                        Player.EVENT_MEDIA_METADATA_CHANGED -> onMetadataChanged(player.mediaMetadata)
+                    }
+                }
+            }
         })
 
         return MediaSession.Builder(mediaSessionService, player)
@@ -86,11 +101,136 @@ class DefaultRadioServiceController @Inject constructor(): RadioServiceControlle
                         session: MediaSession,
                         controller: MediaSession.ControllerInfo,
                         playerCommand: Int
-                    ): Int = requestPlayerCommand(controller, playerCommand)
+                    ): Int {
+                        Timber.d(
+                            "onPlayerCommandRequest() called with: session = $session, controller = $controller, playerCommand = $playerCommand"
+                        )
+                        return requestPlayerCommand(controller, playerCommand)
+                    }
+
+                    override fun onConnect(
+                        session: MediaSession,
+                        controller: MediaSession.ControllerInfo
+                    ): MediaSession.ConnectionResult {
+                        Timber.d(
+                            "onConnect() called with: session = $session, controller = $controller"
+                        )
+                        return super.onConnect(session, controller)
+                    }
+
+                    override fun onPostConnect(
+                        session: MediaSession,
+                        controller: MediaSession.ControllerInfo
+                    ) {
+                        Timber.d(
+                            "onPostConnect() called with: session = $session, controller = $controller"
+                        )
+                        super.onPostConnect(session, controller)
+                    }
+
+                    override fun onDisconnected(
+                        session: MediaSession,
+                        controller: MediaSession.ControllerInfo
+                    ) {
+                        Timber.d(
+                            "onDisconnected() called with: session = $session, controller = $controller"
+                        )
+                        super.onDisconnected(session, controller)
+                    }
+
+                    override fun onSetRating(
+                        session: MediaSession,
+                        controller: MediaSession.ControllerInfo,
+                        mediaId: String,
+                        rating: Rating
+                    ): ListenableFuture<SessionResult> {
+                        Timber.d(
+                            "onSetRating() called with: session = $session, controller = $controller, mediaId = $mediaId, rating = $rating"
+                        )
+                        return super.onSetRating(session, controller, mediaId, rating)
+                    }
+
+                    override fun onSetRating(
+                        session: MediaSession,
+                        controller: MediaSession.ControllerInfo,
+                        rating: Rating
+                    ): ListenableFuture<SessionResult> {
+                        Timber.d(
+                            "onSetRating() called with: session = $session, controller = $controller, rating = $rating"
+                        )
+                        return super.onSetRating(session, controller, rating)
+                    }
+
+                    override fun onCustomCommand(
+                        session: MediaSession,
+                        controller: MediaSession.ControllerInfo,
+                        customCommand: SessionCommand,
+                        args: Bundle
+                    ): ListenableFuture<SessionResult> {
+                        Timber.d(
+                            "onCustomCommand() called with: session = $session, controller = $controller, customCommand = $customCommand, args = $args"
+                        )
+                        return super.onCustomCommand(session, controller, customCommand, args)
+                    }
+
+                    override fun onAddMediaItems(
+                        mediaSession: MediaSession,
+                        controller: MediaSession.ControllerInfo,
+                        mediaItems: MutableList<MediaItem>
+                    ): ListenableFuture<MutableList<MediaItem>> {
+                        Timber.d(
+                            "onAddMediaItems() called with: mediaSession = $mediaSession, controller = $controller, mediaItems = $mediaItems"
+                        )
+                        return super.onAddMediaItems(mediaSession, controller, mediaItems)
+                    }
+
+                    override fun onSetMediaItems(
+                        mediaSession: MediaSession,
+                        controller: MediaSession.ControllerInfo,
+                        mediaItems: MutableList<MediaItem>,
+                        startIndex: Int,
+                        startPositionMs: Long
+                    ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+                        Timber.d(
+                            "onSetMediaItems() called with: mediaSession = $mediaSession, controller = $controller, mediaItems = $mediaItems, startIndex = $startIndex, startPositionMs = $startPositionMs"
+                        )
+                        return super.onSetMediaItems(
+                            mediaSession,
+                            controller,
+                            mediaItems,
+                            startIndex,
+                            startPositionMs
+                        )
+                    }
+
+                    override fun onPlaybackResumption(
+                        mediaSession: MediaSession,
+                        controller: MediaSession.ControllerInfo
+                    ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+                        Timber.d(
+                            "onPlaybackResumption() called with: mediaSession = $mediaSession, controller = $controller"
+                        )
+                        return super.onPlaybackResumption(mediaSession, controller)
+                    }
+
+                    override fun onMediaButtonEvent(
+                        session: MediaSession,
+                        controllerInfo: MediaSession.ControllerInfo,
+                        intent: Intent
+                    ): Boolean {
+                        Timber.d(
+                            "onMediaButtonEvent() called with: session = $session, controllerInfo = $controllerInfo, intent = $intent"
+                        )
+                        return super.onMediaButtonEvent(session, controllerInfo, intent)
+                    }
                 }
             )
             .build()
     }
+
+//    private fun onMetadataChanged(mediaMetadata: MediaMetadata) {
+//        Timber.d("onMetadataChanged() called with: mediaMetadata = $mediaMetadata")
+//    }
 
     private fun requestPlayerCommand(
         controller: MediaSession.ControllerInfo,
@@ -131,7 +271,7 @@ class DefaultRadioServiceController @Inject constructor(): RadioServiceControlle
     private suspend fun updateMetadata(metadata: Metadata) {
         saveMetaDataUseCase.saveMetaData(metadata)
 
-        // streamRepository.setCurrentMetadata(metadata)
+//         streamRepository.setCurrentMetadata(metadata)
         withContext(Dispatchers.Main) {
             val mediaMetadata = MediaMetadata.Builder()
                 .populateFromMetadata(metadata)

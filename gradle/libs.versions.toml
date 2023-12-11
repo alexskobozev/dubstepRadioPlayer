@@ -14,10 +14,10 @@ androidx-compose-compiler = "1.5.5"
 
 firebase-bom = "32.6.0"
 
-kotlin-bom = "1.9.10"
+kotlin-bom = "1.9.20"
 kotlin-coroutines = "1.7.0"
 
-library-dagger = "2.48"
+library-dagger = "2.48.1"
 library-ktx = "1.12.0"
 library-leak = "2.10"
 library-material-dialogs = "3.3.0"
@@ -28,8 +28,9 @@ plugin-agp = "8.2.0"
 plugin-crashlytics = "2.9.9"
 plugin-google = "4.4.0"
 plugin-versions = "0.48.0"
-plugin-ksp = "1.9.10-1.0.13"
+plugin-ksp = "1.9.20-1.0.14"
 plugin-spotless = "6.21.0"
+lifecycle-viewmodel-ktx = "2.6.2"
 
 [libraries]
 
@@ -63,6 +64,7 @@ libraries-material-dialogs = { module = "com.afollestad.material-dialogs:core", 
 libraries-multidex = { module = "androidx.multidex:multidex", version.ref = "androidx-multidex" }
 libraries-timber = { module = "com.jakewharton.timber:timber", version.ref = "library-timber" }
 libraries-wang = { module = "com.wang.avi:library", version.ref = "library-wang" }
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle-viewmodel-ktx" }
 
 [plugins]
 

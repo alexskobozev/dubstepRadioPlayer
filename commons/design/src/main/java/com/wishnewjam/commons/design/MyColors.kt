@@ -1,4 +1,4 @@
-package com.wishnewjam.dubstepfm
+package com.wishnewjam.commons.design
 
 import androidx.compose.ui.graphics.Color
 

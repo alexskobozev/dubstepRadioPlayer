@@ -1,4 +1,4 @@
-package com.wishnewjam.dubstepfm
+package com.wishnewjam.home.presentation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wishnewjam.commons.design.buttonBackground
+import com.wishnewjam.commons.design.buttonTextCommon
 
 @Composable
 fun PlayerScreen(viewModel: PlayerViewModel) {
@@ -56,7 +58,7 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
                 }
 
                 Image(
-                    painter = painterResource(id = R.drawable.ic_stop),
+                    painter = painterResource(id = com.wishnewjam.commons.design.R.drawable.ic_stop),
                     contentDescription = "Stop",
                     modifier = Modifier
                         .size(24.dp)
@@ -78,7 +80,7 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.img_logo),
+                    painter = painterResource(id = com.wishnewjam.commons.design.R.drawable.img_logo),
                     contentDescription = "Logo",
                     modifier = Modifier.padding(36.dp)
                 )
