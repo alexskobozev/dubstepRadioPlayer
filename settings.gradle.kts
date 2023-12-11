@@ -2,6 +2,8 @@
 
 include(":di")
 include(":commons:android")
+include(":commons:design")
+include(":home:presentation")
 include(":metadata:data")
 include(":metadata:domain")
 include(":playback:data")

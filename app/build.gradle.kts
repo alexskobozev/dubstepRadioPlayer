@@ -46,10 +46,15 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":commons:design"))
+    implementation(project(":home:presentation"))
     implementation(project(":playback:data"))
+    implementation(project(":playback:domain"))
     implementation(project(":playback:presentation"))
     implementation(project(":metadata:data"))
+    implementation(project(":metadata:domain"))
     implementation(project(":stream:data"))
+    implementation(project(":stream:domain"))
     implementation(project(":di"))
 
     implementation(platform(libs.firebase.bom))
@@ -58,26 +63,26 @@ dependencies {
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.ktx)
-    implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.media3.ui)
-    implementation(libs.androidx.media3.session)
+//    implementation(libs.androidx.media3.exoplayer)
+//    implementation(libs.androidx.media3.ui)
+//    implementation(libs.androidx.media3.session)
 
-    implementation(libs.androidx.compose.foundation)
+//    implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.runtime.livedata)
-    implementation(libs.androidx.compose.ui)
-
+//    implementation(libs.androidx.compose.runtime.livedata)
+//    implementation(libs.androidx.compose.ui)
+//
     implementation(libs.firebase.crashlytics.ktx)
 
-    implementation(libs.kotlin.coroutines.core)
+//    implementation(libs.kotlin.coroutines.core)
 
     implementation(libs.libraries.dagger)
     implementation(libs.libraries.dagger.android)
     ksp(libs.libraries.dagger.compiler)
 
-    implementation(libs.libraries.material.dialogs)
+//    implementation(libs.libraries.material.dialogs)
     implementation(libs.libraries.timber)
-    implementation(libs.libraries.wang)
+//    implementation(libs.libraries.wang)
 
     debugImplementation(libs.libraries.leak)
 }

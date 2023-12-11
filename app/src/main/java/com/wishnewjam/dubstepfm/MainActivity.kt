@@ -9,19 +9,19 @@ import androidx.compose.material3.Surface
 
 class MainActivity : ComponentActivity() {
 
-    private val playerViewModel: PlayerViewModel by viewModels {
+    private val playerViewModel: com.wishnewjam.home.presentation.PlayerViewModel by viewModels {
         // Provide the radioServiceConnection to the ViewModel
-        PlayerViewModelFactory()
+        com.wishnewjam.home.presentation.PlayerViewModelFactory()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            DubstepFMRadioPlayerTheme {
+            com.wishnewjam.commons.design.DubstepFMRadioPlayerTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    PlayerScreen(viewModel = playerViewModel)
+                    com.wishnewjam.home.presentation.PlayerScreen(viewModel = playerViewModel)
                 }
             }
         }

@@ -1,4 +1,4 @@
-package com.wishnewjam.dubstepfm
+package com.wishnewjam.home.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
