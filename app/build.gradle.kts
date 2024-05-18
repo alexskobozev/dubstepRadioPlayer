@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.google.services)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -22,9 +23,9 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
-    packagingOptions {
-        exclude("META-INF/atomicfu.kotlin_module")
-    }
+//    packaging {
+//        exclude("META-INF/atomicfu.kotlin_module")
+//    }
     compileOptions {
         sourceCompatibility = JavaVersion.toVersion(libs.versions.system.java.get().toInt())
         targetCompatibility = JavaVersion.toVersion(libs.versions.system.java.get().toInt())
@@ -34,9 +35,6 @@ android {
     }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.androidx.compose.compiler.get()
     }
     namespace = "com.wishnewjam.dubstepfm"
 }
