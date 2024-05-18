@@ -5,32 +5,31 @@ system-target-sdk = "34"
 system-min-sdk = "21"
 system-java = "17"
 
-androidx-media3 = "1.2.0"
+androidx-media3 = "1.3.1"
 androidx-multidex = "2.0.1"
 
-androidx-activity-compose = "1.8.1"
-androidx-compose-bom = "2023.10.01"
-androidx-compose-compiler = "1.5.5"
+androidx-activity-compose = "1.9.0"
+androidx-compose-bom = "2024.05.00"
 
-firebase-bom = "32.6.0"
+firebase-bom = "33.0.0"
 
-kotlin-bom = "1.9.20"
+kotlin-bom = "2.0.0-RC3"
 kotlin-coroutines = "1.7.0"
 
 library-dagger = "2.48.1"
-library-ktx = "1.12.0"
+library-ktx = "1.13.1"
 library-leak = "2.10"
 library-material-dialogs = "3.3.0"
 library-timber = "5.0.1"
 library-wang = "2.1.3"
 
-plugin-agp = "8.2.0"
-plugin-crashlytics = "2.9.9"
-plugin-google = "4.4.0"
+plugin-agp = "8.2.2"
+plugin-crashlytics = "3.0.1"
+plugin-google = "4.4.1"
 plugin-versions = "0.48.0"
-plugin-ksp = "1.9.20-1.0.14"
+plugin-ksp = "2.0.0-RC3-1.0.20"
 plugin-spotless = "6.21.0"
-lifecycle-viewmodel-ktx = "2.6.2"
+lifecycle-viewmodel-ktx = "2.8.0"
 
 [libraries]
 
@@ -42,7 +41,6 @@ androidx-media3-common = { module = "androidx.media3:media3-common", version.ref
 
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity-compose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidx-compose-bom" }
-androidx-compose-compiler = { group = "androidx.compose.compiler", name = "compiler", version.ref = "androidx-compose-compiler" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
@@ -76,5 +74,6 @@ google-services = { id = "com.google.gms.google-services", version.ref = "plugin
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin-bom" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-bom" }
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "plugin-ksp" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin-bom" }
 versions = { id = "com.github.ben-manes.versions", version.ref = "plugin-versions" }
 spotless = { id = "com.diffplug.spotless", version.ref = "plugin-spotless" }

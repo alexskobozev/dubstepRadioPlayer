@@ -94,28 +94,30 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
                     contentColor = buttonTextCommon
                 )
             ) {
-                Text(
-                    text = "Play",
-                    fontSize = 36.sp,
-                    fontWeight = FontWeight.Bold,
+                Image(
+                    painter = painterResource(id = com.wishnewjam.commons.design.R.drawable.ic_play),
+                    contentDescription = "Stop",
+                    modifier = Modifier
+                        .size(64.dp)
+                        .padding(8.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(23.dp))
-
-            Button(
-                onClick = { viewModel.stop() },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = buttonBackground,
-                    contentColor = buttonTextCommon
-                )
-            ) {
-                Text(
-                    text = "Stop",
-                    fontSize = 24.sp,
-                )
-            }
+//            Spacer(modifier = Modifier.height(23.dp))
+//
+//            Button(
+//                onClick = { viewModel.stop() },
+//                modifier = Modifier.fillMaxWidth(),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = buttonBackground,
+//                    contentColor = buttonTextCommon
+//                )
+//            ) {
+//                Text(
+//                    text = "Stop",
+//                    fontSize = 24.sp,
+//                )
+//            }
 
             Spacer(modifier = Modifier.height(24.dp))
         }
