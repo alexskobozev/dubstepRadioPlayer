@@ -1,9 +1,8 @@
 package com.wishnewjam.home.data
 
-import android.content.Context
-import androidx.media3.session.MediaController
 import com.wishnewjam.home.domain.MetadataUsecase
 import com.wishnewjam.home.domain.PlayerViewModel
+import com.wishnewjam.playback.domain.PlaybackCommandHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,8 +11,8 @@ import javax.inject.Inject
 
 class DefaultPlayerViewModel @Inject constructor(
     metadataUsecase: MetadataUsecase,
+    private val playbackCommandHandler: PlaybackCommandHandler,
 ) : PlayerViewModel() {
-    private var player: MediaController? = null // TODO: put mediacontroller to another file
 
     val _state = MutableStateFlow(UiState())
 
@@ -39,7 +38,7 @@ class DefaultPlayerViewModel @Inject constructor(
         // Start or resume playback in the radio service
         // radioServiceConnection.play()
         Timber.d("Push play button")
-        player?.play()
+        playbackCommandHandler.play()
         // Update the UI state
         _progressBarVisible.value = true
         _nowPlayingText.value = "Playing..."

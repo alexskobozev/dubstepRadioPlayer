@@ -7,7 +7,8 @@ import dagger.Component
 
 @Component(
     modules = [
-        PlaybackApiModule::class
+        PlaybackApiModule::class,
+        PlaybackCommandModule::class,
     ],
     dependencies = [
         MetadataApi::class,

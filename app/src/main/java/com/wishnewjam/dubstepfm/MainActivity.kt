@@ -11,7 +11,8 @@ import com.wishnewjam.di.getFeature
 import com.wishnewjam.dubstepfm.di.DaggerMainActivityComponent
 import com.wishnewjam.home.domain.PlayerViewModel
 import com.wishnewjam.home.domain.PlayerViewModelFactory
-import timber.log.Timber
+import com.wishnewjam.playback.domain.PlaybackCommandHandler
+import com.wishnewjam.playback.presentation.RadioService
 import javax.inject.Inject
 
 class MainActivity : ComponentActivity() {
@@ -19,14 +20,18 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var viewModelFactory: PlayerViewModelFactory
 
+    @Inject
+    lateinit var playbackCommandHandler: PlaybackCommandHandler
+
     private val playerViewModel: PlayerViewModel by lazy {
         ViewModelProvider(this, viewModelFactory)[PlayerViewModel::class.java]
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         DaggerMainActivityComponent.factory().create(
-            apiContainer().getFeature(),
-            apiContainer().getFeature()
+            homeApi = apiContainer().getFeature(),
+            metadataApi = apiContainer().getFeature(),
+            playbackApi = apiContainer().getFeature(),
         ).inject(this)
         super.onCreate(savedInstanceState)
 
@@ -42,23 +47,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        throw Exception("uncomment and do something here")
-//        // TODO: move out of here
-//        val sessionToken = SessionToken(
-//            context,
-//            ComponentName(context, RadioService::class.java)
-//        )
-//        Timber.d("Building MediaController")
-//        val controllerFuture =
-//            MediaController.Builder(context, sessionToken).buildAsync()
-//        controllerFuture.addListener(
-//            {
-//                Timber.d("MediaController instance initiated")
-//                player = controllerFuture.get()
-//                // todo no need here, need to listen metadata repository for metadata
-//                _nowPlayingText.value = player!!.mediaMetadata.title?.toString() ?: "no data"
-//            },
-//            MoreExecutors.directExecutor()
-//        )
+        playbackCommandHandler.init(this, RadioService::class.java)
     }
 }

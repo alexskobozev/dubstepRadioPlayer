@@ -76,7 +76,9 @@ class LibsModule(private val application: Application) {
     @Reusable
     fun home(
         metadataApi: MetadataApi,
+        playbackApi: PlaybackApi,
     ): HomeApi = DaggerHomeApiComponent.factory().create(
         metadataApi = metadataApi,
+        playbackApi = playbackApi,
     )
 }
