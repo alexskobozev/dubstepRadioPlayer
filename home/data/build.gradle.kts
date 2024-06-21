@@ -2,11 +2,10 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.ksp)
-    alias(libs.plugins.compose.compiler)
 }
 
 android {
-    namespace = "com.wishnewjam.home.presentation"
+    namespace = "com.wishnewjam.home.data"
     compileSdk = libs.versions.system.compile.sdk.get().toInt()
 
     defaultConfig {
@@ -45,26 +44,15 @@ java {
 }
 
 dependencies {
-
-    implementation(project(":commons:android"))
-    implementation(project(":commons:design"))
-    implementation(project(":metadata:domain"))
+    api(project(":home:domain"))
+    api(project(":metadata:domain"))
     implementation(project(":playback:domain"))
-    implementation(project(":playback:presentation"))
-    implementation(project(":home:domain"))
-    implementation(libs.androidx.ktx)
-
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.foundation)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.runtime.livedata)
-    implementation(libs.androidx.compose.ui)
+    implementation(platform(libs.kotlin.bom))
+    implementation(libs.kotlin.coroutines.core)
+    implementation(libs.androidx.lifecycle.viewmodel)
+    implementation(libs.androidx.media3.session)
+    implementation(libs.libraries.timber)
 
     implementation(libs.libraries.dagger)
-    implementation(libs.libraries.dagger.android)
-    implementation(libs.androidx.lifecycle.viewmodel.ktx)
-    implementation(libs.androidx.media3.ui)
-
     ksp(libs.libraries.dagger.compiler)
-    implementation(libs.libraries.timber)
 }

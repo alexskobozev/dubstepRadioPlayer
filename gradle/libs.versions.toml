@@ -29,7 +29,7 @@ plugin-google = "4.4.1"
 plugin-versions = "0.48.0"
 plugin-ksp = "2.0.0-1.0.21"
 plugin-spotless = "6.21.0"
-lifecycle-viewmodel-ktx = "2.8.0"
+lifecycle-viewmodel = "2.8.0"
 
 [libraries]
 
@@ -62,7 +62,8 @@ libraries-material-dialogs = { module = "com.afollestad.material-dialogs:core", 
 libraries-multidex = { module = "androidx.multidex:multidex", version.ref = "androidx-multidex" }
 libraries-timber = { module = "com.jakewharton.timber:timber", version.ref = "library-timber" }
 libraries-wang = { module = "com.wang.avi:library", version.ref = "library-wang" }
-androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle-viewmodel-ktx" }
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle-viewmodel" }
+androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "lifecycle-viewmodel" }
 
 [plugins]
 

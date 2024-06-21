@@ -2,6 +2,8 @@ package com.wishnewjam.dubstepfm.di
 
 import android.app.Application
 import com.wishnewjam.di.Api
+import com.wishnewjam.home.data.di.DaggerHomeApiComponent
+import com.wishnewjam.home.domain.HomeApi
 import com.wishnewjam.metadata.data.di.DaggerMetadataComponent
 import com.wishnewjam.metadata.domain.MetadataApi
 import com.wishnewjam.playback.data.di.DaggerPlaybackApiComponent
@@ -42,6 +44,12 @@ class ApiModule {
     @ClassKey(PlaybackApi::class)
     fun playbackApi(playbackApi: PlaybackApi): Api = playbackApi
 
+    @Apis
+    @Provides
+    @Reusable
+    @IntoMap
+    @ClassKey(HomeApi::class)
+    fun homeApi(homeApi: HomeApi): Api = homeApi
 }
 
 @Module
@@ -62,5 +70,13 @@ class LibsModule(private val application: Application) {
     ): PlaybackApi = DaggerPlaybackApiComponent.factory().create(
         metadataApi = metadataApi,
         streamApi = streamApi,
+    )
+
+    @Provides
+    @Reusable
+    fun home(
+        metadataApi: MetadataApi,
+    ): HomeApi = DaggerHomeApiComponent.factory().create(
+        metadataApi = metadataApi,
     )
 }
