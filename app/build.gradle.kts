@@ -45,7 +45,9 @@ kotlin {
 
 dependencies {
     implementation(project(":commons:design"))
+    implementation(project(":commons:android"))
     implementation(project(":home:presentation"))
+    implementation(project(":home:data"))
     implementation(project(":playback:data"))
     implementation(project(":playback:domain"))
     implementation(project(":playback:presentation"))

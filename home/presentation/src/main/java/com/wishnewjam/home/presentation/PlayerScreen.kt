@@ -17,26 +17,22 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wishnewjam.commons.design.buttonBackground
 import com.wishnewjam.commons.design.buttonTextCommon
+import com.wishnewjam.home.domain.PlayerViewModel
 
 @Composable
 fun PlayerScreen(viewModel: PlayerViewModel) {
-    val nowPlayingText by viewModel.nowPlayingText.observeAsState(initial = "Nothing to play")
-    val progressBarVisible by viewModel.progressBarVisible.observeAsState(
-        initial = false
-    )
-    val loadingVisible by viewModel.loadingVisible.observeAsState(initial = false)
+    val uiState by viewModel.state.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -49,7 +45,7 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
                 modifier = Modifier.padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (progressBarVisible) {
+                if (uiState.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier
                             .size(24.dp)
@@ -66,7 +62,7 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
                 )
 
                 Text(
-                    text = nowPlayingText,
+                    text = uiState.nowPlaying,
                     fontSize = 18.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -122,7 +118,7 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
             Spacer(modifier = Modifier.height(24.dp))
         }
 
-        if (loadingVisible) {
+        if (uiState.isLoading) {
             Box(
                 modifier = Modifier
                     .wrapContentSize()
