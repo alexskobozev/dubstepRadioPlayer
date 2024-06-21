@@ -25,8 +25,6 @@ class DefaultPlaybackCommandHandler @Inject constructor() : PlaybackCommandHandl
             {
                 Timber.d("MediaController instance initiated")
                 player = controllerFuture.get()
-                // todo no need here, need to listen metadata repository for metadata
-//                _nowPlayingText.value = player!!.mediaMetadata.title?.toString() ?: "no data"
             },
             MoreExecutors.directExecutor()
         )
@@ -37,6 +35,6 @@ class DefaultPlaybackCommandHandler @Inject constructor() : PlaybackCommandHandl
     }
 
     override fun stop() {
-        TODO("Not yet implemented")
+        player?.stop()
     }
 }
