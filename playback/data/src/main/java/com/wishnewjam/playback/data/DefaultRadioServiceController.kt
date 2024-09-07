@@ -2,7 +2,6 @@ package com.wishnewjam.playback.data
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Metadata
@@ -20,9 +19,10 @@ import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.ListenableFuture
 import com.wishnewjam.commons.android.apiContainer
 import com.wishnewjam.di.getFeature
-import com.wishnewjam.metadata.domain.MetadataRepository
 import com.wishnewjam.playback.data.di.DaggerRadioServiceControllerComponent
 import com.wishnewjam.playback.data.usecase.SaveMetaDataUseCase
+import com.wishnewjam.playback.domain.PlayerState
+import com.wishnewjam.playback.domain.PlayerStateRepository
 import com.wishnewjam.playback.domain.RadioServiceController
 import com.wishnewjam.stream.domain.StreamRepository
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +34,9 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-class DefaultRadioServiceController @Inject constructor(): RadioServiceController {
+class DefaultRadioServiceController @Inject constructor(
+    private val playerStateRepository: PlayerStateRepository,
+) : RadioServiceController {
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private val uiScope = CoroutineScope(Dispatchers.Main)
@@ -66,7 +68,7 @@ class DefaultRadioServiceController @Inject constructor(): RadioServiceControlle
                 eventTime: AnalyticsListener.EventTime,
                 metadata: Metadata
             ) {
-                Timber.d( "onMetadata() called with: eventTime = $eventTime, metadata = $metadata")
+                Timber.d("onMetadata() called with: eventTime = $eventTime, metadata = $metadata")
                 coroutineScope.launch {
                     Timber.d("Got metadata: $metadata")
                     updateMetadata(metadata)
@@ -87,7 +89,13 @@ class DefaultRadioServiceController @Inject constructor(): RadioServiceControlle
             ) {
                 events.printDebug()
                 for (i in 0 until events.size()) {
-                    when (events[i]){
+                    when (events[i]) {
+                        Player.EVENT_IS_PLAYING_CHANGED -> if (player.isPlaying) {
+                            playerStateRepository.setCurrentState(PlayerState.PLAYING)
+                        } else {
+                            playerStateRepository.setCurrentState(PlayerState.STOPPED)
+                        }
+
 //                        Player.EVENT_MEDIA_METADATA_CHANGED -> onMetadataChanged(player.mediaMetadata)
                     }
                 }
@@ -97,6 +105,7 @@ class DefaultRadioServiceController @Inject constructor(): RadioServiceControlle
         return MediaSession.Builder(mediaSessionService, player)
             .setCallback(
                 object : MediaSession.Callback {
+                    @Deprecated("Deprecated in Java")
                     override fun onPlayerCommandRequest(
                         session: MediaSession,
                         controller: MediaSession.ControllerInfo,

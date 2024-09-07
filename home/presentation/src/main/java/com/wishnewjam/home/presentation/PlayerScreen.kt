@@ -90,13 +90,23 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
                     contentColor = buttonTextCommon
                 )
             ) {
-                Image(
-                    painter = painterResource(id = com.wishnewjam.commons.design.R.drawable.ic_play),
-                    contentDescription = "Stop",
-                    modifier = Modifier
-                        .size(64.dp)
-                        .padding(8.dp)
-                )
+                if (uiState.isPlaying) {
+                    Image(
+                        painter = painterResource(id = com.wishnewjam.commons.design.R.drawable.ic_stop),
+                        contentDescription = "Stop",
+                        modifier = Modifier
+                            .size(64.dp)
+                            .padding(8.dp)
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = com.wishnewjam.commons.design.R.drawable.ic_play),
+                        contentDescription = "Play",
+                        modifier = Modifier
+                            .size(64.dp)
+                            .padding(8.dp)
+                    )
+                }
             }
 
 //            Spacer(modifier = Modifier.height(23.dp))
