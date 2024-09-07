@@ -8,6 +8,7 @@ abstract class PlayerViewModel : ViewModel() {
 
     data class UiState(
         val isLoading: Boolean = false,
+        val isPlaying: Boolean = false,
         val nowPlaying: String = "Nothing to play",
     )
 

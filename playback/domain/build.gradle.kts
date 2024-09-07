@@ -23,5 +23,6 @@ kotlin {
 dependencies {
     api(project(":di"))
 
+    implementation(libs.kotlin.coroutines.core)
     implementation(libs.androidx.media3.session)
 }
