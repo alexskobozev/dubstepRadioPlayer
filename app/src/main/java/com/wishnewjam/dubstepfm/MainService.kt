@@ -32,7 +32,6 @@ class MainService : MediaBrowserServiceCompat() {
         private const val NOTIFICATION_ID = 43432
         const val SP_KEY_BITRATE = "link"
         const val SP_KEY_CONSENT = "consent"
-        const val SP_KEY_CONSENT_DIALOG_SHOWN = "consent_dialog_shown"
         const val MAX_ERROR_ATTEMPTS = 10
 
         const val NOTIFICATION_STATUS_PLAY = 1

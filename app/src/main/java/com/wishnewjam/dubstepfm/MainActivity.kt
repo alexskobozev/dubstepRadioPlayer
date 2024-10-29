@@ -126,10 +126,6 @@ class MainActivity : AppCompatActivity() {
         })
         setContentView(R.layout.activity_main)
 
-        if (!mediaViewModel.consentDialogShown) {
-            showConsentDialog()
-        }
-
         mediaBrowser = MediaBrowserCompat(this,
                 ComponentName(this, MainService::class.java),
                 connectionCallback, null)
@@ -203,26 +199,5 @@ class MainActivity : AppCompatActivity() {
     private fun showBitrateChooser() {
         val bitrateFragment = ChooseBitrateDialogFragment()
         bitrateFragment.show(supportFragmentManager, "bitrate")
-    }
-
-    private fun showConsentDialog() {
-        val customView =
-                layoutInflater.inflate(R.layout.dialog_consent, findViewById<ViewGroup>(R.id.root_view),
-                        false)
-        customView.findViewById<TextView>(R.id.tv_consent).movementMethod = LinkMovementMethod.getInstance()
-
-        MaterialDialog(this).cancelable(false)
-                .title(res = R.string.question_to_consent)
-                .customView(view = customView)
-                .positiveButton(R.string.agree) {
-                    it.dismiss()
-                    mediaViewModel.changeConsent(true)
-                }
-                .negativeButton(R.string.disagree) {
-                    it.dismiss()
-                    mediaViewModel.changeConsent(false)
-                }
-                .onDismiss { mediaViewModel.setDialogShown() }
-                .show()
     }
 }

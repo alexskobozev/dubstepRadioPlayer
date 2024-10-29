@@ -13,7 +13,6 @@ class MediaViewModel(application: Application) : AndroidViewModel(application) {
 
     val currentUrl = MutableLiveData<String>()
     val userConsent = MutableLiveData<Boolean>()
-    var consentDialogShown = false
 
     init {
         val defaultSharedPreferences =
@@ -24,8 +23,6 @@ class MediaViewModel(application: Application) : AndroidViewModel(application) {
         userConsent.value =
                 defaultSharedPreferences.getBoolean(MainService.SP_KEY_CONSENT,
                         false)
-        consentDialogShown = defaultSharedPreferences.getBoolean(
-                MainService.SP_KEY_CONSENT_DIALOG_SHOWN, false)
     }
 
     fun changeBitrate(br: String) {
@@ -43,13 +40,5 @@ class MediaViewModel(application: Application) : AndroidViewModel(application) {
                     putBoolean(MainService.SP_KEY_CONSENT, b)
                 }
         userConsent.value = b
-    }
-
-    fun setDialogShown() {
-        PreferenceManager.getDefaultSharedPreferences(getApplication())
-                .edit {
-                    putBoolean(MainService.SP_KEY_CONSENT_DIALOG_SHOWN, true)
-                }
-        consentDialogShown = true
     }
 }
