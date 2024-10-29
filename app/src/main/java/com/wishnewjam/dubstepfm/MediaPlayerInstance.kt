@@ -24,15 +24,15 @@ class MediaPlayerInstance(private val context: Context) : Player.EventListener {
     var serviceCallback: CallbackInterface? = null
     private var currentUrl: CurrentUrl = CurrentUrl(context)
     private val mediaPlayer: SimpleExoPlayer = SimpleExoPlayer.Builder(context)
-            .build()
+        .build()
 
     init {
         mediaPlayer.addListener(this)
         val attributes = AudioAttributes.Builder()
-                .setUsage(C.USAGE_MEDIA)
-                .setContentType(C.CONTENT_TYPE_MUSIC)
-                .build()
-        mediaPlayer.audioAttributes = attributes
+            .setUsage(C.USAGE_MEDIA)
+            .setContentType(C.CONTENT_TYPE_MUSIC)
+            .build()
+        mediaPlayer.setAudioAttributes(attributes, true)
         mediaPlayer.addMetadataOutput {
             if (it.length() > 0) {
                 (it.get(0) as? IcyInfo?)?.title?.let { s ->
@@ -50,8 +50,10 @@ class MediaPlayerInstance(private val context: Context) : Player.EventListener {
         Tools.logDebug { "exoPlayer: onPlaybackParametersChanged: $playbackParameters" }
     }
 
-    override fun onTracksChanged(trackGroups: TrackGroupArray,
-                                 trackSelections: TrackSelectionArray) {
+    override fun onTracksChanged(
+        trackGroups: TrackGroupArray,
+        trackSelections: TrackSelectionArray
+    ) {
         Tools.logDebug { "exoPlayer: onTracksChanged: trackGroups = $trackGroups, trackSelections = $trackSelections" }
 
     }
@@ -63,15 +65,21 @@ class MediaPlayerInstance(private val context: Context) : Player.EventListener {
 
     }
 
-    override fun onPlayerStateChanged(playWhenReady: Boolean,
-                                      playbackState: Int) {
+    override fun onPlayerStateChanged(
+        playWhenReady: Boolean,
+        playbackState: Int
+    ) {
         when (playbackState) {
             Player.STATE_BUFFERING -> notifyStatusChanged(
-                    UIStates.STATUS_LOADING)
-            Player.STATE_READY     -> if (playWhenReady) notifyStatusChanged(
-                    UIStates.STATUS_PLAY)
-            Player.STATE_ENDED     -> notifyStatusChanged(UIStates.STATUS_STOP)
-            Player.STATE_IDLE      -> return
+                UIStates.STATUS_LOADING
+            )
+
+            Player.STATE_READY -> if (playWhenReady) notifyStatusChanged(
+                UIStates.STATUS_PLAY
+            )
+
+            Player.STATE_ENDED -> notifyStatusChanged(UIStates.STATUS_STOP)
+            Player.STATE_IDLE -> return
         }
         Tools.logDebug { "exoPlayer: onPlayerStateChanged: playWhenReady = $playWhenReady, playbackState = $playbackState " }
     }
@@ -84,8 +92,10 @@ class MediaPlayerInstance(private val context: Context) : Player.EventListener {
         Tools.logDebug { "exoPlayer: onPositionDiscontinuity" }
     }
 
-    override fun onTimelineChanged(timeline: Timeline, manifest: Any?,
-                                   reason: Int) {
+    override fun onTimelineChanged(
+        timeline: Timeline, manifest: Any?,
+        reason: Int
+    ) {
         Tools.logDebug { "exoPlayer: onTimelineChanged: timeline = $timeline, manifest = $manifest" }
     }
 
@@ -101,7 +111,7 @@ class MediaPlayerInstance(private val context: Context) : Player.EventListener {
         Tools.logDebug { "Call play, status: $status" }
         when (status) {
 
-            UIStates.STATUS_PLAY    -> {
+            UIStates.STATUS_PLAY -> {
                 // do nothing
             }
 
@@ -109,7 +119,7 @@ class MediaPlayerInstance(private val context: Context) : Player.EventListener {
                 // do nothing
             }
 
-            else                    -> {
+            else -> {
                 play()
             }
         }
@@ -140,7 +150,7 @@ class MediaPlayerInstance(private val context: Context) : Player.EventListener {
         val source = currentUrl.currentUrl.toUri()
         val dataSourceFactory = DefaultDataSourceFactory(context, USER_AGENT)
         val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(source)
+            .createMediaSource(source)
         mediaPlayer.playWhenReady = true
         mediaPlayer.prepare(mediaSource)
 
