@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.extensions)
     implementation(libs.exoplayer.core)
     implementation(libs.libraries.material.dialogs)
+    implementation(libs.libraries.timber)
 
     implementation(platform(libs.firebase.billOfMaterials))
     implementation(libs.firebase.crashlytics.ktx)
