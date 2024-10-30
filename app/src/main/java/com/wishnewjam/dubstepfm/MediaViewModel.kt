@@ -19,9 +19,6 @@ class MediaViewModel(application: Application) : AndroidViewModel(application) {
         currentUrl.value =
                 defaultSharedPreferences.getString(MainService.SP_KEY_BITRATE,
                         Links.LINK_128)
-        userConsent.value =
-                defaultSharedPreferences.getBoolean(MainService.SP_KEY_CONSENT,
-                        false)
     }
 
     fun changeBitrate(br: String) {
@@ -31,13 +28,5 @@ class MediaViewModel(application: Application) : AndroidViewModel(application) {
                     putString(MainService.SP_KEY_BITRATE, br)
                 }
         currentUrl.value = br
-    }
-
-    fun changeConsent(b: Boolean) {
-        PreferenceManager.getDefaultSharedPreferences(getApplication())
-                .edit {
-                    putBoolean(MainService.SP_KEY_CONSENT, b)
-                }
-        userConsent.value = b
     }
 }
