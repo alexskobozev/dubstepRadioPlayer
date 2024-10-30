@@ -19,6 +19,7 @@ version-library-leak = "2.14"
 version-library-ktx = "1.3.2"
 version-library-material-dialogs = "3.3.0"
 version-library-timber = "5.0.1"
+material = "1.12.0"
 
 [libraries]
 
@@ -38,6 +39,7 @@ libraries-multidex = { module = "androidx.multidex:multidex", version.ref = "ver
 libraries-material-dialogs = { module = "com.afollestad.material-dialogs:core", version.ref = "version-library-material-dialogs" }
 libraries-leak = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "version-library-leak" }
 libraries-timber = { module = "com.jakewharton.timber:timber", version.ref = "version-library-timber" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 
