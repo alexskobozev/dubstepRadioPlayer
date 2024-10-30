@@ -46,6 +46,7 @@ dependencies {
 
     implementation(platform(libs.firebase.billOfMaterials))
     implementation(libs.firebase.crashlytics.ktx)
+    implementation(libs.firebase.analytics)
 
     debugImplementation (libs.libraries.leak)
 }
