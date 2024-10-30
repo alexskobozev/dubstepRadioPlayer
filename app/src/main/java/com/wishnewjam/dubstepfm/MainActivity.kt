@@ -9,11 +9,9 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.text.method.LinkMovementMethod
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -21,10 +19,6 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
-import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.callbacks.onDismiss
-import com.afollestad.materialdialogs.customview.customView
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.wishnewjam.dubstepfm.Tools.logDebug
 import com.wishnewjam.dubstepfm.Tools.toastDebug
 
@@ -116,14 +110,6 @@ class MainActivity : AppCompatActivity() {
 
         mediaViewModel = ViewModelProviders.of(this)
                 .get(MediaViewModel::class.java)
-        mediaViewModel.userConsent.observe(this, { t ->
-            t?.let {
-                if (it) {
-                    FirebaseCrashlytics.getInstance()
-                            .setCrashlyticsCollectionEnabled(true)
-                }
-            }
-        })
         setContentView(R.layout.activity_main)
 
         mediaBrowser = MediaBrowserCompat(this,

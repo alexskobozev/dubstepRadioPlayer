@@ -12,7 +12,6 @@ class MediaViewModel(application: Application) : AndroidViewModel(application) {
             (application as MyApplication).mediaPlayerInstance
 
     val currentUrl = MutableLiveData<String>()
-    val userConsent = MutableLiveData<Boolean>()
 
     init {
         val defaultSharedPreferences =

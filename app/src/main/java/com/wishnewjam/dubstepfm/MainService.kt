@@ -22,8 +22,6 @@ import android.text.TextUtils
 import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import androidx.media.MediaBrowserServiceCompat
-import com.google.firebase.crashlytics.internal.common.CrashlyticsCore
-import com.google.firebase.crashlytics.internal.model.CrashlyticsReport
 import com.wishnewjam.dubstepfm.Tools.logDebug
 
 class MainService : MediaBrowserServiceCompat() {
@@ -31,7 +29,6 @@ class MainService : MediaBrowserServiceCompat() {
     companion object {
         private const val NOTIFICATION_ID = 43432
         const val SP_KEY_BITRATE = "link"
-        const val SP_KEY_CONSENT = "consent"
         const val MAX_ERROR_ATTEMPTS = 10
 
         const val NOTIFICATION_STATUS_PLAY = 1
