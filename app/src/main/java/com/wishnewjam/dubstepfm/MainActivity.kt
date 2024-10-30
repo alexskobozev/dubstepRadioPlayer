@@ -18,6 +18,7 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProviders
 import com.wishnewjam.dubstepfm.Tools.logDebug
 import com.wishnewjam.dubstepfm.Tools.toastDebug
@@ -111,6 +112,9 @@ class MainActivity : AppCompatActivity() {
         mediaViewModel = ViewModelProviders.of(this)
                 .get(MediaViewModel::class.java)
         setContentView(R.layout.activity_main)
+
+        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
 
         mediaBrowser = MediaBrowserCompat(this,
                 ComponentName(this, MainService::class.java),

@@ -7,13 +7,13 @@ plugins {
 }
 
 android {
-    compileSdkVersion(33)
+    compileSdk = 35
 
     defaultConfig {
         multiDexEnabled = true
         applicationId = "com.wishnewjam.dubstepfm"
-        minSdkVersion(21)
-        targetSdkVersion(33)
+        minSdk = 21
+        targetSdk = 35
         versionCode = 10306
         versionName = "1.3.6"
     }
@@ -47,6 +47,7 @@ dependencies {
     implementation(platform(libs.firebase.billOfMaterials))
     implementation(libs.firebase.crashlytics.ktx)
     implementation(libs.firebase.analytics)
+    implementation(libs.material)
 
     debugImplementation (libs.libraries.leak)
 }
