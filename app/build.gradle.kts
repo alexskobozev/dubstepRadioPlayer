@@ -14,8 +14,8 @@ android {
         applicationId = "com.wishnewjam.dubstepfm"
         minSdk = 21
         targetSdk = 35
-        versionCode = 10306
-        versionName = "1.3.6"
+        versionCode = 10307
+        versionName = "1.3.7"
     }
     buildTypes {
         getByName("release") {
