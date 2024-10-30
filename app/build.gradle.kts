@@ -7,13 +7,13 @@ plugins {
 }
 
 android {
-    compileSdkVersion(33)
+    compileSdk = 35
 
     defaultConfig {
         multiDexEnabled = true
         applicationId = "com.wishnewjam.dubstepfm"
-        minSdkVersion(16)
-        targetSdkVersion(33)
+        minSdk = 21
+        targetSdk = 35
         versionCode = 10306
         versionName = "1.3.6"
     }
@@ -27,11 +27,8 @@ android {
         exclude("META-INF/atomicfu.kotlin_module")
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     namespace = "com.wishnewjam.dubstepfm"
 }
@@ -44,11 +41,13 @@ dependencies {
     implementation(libs.androidx.ktx)
     implementation(libs.androidx.lifecycle.extensions)
     implementation(libs.exoplayer.core)
-    implementation(libs.libraries.wang)
     implementation(libs.libraries.material.dialogs)
+    implementation(libs.libraries.timber)
 
     implementation(platform(libs.firebase.billOfMaterials))
     implementation(libs.firebase.crashlytics.ktx)
+    implementation(libs.firebase.analytics)
+    implementation(libs.material)
 
     debugImplementation (libs.libraries.leak)
 }
