@@ -7,6 +7,7 @@ import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -224,7 +225,15 @@ class MainService : MediaBrowserServiceCompat() {
                         androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(
                                 applicationContext,
                                 PlaybackStateCompat.ACTION_STOP))
-                startForeground(NOTIFICATION_ID, mBuilder.build())
+                if (Build.VERSION.SDK_INT >= 29) {
+                    startForeground(
+                        NOTIFICATION_ID,
+                        mBuilder.build(),
+                        FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+                    )
+                } else {
+                    startForeground(NOTIFICATION_ID, mBuilder.build())
+                }
             }
             NOTIFICATION_STATUS_CONNECTING -> {
                 mBuilder.setContentTitle(getString(R.string.connecting))
@@ -233,7 +242,15 @@ class MainService : MediaBrowserServiceCompat() {
                         androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(
                                 applicationContext,
                                 PlaybackStateCompat.ACTION_STOP))
-                startForeground(NOTIFICATION_ID, mBuilder.build())
+                if (Build.VERSION.SDK_INT >= 29) {
+                    startForeground(
+                        NOTIFICATION_ID,
+                        mBuilder.build(),
+                        FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+                    )
+                } else {
+                    startForeground(NOTIFICATION_ID, mBuilder.build())
+                }
             }
             NOTIFICATION_STATUS_STOP       -> {
                 mBuilder.addAction(R.drawable.ic_play, getString(R.string.play),
@@ -250,7 +267,15 @@ class MainService : MediaBrowserServiceCompat() {
                         androidx.media.session.MediaButtonReceiver.buildMediaButtonPendingIntent(
                                 applicationContext,
                                 PlaybackStateCompat.ACTION_STOP))
-                startForeground(NOTIFICATION_ID, mBuilder.build())
+                if (Build.VERSION.SDK_INT >= 29) {
+                    startForeground(
+                        NOTIFICATION_ID,
+                        mBuilder.build(),
+                        FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+                    )
+                } else {
+                    startForeground(NOTIFICATION_ID, mBuilder.build())
+                }
             }
             NOTIFICATION_STATUS_ERROR      -> {
                 mBuilder.addAction(R.drawable.ic_play, getString(R.string.play),
