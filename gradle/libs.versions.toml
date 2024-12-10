@@ -8,7 +8,7 @@ version-plugin-crashlytics = "3.0.2"
 
 version-androidx-multidex = "2.0.1"
 version-androidx-appcompat = "1.2.0"
-version-androidx-media = "1.6.0"
+version-androidx-media3 = "1.5.0"
 version-androidx-constraint = "2.0.4"
 version-androidx-lifecycle = "2.2.0"
 
@@ -28,7 +28,9 @@ firebase-crashlytics-ktx = { module = "com.google.firebase:firebase-crashlytics-
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "version-androidx-appcompat" }
-androidx-media = { module = "androidx.media:media", version.ref = "version-androidx-media" }
+androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "version-androidx-media3" }
+androidx-media3-session = { module = "androidx.media3:media3-session", version.ref = "version-androidx-media3" }
+#androidx-media3-extractor = { module = "androidx.media3:media3-extractor", version.ref = "version-androidx-media3" }
 androidx-constraint = { module = "androidx.constraintlayout:constraintlayout", version.ref = "version-androidx-constraint" }
 androidx-ktx = { module = "androidx.core:core-ktx", version.ref = "version-library-ktx" }
 androidx-lifecycle-extensions = { module = "androidx.lifecycle:lifecycle-extensions", version.ref = "version-androidx-lifecycle" }

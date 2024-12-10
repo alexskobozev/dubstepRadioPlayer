@@ -1,14 +1,7 @@
 package com.wishnewjam.dubstepfm
 
-import android.content.ComponentName
-import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaControllerCompat
-import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.media.session.PlaybackStateCompat
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -19,123 +12,67 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.ViewModelProviders
-import com.wishnewjam.dubstepfm.Tools.logDebug
-import com.wishnewjam.dubstepfm.Tools.toastDebug
+import androidx.lifecycle.ViewModelProvider
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), MediaBrowserManager.Callback {
 
-    private var mediaBrowser: MediaBrowserCompat? = null
     private lateinit var mediaViewModel: MediaViewModel
-
-    private val controllerCallback: MediaControllerCompat.Callback =
-            object : MediaControllerCompat.Callback() {
-                override fun onPlaybackStateChanged(
-                        state: PlaybackStateCompat?) {
-                    super.onPlaybackStateChanged(state)
-                    logDebug { "controllerCallback: onPlaybackStateChanged, state= ${state?.state}" }
-                    applyPlaybackState(state?.state)
-                }
-
-                override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-                    super.onMetadataChanged(metadata)
-                    applyMetadata(metadata)
-                }
-            }
-
-    private val connectionCallback: MediaBrowserCompat.ConnectionCallback? =
-            object : MediaBrowserCompat.ConnectionCallback() {
-                override fun onConnected() {
-                    super.onConnected()
-                    logDebug { "ConnectionCallback: onConnected" }
-                    val token: MediaSessionCompat.Token? =
-                            mediaBrowser?.sessionToken
-                    token?.let {
-                        val controller =
-                                MediaControllerCompat(this@MainActivity, it)
-                        MediaControllerCompat.setMediaController(
-                                this@MainActivity, controller)
-                        buildTransportControls()
-                        applyPlaybackState(controller.playbackState.state)
-                        applyMetadata(controller.metadata)
-                    }
-                    volumeControlStream = AudioManager.STREAM_MUSIC
-                    startService(
-                            Intent(this@MainActivity, MainService::class.java))
-                }
-
-                override fun onConnectionSuspended() {
-                    super.onConnectionSuspended()
-                    logDebug { "ConnectionCallback: onConnectionSuspended" }
-                }
-
-                override fun onConnectionFailed() {
-                    super.onConnectionFailed()
-                    logDebug { "ConnectionCallback: onConnectionFailed" }
-                }
-            }
-
-    private fun applyMetadata(metadata: MediaMetadataCompat?) {
-        val artist =
-                metadata?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
-        val track = metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
-        if (artist != null && track != null) {
-            val nowPlayingText = "${getString(R.string.now_playing)} $track"
-            findViewById<TextView>(R.id.tv_nowplaying).text = nowPlayingText
-        }
-    }
-
-    private fun buildTransportControls() {
-        val playButton: Button? = findViewById(R.id.tv_play)
-        val stopButton: Button? = findViewById(R.id.tv_stop)
-        val mediaController = MediaControllerCompat.getMediaController(this)
-
-        playButton?.setOnClickListener {
-            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) findViewById<TextView>(
-                R.id.tv_nowplaying
-            ).setText(
-                R.string.gathering_info
-            )
-            mediaController.transportControls.play()
-        }
-
-        stopButton?.setOnClickListener {
-            mediaController.transportControls.stop()
-        }
-
-        mediaController.registerCallback(controllerCallback)
-    }
+    private var mediaBrowserManager: MediaBrowserManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        mediaViewModel = ViewModelProviders.of(this)
-                .get(MediaViewModel::class.java)
+        mediaViewModel = ViewModelProvider(this).get(MediaViewModel::class.java)
         setContentView(R.layout.activity_main)
 
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        mediaBrowser = MediaBrowserCompat(this,
-                ComponentName(this, MainService::class.java),
-                connectionCallback, null)
+        setupUIControls()
+
+        // Initialize MediaBrowserManager
+        mediaBrowserManager = MediaBrowserManager(this, this).apply {
+            initialize()
+        }
     }
 
-    override fun onStart() {
-        super.onStart()
-        mediaBrowser?.connect()
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaBrowserManager?.release()
+        mediaBrowserManager = null
     }
 
-    override fun onStop() {
-        super.onStop()
-        MediaControllerCompat.getMediaController(this)
-                ?.unregisterCallback(controllerCallback)
-        mediaBrowser?.disconnect()
+    override fun onConnected() {
+        Tools.logDebug { "MediaBrowser connected." }
+        volumeControlStream = AudioManager.STREAM_MUSIC
+        mediaBrowserManager?.startService()
+        applyCurrentStateAndMetadata()
+    }
+
+    override fun onPlaybackStateChanged(isPlaying: Boolean, playbackState: Int) {
+        Tools.logDebug { "onPlaybackStateChanged: isPlaying=$isPlaying, state=$playbackState" }
+        when {
+            playbackState == Player.STATE_BUFFERING -> applyPlaybackState(UIStates.STATUS_LOADING)
+            isPlaying -> applyPlaybackState(UIStates.STATUS_PLAY)
+            playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE ->
+                applyPlaybackState(UIStates.STATUS_STOP)
+
+            else -> applyPlaybackState(UIStates.STATUS_STOP)
+        }
+    }
+
+    override fun onMediaMetadataChanged(metadata: MediaMetadata) {
+        applyMetadata(metadata)
+    }
+
+    override fun onError(error: Throwable) {
+        Tools.logDebug { "onError: $error" }
+        applyPlaybackState(UIStates.STATUS_ERROR)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater = menuInflater
-        inflater.inflate(R.menu.main, menu)
+        menuInflater.inflate(R.menu.main, menu)
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -145,16 +82,56 @@ class MainActivity : AppCompatActivity() {
                 showBitrateChooser()
                 true
             }
-            else                -> super.onOptionsItemSelected(item)
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
-    private fun applyPlaybackState(state: Int?) {
+    private fun applyCurrentStateAndMetadata() {
+        val mgr = mediaBrowserManager ?: return
+        val playbackState = mgr.getPlaybackState()
+        val isPlaying = mgr.isPlaying()
+
+        when {
+            playbackState == Player.STATE_BUFFERING -> applyPlaybackState(UIStates.STATUS_LOADING)
+            isPlaying -> applyPlaybackState(UIStates.STATUS_PLAY)
+            else -> applyPlaybackState(UIStates.STATUS_STOP)
+        }
+
+        mgr.getCurrentMetadata()?.let { applyMetadata(it) }
+    }
+
+    private fun applyMetadata(metadata: MediaMetadata) {
+        val artist = metadata.artist
+        val title = metadata.title
+        if (!artist.isNullOrEmpty() && !title.isNullOrEmpty()) {
+            val nowPlayingText = "${getString(R.string.now_playing)} $title"
+            findViewById<TextView>(R.id.tv_nowplaying).text = nowPlayingText
+        }
+    }
+
+    private fun applyPlaybackState(state: Int) {
         when (state) {
-            PlaybackStateCompat.STATE_PLAYING   -> showPlaying()
-            PlaybackStateCompat.STATE_BUFFERING -> showLoading()
-            PlaybackStateCompat.STATE_ERROR     -> showError()
-            else                                -> showStopped()
+            UIStates.STATUS_PLAY -> showPlaying()
+            UIStates.STATUS_LOADING -> showLoading()
+            UIStates.STATUS_ERROR -> showError()
+            else -> showStopped()
+        }
+    }
+
+    private fun setupUIControls() {
+        val playButton: Button? = findViewById(R.id.tv_play)
+        val stopButton: Button? = findViewById(R.id.tv_stop)
+
+        playButton?.setOnClickListener {
+            val mgr = mediaBrowserManager ?: return@setOnClickListener
+            if (!mgr.isPlaying()) {
+                findViewById<TextView>(R.id.tv_nowplaying).setText(R.string.gathering_info)
+            }
+            mgr.play()
+        }
+
+        stopButton?.setOnClickListener {
+            mediaBrowserManager?.stop()
         }
     }
 
@@ -183,7 +160,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<ProgressBar>(R.id.progressBar).visibility = View.INVISIBLE
         findViewById<ImageView>(R.id.iv_status).visibility = View.VISIBLE
         findViewById<ImageView>(R.id.iv_status).setImageResource(R.drawable.ic_stop)
-        toastDebug({ getString(R.string.error) }, this)
+        Tools.toastDebug({ getString(R.string.error) }, this)
     }
 
     private fun showBitrateChooser() {

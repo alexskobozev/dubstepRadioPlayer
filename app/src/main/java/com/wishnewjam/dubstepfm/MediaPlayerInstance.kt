@@ -2,20 +2,24 @@ package com.wishnewjam.dubstepfm
 
 import android.content.Context
 import androidx.core.net.toUri
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.ExoPlaybackException
-import com.google.android.exoplayer2.PlaybackParameters
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.Timeline
-import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.metadata.icy.IcyInfo
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.source.TrackGroupArray
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Metadata
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.Player
+import androidx.media3.common.Timeline
+import androidx.media3.common.Tracks
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.extractor.metadata.icy.IcyInfo
 
-class MediaPlayerInstance(private val context: Context) : Player.EventListener {
+@UnstableApi
+class MediaPlayerInstance(private val context: Context) : Player.Listener {
+
     companion object {
         private const val USER_AGENT: String = "dubstep.fm"
     }
@@ -23,102 +27,94 @@ class MediaPlayerInstance(private val context: Context) : Player.EventListener {
     var status: Int = UIStates.STATUS_UNDEFINED
     var serviceCallback: CallbackInterface? = null
     private var currentUrl: CurrentUrl = CurrentUrl(context)
-    private val mediaPlayer: SimpleExoPlayer = SimpleExoPlayer.Builder(context)
-        .build()
 
-    init {
-        mediaPlayer.addListener(this)
+    private val mediaPlayer: ExoPlayer = ExoPlayer.Builder(context).build().apply {
+        addListener(this@MediaPlayerInstance)
         val attributes = AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
-            .setContentType(C.CONTENT_TYPE_MUSIC)
+            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .build()
-        mediaPlayer.setAudioAttributes(attributes, true)
-        mediaPlayer.addMetadataOutput {
-            if (it.length() > 0) {
-                (it.get(0) as? IcyInfo?)?.title?.let { s ->
-                    serviceCallback?.onMetaDataTrackChange(s)
+        setAudioAttributes(attributes, true)
+    }
+
+    override fun onPlaybackStateChanged(playbackState: Int) {
+        // This callback replaces the old onPlayerStateChanged.
+        // Here we can check mediaPlayer.playWhenReady for readiness and handle states.
+        val playWhenReady = mediaPlayer.playWhenReady
+        when (playbackState) {
+            Player.STATE_BUFFERING -> notifyStatusChanged(UIStates.STATUS_LOADING)
+            Player.STATE_READY -> if (playWhenReady) notifyStatusChanged(UIStates.STATUS_PLAY)
+            Player.STATE_ENDED -> notifyStatusChanged(UIStates.STATUS_STOP)
+            Player.STATE_IDLE -> {
+                // no action needed
+            }
+        }
+        Tools.logDebug {
+            "media3Player: onPlaybackStateChanged: playWhenReady = $playWhenReady, playbackState = $playbackState"
+        }
+    }
+
+    override fun onMetadata(metadata: Metadata) {
+        // Media3: onMetadata is now part of Player.Listener
+        if (metadata.length() > 0) {
+            for (i in 0 until metadata.length()) {
+                val entry = metadata[i]
+                if (entry is IcyInfo) {
+                    entry.title?.let { title ->
+                        serviceCallback?.onMetaDataTrackChange(title)
+                    }
                 }
             }
         }
     }
 
-    override fun onRepeatModeChanged(repeatMode: Int) {
-        Tools.logDebug { "exoPlayer: onRepeatModeChanged: $repeatMode" }
+    override fun onPlayerError(error: PlaybackException) {
+        Tools.logDebug { "media3Player: onPlayerError: error = $error" }
+        status = UIStates.STATUS_ERROR
+        serviceCallback?.onError("Playback error: $error")
+    }
+
+    override fun onTracksChanged(tracks: Tracks) {
+        Tools.logDebug { "media3Player: onTracksChanged: tracks = $tracks" }
+    }
+
+    override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+        Tools.logDebug { "media3Player: onTimelineChanged: timeline = $timeline" }
+    }
+
+    override fun onIsLoadingChanged(isLoading: Boolean) {
+        Tools.logDebug { "media3Player: onIsLoadingChanged: isLoading = $isLoading" }
     }
 
     override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
-        Tools.logDebug { "exoPlayer: onPlaybackParametersChanged: $playbackParameters" }
+        Tools.logDebug { "media3Player: onPlaybackParametersChanged: $playbackParameters" }
     }
 
-    override fun onTracksChanged(
-        trackGroups: TrackGroupArray,
-        trackSelections: TrackSelectionArray
-    ) {
-        Tools.logDebug { "exoPlayer: onTracksChanged: trackGroups = $trackGroups, trackSelections = $trackSelections" }
-
+    override fun onRepeatModeChanged(repeatMode: Int) {
+        Tools.logDebug { "media3Player: onRepeatModeChanged: $repeatMode" }
     }
 
-    override fun onPlayerError(error: ExoPlaybackException) {
-        Tools.logDebug { "exoPlayer: onPlayerError: error = $error" }
-        status = UIStates.STATUS_ERROR
-        serviceCallback?.onError("Playback error: $error")
-
-    }
-
-    override fun onPlayerStateChanged(
-        playWhenReady: Boolean,
-        playbackState: Int
-    ) {
-        when (playbackState) {
-            Player.STATE_BUFFERING -> notifyStatusChanged(
-                UIStates.STATUS_LOADING
-            )
-
-            Player.STATE_READY -> if (playWhenReady) notifyStatusChanged(
-                UIStates.STATUS_PLAY
-            )
-
-            Player.STATE_ENDED -> notifyStatusChanged(UIStates.STATUS_STOP)
-            Player.STATE_IDLE -> return
-        }
-        Tools.logDebug { "exoPlayer: onPlayerStateChanged: playWhenReady = $playWhenReady, playbackState = $playbackState " }
-    }
-
-    override fun onLoadingChanged(isLoading: Boolean) {
-        Tools.logDebug { "exoPlayer: onLoadingChanged: isLoading = $isLoading" }
-    }
-
-    override fun onPositionDiscontinuity(reason: Int) {
-        Tools.logDebug { "exoPlayer: onPositionDiscontinuity" }
-    }
-
-    override fun onTimelineChanged(
-        timeline: Timeline, manifest: Any?,
+    override fun onPositionDiscontinuity(
+        oldPosition: Player.PositionInfo,
+        newPosition: Player.PositionInfo,
         reason: Int
     ) {
-        Tools.logDebug { "exoPlayer: onTimelineChanged: timeline = $timeline, manifest = $manifest" }
-    }
-
-    override fun onSeekProcessed() {
-        Tools.logDebug { "exoPlayer: onSeekProcessed" }
+        Tools.logDebug { "media3Player: onPositionDiscontinuity" }
     }
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-        Tools.logDebug { "exoPlayer: shuffleModeEnabled" }
+        Tools.logDebug { "media3Player: onShuffleModeEnabledChanged: $shuffleModeEnabled" }
     }
 
     fun callPlay() {
         Tools.logDebug { "Call play, status: $status" }
         when (status) {
-
             UIStates.STATUS_PLAY -> {
                 // do nothing
             }
-
             UIStates.STATUS_LOADING -> {
                 // do nothing
             }
-
             else -> {
                 play()
             }
@@ -147,14 +143,20 @@ class MediaPlayerInstance(private val context: Context) : Player.EventListener {
     }
 
     private fun play() {
-        val source = currentUrl.currentUrl.toUri()
-        val dataSourceFactory = DefaultDataSourceFactory(context, USER_AGENT)
+        val sourceUri = currentUrl.currentUrl.toUri()
+        val dataSourceFactory = DefaultDataSource.Factory(context)
         val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(source)
+            .createMediaSource(MediaItem.fromUri(sourceUri))
+
+        mediaPlayer.setMediaSource(mediaSource)
+        mediaPlayer.prepare()
         mediaPlayer.playWhenReady = true
-        mediaPlayer.prepare(mediaSource)
 
         notifyStatusChanged(UIStates.STATUS_LOADING)
+    }
+
+    fun getPlayer(): Player {
+        return mediaPlayer
     }
 
     interface CallbackInterface {
