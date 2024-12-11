@@ -26,6 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wishnewjam.commons.design.R
 import com.wishnewjam.commons.design.buttonBackground
 import com.wishnewjam.commons.design.buttonTextCommon
 import com.wishnewjam.home.domain.PlayerViewModel
@@ -45,106 +46,106 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
                 modifier = Modifier.padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .padding(end = 8.dp)
-                    )
-                }
-
-                Image(
-                    painter = painterResource(id = com.wishnewjam.commons.design.R.drawable.ic_stop),
-                    contentDescription = "Stop",
-                    modifier = Modifier
-                        .size(24.dp)
-                        .padding(end = 8.dp)
-                )
-
-                Text(
-                    text = uiState.nowPlaying,
-                    fontSize = 18.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+                PlaybackStatusBar(uiState)
             }
-
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = com.wishnewjam.commons.design.R.drawable.img_logo),
-                    contentDescription = "Logo",
-                    modifier = Modifier.padding(36.dp)
-                )
-            }
-
-            Button(
-                onClick = { viewModel.play() },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = buttonBackground,
-                    contentColor = buttonTextCommon
-                )
-            ) {
-                if (uiState.isPlaying) {
-                    Image(
-                        painter = painterResource(id = com.wishnewjam.commons.design.R.drawable.ic_stop),
-                        contentDescription = "Stop",
-                        modifier = Modifier
-                            .size(64.dp)
-                            .padding(8.dp)
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(id = com.wishnewjam.commons.design.R.drawable.ic_play),
-                        contentDescription = "Play",
-                        modifier = Modifier
-                            .size(64.dp)
-                            .padding(8.dp)
-                    )
-                }
-            }
-
-//            Spacer(modifier = Modifier.height(23.dp))
-//
-//            Button(
-//                onClick = { viewModel.stop() },
-//                modifier = Modifier.fillMaxWidth(),
-//                colors = ButtonDefaults.buttonColors(
-//                    containerColor = buttonBackground,
-//                    contentColor = buttonTextCommon
-//                )
-//            ) {
-//                Text(
-//                    text = "Stop",
-//                    fontSize = 24.sp,
-//                )
-//            }
-
+            MainLogo(modifier = Modifier.weight(weight = 1f))
+            PlayButton(viewModel, uiState)
             Spacer(modifier = Modifier.height(24.dp))
         }
 
         if (uiState.isLoading) {
-            Box(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .background(Color.Black),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator()
-
-                    Text(
-                        text = "Loading",
-                        fontSize = 24.sp,
-                        color = Color.White
-                    )
-                }
-            }
+            LoadingPop()
         }
     }
+}
+
+@Composable
+private fun LoadingPop(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .wrapContentSize()
+            .background(Color.Black),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            CircularProgressIndicator()
+
+            Text(
+                text = "Loading",
+                fontSize = 24.sp,
+                color = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlayButton(
+    viewModel: PlayerViewModel,
+    uiState: PlayerViewModel.UiState,
+    modifier: Modifier = Modifier,
+) = Button(
+    onClick = { viewModel.play() },
+    modifier = modifier.fillMaxWidth(),
+    colors = ButtonDefaults.buttonColors(
+        containerColor = buttonBackground,
+        contentColor = buttonTextCommon
+    )
+) {
+    if (uiState.isPlaying) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_stop),
+            contentDescription = "Stop",
+            modifier = Modifier
+                .size(64.dp)
+                .padding(8.dp)
+        )
+    } else {
+        Image(
+            painter = painterResource(id = R.drawable.ic_play),
+            contentDescription = "Play",
+            modifier = Modifier
+                .size(64.dp)
+                .padding(8.dp)
+        )
+    }
+}
+
+@Composable
+private fun MainLogo(modifier: Modifier = Modifier) = Box(
+    modifier = modifier
+        .fillMaxWidth(),
+    contentAlignment = Alignment.Center
+) {
+    Image(
+        painter = painterResource(id = R.drawable.img_logo),
+        contentDescription = "Logo",
+        modifier = Modifier.padding(36.dp)
+    )
+}
+
+@Composable
+private fun PlaybackStatusBar(uiState: PlayerViewModel.UiState, modifier: Modifier = Modifier) {
+    if (uiState.isLoading) {
+        CircularProgressIndicator(
+            modifier = modifier
+                .size(24.dp)
+                .padding(end = 8.dp)
+        )
+    }
+
+    Image(
+        painter = painterResource(id = R.drawable.ic_stop),
+        contentDescription = "Stop",
+        modifier = modifier
+            .size(24.dp)
+            .padding(end = 8.dp)
+    )
+
+    Text(
+        text = uiState.nowPlaying,
+        fontSize = 18.sp,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis
+    )
 }
