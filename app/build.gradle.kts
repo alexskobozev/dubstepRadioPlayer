@@ -14,8 +14,8 @@ android {
         applicationId = "com.wishnewjam.dubstepfm"
         minSdk = libs.versions.system.min.sdk.get().toInt()
         targetSdk = libs.versions.system.target.sdk.get().toInt()
-        versionCode = 10308
-        versionName = "1.3.8"
+        versionCode = 20000
+        versionName = "2.0.0"
     }
     buildTypes {
         getByName("release") {
@@ -73,8 +73,8 @@ dependencies {
 //    implementation(libs.androidx.compose.ui)
 //
     implementation(libs.firebase.crashlytics.ktx)
-    implementation(libs.firebase.analytics)
-    implementation(libs.material)
+//    implementation(libs.firebase.analytics)
+//    implementation(libs.material)
 
 //    implementation(libs.kotlin.coroutines.core)
 
