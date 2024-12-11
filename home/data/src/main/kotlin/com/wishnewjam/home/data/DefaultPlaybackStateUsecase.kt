@@ -8,6 +8,6 @@ import javax.inject.Inject
 
 class DefaultPlaybackStateUsecase @Inject constructor(
     playerStateRepository: PlayerStateRepository
-) : UiPlayerStateUsecase {
+) : UiPlayerStateUsecase<PlayerState> {
     override val currentState: StateFlow<PlayerState> = playerStateRepository.currentState
 }
