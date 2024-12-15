@@ -49,7 +49,9 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
                 PlaybackStatusBar(uiState)
             }
             MainLogo(modifier = Modifier.weight(weight = 1f))
-            PlayButton(viewModel, uiState)
+            PlayButton(uiState) {
+                viewModel.clickPlayButton()
+            }
             Spacer(modifier = Modifier.height(24.dp))
         }
 
@@ -81,11 +83,11 @@ private fun LoadingPop(modifier: Modifier = Modifier) {
 
 @Composable
 private fun PlayButton(
-    viewModel: PlayerViewModel,
     uiState: PlayerViewModel.UiState,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit
 ) = Button(
-    onClick = { viewModel.play() },
+    onClick = onClick,
     modifier = modifier.fillMaxWidth(),
     colors = ButtonDefaults.buttonColors(
         containerColor = buttonBackground,

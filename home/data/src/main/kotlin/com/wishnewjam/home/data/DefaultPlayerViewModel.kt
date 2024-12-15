@@ -7,9 +7,11 @@ import com.wishnewjam.home.domain.UiPlayerStateUsecase
 import com.wishnewjam.playback.domain.PlaybackCommandHandler
 import com.wishnewjam.playback.domain.PlayerState
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -35,7 +37,13 @@ class DefaultPlayerViewModel @Inject constructor(
 
     override val state: StateFlow<UiState> = _state.asStateFlow()
 
-    override fun play() {
+    val playerState = playbackStateUsecase.currentState.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = PlayerState.STOPPED,
+    )
+
+    override fun clickPlayButton() {
         Timber.d("Push play button")
         _state.value = _state.value.copy(isLoading = true)
         viewModelScope.launch {

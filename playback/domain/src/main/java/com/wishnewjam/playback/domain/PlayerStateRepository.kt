@@ -1,10 +1,10 @@
 package com.wishnewjam.playback.domain
 
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
 
 interface PlayerStateRepository {
-    val currentState: StateFlow<PlayerState>
+    val currentState: Flow<PlayerState>
     fun setCurrentState(state: PlayerState)
 }
 

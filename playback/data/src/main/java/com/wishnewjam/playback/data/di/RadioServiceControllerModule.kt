@@ -8,14 +8,18 @@ import com.wishnewjam.playback.data.usecase.SaveMetaDataUseCase
 import com.wishnewjam.playback.domain.PlayerStateRepository
 import dagger.Binds
 import dagger.Module
+import dagger.Reusable
+import javax.inject.Singleton
 
 @Module
 interface RadioServiceControllerModule {
 
     @OptIn(UnstableApi::class)
     @Binds
+    @Reusable
     fun saveMetaDataUseCase(real: DefaultSaveMetadataUseCase): SaveMetaDataUseCase
 
     @Binds
+    @Reusable
     fun playerStateRepository(real: DefaultPlayerStateRepository): PlayerStateRepository
 }

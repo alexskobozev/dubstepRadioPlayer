@@ -12,7 +12,7 @@ abstract class PlayerViewModel : ViewModel() {
         val nowPlaying: String = "Nothing to play",
     )
 
-    abstract fun play()
+    abstract fun clickPlayButton()
 
     abstract fun stop()
 }
