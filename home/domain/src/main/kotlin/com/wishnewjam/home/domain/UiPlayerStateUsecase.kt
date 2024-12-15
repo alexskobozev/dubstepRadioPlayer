@@ -1,7 +1,7 @@
 package com.wishnewjam.home.domain
 
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
 interface UiPlayerStateUsecase<T> {
-    val currentState: StateFlow<T>
+    val currentState: Flow<T>
 }
