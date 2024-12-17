@@ -52,7 +52,6 @@ class DefaultPlayerViewModel @Inject constructor(
 
     private fun handleNewState(state: PlayerState) {
         Timber.d("Ui received new state: $state")
-        // TODO: other states
         when (state) {
             PlayerState.LOADING -> _uiState.value =
                 _uiState.value.copy(isLoading = true, isPlaying = false)
