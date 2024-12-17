@@ -38,7 +38,6 @@ class DefaultRadioServiceController @Inject constructor(
     private val playerStateRepository: PlayerStateRepository,
 ) : RadioServiceController {
 
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private val uiScope = CoroutineScope(Dispatchers.Main)
     private var mediaSession: MediaSession? = null
 
@@ -88,9 +87,17 @@ class DefaultRadioServiceController @Inject constructor(
                 for (i in 0 until events.size()) {
                     when (events[i]) {
                         Player.EVENT_IS_PLAYING_CHANGED -> if (player.isPlaying) {
+                            Timber.d("RadioServiceController: EVENT_IS_PLAYING_CHANGED, playing: ${player.isPlaying}")
                             playerStateRepository.setCurrentState(PlayerState.PLAYING)
                         } else {
-                            playerStateRepository.setCurrentState(PlayerState.STOPPED)
+                            playerStateRepository.setCurrentState(PlayerState.PAUSED)
+                        }
+
+                        Player.EVENT_PLAY_WHEN_READY_CHANGED -> if (player.isPlaying) {
+                            Timber.d("RadioServiceController: EVENT_PLAY_WHEN_READY_CHANGED, playing: ${player.isPlaying}")
+                            playerStateRepository.setCurrentState(PlayerState.PLAYING)
+                        } else {
+                            playerStateRepository.setCurrentState(PlayerState.PAUSED)
                         }
 
 //                        Player.EVENT_MEDIA_METADATA_CHANGED -> onMetadataChanged(player.mediaMetadata)
@@ -111,7 +118,22 @@ class DefaultRadioServiceController @Inject constructor(
                         Timber.d(
                             "onPlayerCommandRequest() called with: session = $session, controller = $controller, playerCommand = $playerCommand"
                         )
-                        return requestPlayerCommand(controller, playerCommand)
+                        // controller.packageName == "com.android.bluetooth" todo   handle case
+                        Timber.d("Got command to session from ${controller.packageName}: ${playerCommand.commandToString()}")
+                        when (playerCommand) {
+                            COMMAND_PLAY_PAUSE -> uiScope.launch {
+                                if (!player.playWhenReady) {
+                                    playerStateRepository.setCurrentState(PlayerState.PAUSED)
+                                } else {
+                                    Timber.d("RadioServiceController: EVENT_PLAY_WHEN_READY_CHANGED, playing: ${player.isPlaying}")
+                                    playerStateRepository.setCurrentState(PlayerState.PLAYING)
+                                    playRadio()
+                                }
+                            }
+
+                            COMMAND_STOP -> stopRadio()
+                        }
+                        return SessionResult.RESULT_SUCCESS
                     }
 
                     override fun onConnect(
@@ -239,18 +261,6 @@ class DefaultRadioServiceController @Inject constructor(
 //        Timber.d("onMetadataChanged() called with: mediaMetadata = $mediaMetadata")
 //    }
 
-    private fun requestPlayerCommand(
-        controller: MediaSession.ControllerInfo,
-        playerCommand: Int
-    ): Int {
-        // controller.packageName == "com.android.bluetooth" todo   handle case
-        Timber.d("Got command to session from ${controller.packageName}: ${playerCommand.commandToString()}")
-        when (playerCommand) {
-            COMMAND_PLAY_PAUSE -> uiScope.launch { playRadio() }
-            COMMAND_STOP -> stopRadio()
-        }
-        return SessionResult.RESULT_SUCCESS
-    }
 
     private suspend fun playRadio() {
         val streamUrl = streamRepository.currentStreamUrl.last() // TODO: choose

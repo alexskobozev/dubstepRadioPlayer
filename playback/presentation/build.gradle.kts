@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.libraries.dagger)
     implementation(libs.libraries.dagger.android)
     implementation(project(mapOf("path" to ":playback:data")))
+    implementation(libs.androidx.core)
     ksp(libs.libraries.dagger.compiler)
     implementation(libs.libraries.timber)
 }

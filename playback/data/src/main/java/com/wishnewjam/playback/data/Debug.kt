@@ -1,39 +1,9 @@
 package com.wishnewjam.playback.data
 
-import androidx.media3.common.Metadata
-import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.util.EventLogger
 import timber.log.Timber
-
-@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-fun gebugListener() = object : AnalyticsListener {
-    override fun onMetadata(
-        eventTime: AnalyticsListener.EventTime,
-        metadata: Metadata
-    ) {
-        Timber.d("Metadata changed: $metadata")
-        super.onMetadata(eventTime, metadata)
-    }
-
-    override fun onPlayerError(
-        eventTime: AnalyticsListener.EventTime,
-        error: PlaybackException
-    ) {
-        Timber.d(error)
-        super.onPlayerError(eventTime, error)
-    }
-
-    override fun onEvents(
-        player: Player,
-        events: AnalyticsListener.Events
-    ) {
-        for (i in 0 until events.size()) {
-            Timber.d("Exoplayer event: ${events.get(i).eventToString()}")
-        }
-    }
-}
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 fun AnalyticsListener.Events.printDebug() {

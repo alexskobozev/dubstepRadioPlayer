@@ -34,7 +34,7 @@ class DefaultPlaybackCommandHandler @Inject constructor() : PlaybackCommandHandl
         player?.play()
     }
 
-    override fun stop() {
-        player?.stop()
+    override fun pause() {
+        player?.pause()
     }
 }

@@ -11,5 +11,5 @@ interface PlayerStateRepository {
 enum class PlayerState {
     LOADING,
     PLAYING,
-    STOPPED,
+    PAUSED,
 }

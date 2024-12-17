@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.runtime.livedata)
     implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.media3.session)
 
     implementation(libs.libraries.dagger)
     implementation(libs.libraries.dagger.android)

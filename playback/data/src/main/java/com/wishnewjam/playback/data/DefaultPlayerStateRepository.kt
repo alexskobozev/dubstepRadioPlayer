@@ -9,7 +9,7 @@ import javax.inject.Inject
 class DefaultPlayerStateRepository @Inject constructor() : PlayerStateRepository {
 
     private val _currentState =
-        MutableStateFlow(PlayerState.STOPPED)
+        MutableStateFlow(PlayerState.PAUSED)
 
     override val currentState: Flow<PlayerState> = _currentState
 

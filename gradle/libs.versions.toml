@@ -30,6 +30,7 @@ plugin-versions = "0.48.0"
 plugin-ksp = "2.0.21-1.0.28"
 plugin-spotless = "6.21.0"
 lifecycle-viewmodel = "2.8.7"
+core = "1.15.0"
 
 [libraries]
 
@@ -64,6 +65,7 @@ libraries-timber = { module = "com.jakewharton.timber:timber", version.ref = "li
 libraries-wang = { module = "com.wang.avi:library", version.ref = "library-wang" }
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle-viewmodel" }
 androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "lifecycle-viewmodel" }
+androidx-core = { group = "androidx.core", name = "core", version.ref = "core" }
 
 [plugins]
 
