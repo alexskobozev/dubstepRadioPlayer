@@ -1,6 +1,7 @@
 package com.wishnewjam.playback.data
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -29,7 +30,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -69,10 +69,7 @@ class DefaultRadioServiceController @Inject constructor(
                 metadata: Metadata
             ) {
                 Timber.d("onMetadata() called with: eventTime = $eventTime, metadata = $metadata")
-                coroutineScope.launch {
-                    Timber.d("Got metadata: $metadata")
-                    updateMetadata(metadata)
-                }
+                updateMetadata(metadata)
             }
 
             override fun onPlayerError(
@@ -102,7 +99,7 @@ class DefaultRadioServiceController @Inject constructor(
             }
         })
 
-        return MediaSession.Builder(mediaSessionService, player)
+        val mediaSession = MediaSession.Builder(mediaSessionService, player)
             .setCallback(
                 object : MediaSession.Callback {
                     @Deprecated("Deprecated in Java")
@@ -235,6 +232,7 @@ class DefaultRadioServiceController @Inject constructor(
                 }
             )
             .build()
+        return mediaSession
     }
 
 //    private fun onMetadataChanged(mediaMetadata: MediaMetadata) {
@@ -257,18 +255,21 @@ class DefaultRadioServiceController @Inject constructor(
     private suspend fun playRadio() {
         val streamUrl = streamRepository.currentStreamUrl.last() // TODO: choose
         Timber.d("Service: play command with uri $streamUrl")
-        val mediaItem = MediaItem.fromUri(streamUrl)
-        val session = mediaSession!! // TODO: relax
-        session.player.setMediaItem(mediaItem)
-        session.player.playWhenReady = true
-        session.player.prepare()
-        session.player.play()
-    }
-
-    private fun pauseRadio() {
-        val session = mediaSession!! // TODO: relax
-        session.player.pause()
-        // radioNotificationManager.showNotification(false)
+        val mediaItem = MediaItem.Builder()
+            .setMediaId("dubstep")
+            .setUri(streamUrl)
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setArtworkUri(Uri.parse("android.resource://com.wishnewjam.dubstepfm/" + R.drawable.dsfm_cover))
+                    .build()
+            )
+            .build()
+        mediaSession?.let { session ->
+            session.player.setMediaItem(mediaItem)
+            session.player.playWhenReady = true
+            session.player.prepare()
+            session.player.play()
+        }
     }
 
     private fun stopRadio() {
@@ -277,24 +278,8 @@ class DefaultRadioServiceController @Inject constructor(
         // radioNotificationManager.hideNotification()
     }
 
-    private suspend fun updateMetadata(metadata: Metadata) {
+    private fun updateMetadata(metadata: Metadata) =
         saveMetaDataUseCase.saveMetaData(metadata)
-
-//         streamRepository.setCurrentMetadata(metadata)
-        withContext(Dispatchers.Main) {
-            val mediaMetadata = MediaMetadata.Builder()
-                .populateFromMetadata(metadata)
-                .build()
-            // mediaSession
-            // val currentItem = mediaSession.currentMediaItem
-            // if (currentItem != null) {
-            //     val newMediaItem = currentItem.buildUpon()
-            //         .setMetadata(mediaMetadata)
-            //         .build()
-            //     mediaSession.setMediaItem(newMediaItem)
-            // }
-        }
-    }
 
     override fun destroy() {
         Timber.d("Destroy radio service")
