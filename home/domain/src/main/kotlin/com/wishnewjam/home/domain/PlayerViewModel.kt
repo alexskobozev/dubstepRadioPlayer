@@ -13,6 +13,4 @@ abstract class PlayerViewModel : ViewModel() {
     )
 
     abstract fun clickPlayButton()
-
-    abstract fun stop()
 }

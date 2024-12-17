@@ -9,7 +9,7 @@ import javax.inject.Inject
 class DefaultMetadataRepository @Inject constructor() : MetadataRepository {
 
     private val _currentTrack =
-        MutableStateFlow(CurrentPlayingMetadata("Default metadata")) // TODO: default value
+        MutableStateFlow(CurrentPlayingMetadata(""))
     override val currentTrack: Flow<CurrentPlayingMetadata> = _currentTrack
 
     override fun updateCurrentTrackMetadata(currentPlayingMetadata: CurrentPlayingMetadata) {

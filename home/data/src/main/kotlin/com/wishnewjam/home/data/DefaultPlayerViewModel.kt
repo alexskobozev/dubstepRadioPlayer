@@ -7,11 +7,9 @@ import com.wishnewjam.home.domain.UiPlayerStateUsecase
 import com.wishnewjam.playback.domain.PlaybackCommandHandler
 import com.wishnewjam.playback.domain.PlayerState
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -22,30 +20,13 @@ class DefaultPlayerViewModel @Inject constructor(
     private val playbackStateUsecase: UiPlayerStateUsecase<PlayerState>,
 ) : PlayerViewModel() {
 
-    private val _state = MutableStateFlow(UiState())
+    private val _uiState = MutableStateFlow(UiState())
 
-//    private fun createFlow(): Flow<UiState> = combine(
-//        playbackStateUsecase.currentState,
-//        metadataUsecase.playingText,
-//    ) { state, text ->
-//        UiState(
-//            isLoading = state != PlayerState.LOADING,
-//            isPlaying = state == PlayerState.PLAYING,
-//            nowPlaying = text,
-//        )
-//    }
-
-    override val state: StateFlow<UiState> = _state.asStateFlow()
-
-    val playerState = playbackStateUsecase.currentState.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = PlayerState.STOPPED,
-    )
+    override val state: StateFlow<UiState> = _uiState.asStateFlow()
 
     override fun clickPlayButton() {
         Timber.d("Push play button")
-        _state.value = _state.value.copy(isLoading = true)
+        _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch {
             playbackStateUsecase.currentState.collectLatest { state ->
                 handleNewState(state)
@@ -53,30 +34,34 @@ class DefaultPlayerViewModel @Inject constructor(
         }
         viewModelScope.launch {
             metadataUsecase.playingText.collectLatest { playingText ->
-                _state.value = _state.value.copy(nowPlaying = playingText)
+                _uiState.value = _uiState.value.copy(nowPlaying = playingText)
             }
         }
-        playbackCommandHandler.play()
+        if (_uiState.value.isPlaying) {
+            Timber.d("Push stop button")
+            _uiState.value =
+                _uiState.value.copy(isLoading = true, isPlaying = false)
+            playbackCommandHandler.stop()
+        } else {
+            _uiState.value =
+                _uiState.value.copy(isLoading = true, isPlaying = false)
+            playbackCommandHandler.play()
+        }
+
     }
 
     private fun handleNewState(state: PlayerState) {
         Timber.d("Ui received new state: $state")
         // TODO: other states
         when (state) {
-            PlayerState.LOADING -> _state.value =
-                _state.value.copy(isLoading = true, isPlaying = false)
+            PlayerState.LOADING -> _uiState.value =
+                _uiState.value.copy(isLoading = true, isPlaying = false)
 
-            PlayerState.STOPPED -> _state.value =
-                _state.value.copy(isLoading = false, isPlaying = false)
+            PlayerState.STOPPED -> _uiState.value =
+                _uiState.value.copy(isLoading = false, isPlaying = false)
 
-            PlayerState.PLAYING -> _state.value =
-                _state.value.copy(isLoading = false, isPlaying = true)
+            PlayerState.PLAYING -> _uiState.value =
+                _uiState.value.copy(isLoading = false, isPlaying = true)
         }
-    }
-
-    override fun stop() {
-        Timber.d("Push stop button")
-        playbackCommandHandler.stop()
-        _state.value = _state.value.copy(nowPlaying = "Stopped")
     }
 }
