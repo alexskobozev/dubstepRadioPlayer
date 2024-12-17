@@ -96,15 +96,15 @@ private fun PlayButton(
 ) {
     if (uiState.isPlaying) {
         Image(
-            painter = painterResource(id = R.drawable.ic_stop),
-            contentDescription = "Stop",
+            painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_pause),
+            contentDescription = "Pause",
             modifier = Modifier
                 .size(64.dp)
                 .padding(8.dp)
         )
     } else {
         Image(
-            painter = painterResource(id = R.drawable.ic_play),
+            painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_play),
             contentDescription = "Play",
             modifier = Modifier
                 .size(64.dp)
@@ -137,7 +137,7 @@ private fun PlaybackStatusBar(uiState: PlayerViewModel.UiState, modifier: Modifi
     }
 
     Image(
-        painter = painterResource(id = R.drawable.ic_stop),
+        painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_play),
         contentDescription = "Stop",
         modifier = modifier
             .size(24.dp)

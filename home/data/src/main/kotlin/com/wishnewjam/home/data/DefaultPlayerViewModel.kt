@@ -41,7 +41,7 @@ class DefaultPlayerViewModel @Inject constructor(
             Timber.d("Push stop button")
             _uiState.value =
                 _uiState.value.copy(isLoading = true, isPlaying = false)
-            playbackCommandHandler.stop()
+            playbackCommandHandler.pause()
         } else {
             _uiState.value =
                 _uiState.value.copy(isLoading = true, isPlaying = false)
@@ -56,7 +56,7 @@ class DefaultPlayerViewModel @Inject constructor(
             PlayerState.LOADING -> _uiState.value =
                 _uiState.value.copy(isLoading = true, isPlaying = false)
 
-            PlayerState.STOPPED -> _uiState.value =
+            PlayerState.PAUSED -> _uiState.value =
                 _uiState.value.copy(isLoading = false, isPlaying = false)
 
             PlayerState.PLAYING -> _uiState.value =
