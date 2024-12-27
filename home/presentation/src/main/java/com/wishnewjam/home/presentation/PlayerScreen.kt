@@ -4,6 +4,7 @@ import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,17 +19,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -151,37 +153,70 @@ private fun PlayButton(
     uiState: PlayerViewModel.UiState,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
-) = Box(
-    contentAlignment = Alignment.Center,
-    modifier = modifier
-        .size(60.dp)
-        .shadow(12.dp, CircleShape)
-        .background(
-            Brush.radialGradient(
-                colors = listOf(Color(0xFFFF5722), Color(0xFFB23C17)),
-                radius = 50f
-            ),
-            shape = CircleShape
-        )
-        .clickable(onClick = onClick)
 ) {
-    if (uiState.isPlaying) {
-        Icon(
-            painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_pause),
-            contentDescription = "Pause",
-            modifier = Modifier
-                .size(64.dp)
-                .padding(8.dp)
-        )
-    } else {
-        Icon(
-            painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_play),
-            contentDescription = "Play",
-            modifier = Modifier
-                .size(64.dp)
-                .shadow(16.dp, RectangleShape)
-                .padding(8.dp)
-        )
+    val indicationSource = remember { MutableInteractionSource() }
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+//        .padding(8.dp)
+            .size(86.dp)
+
+
+            .shadow(
+                elevation = 8.dp,
+                shape = CircleShape,
+                ambientColor = Color.Blue,
+                spotColor = Color(0xFFDB4C0B)
+            )
+            .background(
+                shape = CircleShape,
+                brush = Brush.linearGradient(
+                    colors = listOf(Color(0xFFFF9465), Color(0xFFAF1905)),
+                ),
+            )
+            .clickable(
+                interactionSource = indicationSource,
+                indication = ripple(
+                    bounded = true,
+                ),
+                onClick = onClick,
+            ),
+    ) {
+        Box(
+            modifier = modifier
+                .size(72.dp)
+                .padding(0.dp),
+        ) {
+            if (uiState.isPlaying) {
+                Icon(
+                    painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_pause),
+                    contentDescription = "Pause",
+                    modifier = modifier
+                        .size(72.dp)
+                        .background(
+                            shape = CircleShape,
+                            brush = Brush.linearGradient(
+                                colors = listOf(Color(0xFFEC540E), Color(0xFFD6361F)),
+                            )
+                        )
+                        .padding(8.dp)
+                )
+            } else {
+                Icon(
+                    painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_play),
+                    contentDescription = "Play",
+                    modifier = modifier
+                        .size(72.dp)
+                        .background(
+                            shape = CircleShape,
+                            brush = Brush.radialGradient(
+                                colors = listOf(Color(0xFFEC540E), Color(0xFFD6361F)),
+                            )
+                        )
+                        .padding(8.dp)
+                )
+            }
+        }
     }
 }
 
