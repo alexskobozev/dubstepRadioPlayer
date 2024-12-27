@@ -1,8 +1,11 @@
 package com.wishnewjam.dubstepfm
 
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.lifecycle.ViewModelProvider
@@ -33,6 +36,15 @@ class MainActivity : ComponentActivity() {
             metadataApi = apiContainer().getFeature(),
             playbackApi = apiContainer().getFeature(),
         ).inject(this)
+        actionBar?.hide()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(
+                Color.TRANSPARENT, Color.TRANSPARENT
+            ),
+            navigationBarStyle = SystemBarStyle.light(
+                Color.TRANSPARENT, Color.TRANSPARENT
+            )
+        )
         super.onCreate(savedInstanceState)
 
         setContent {
