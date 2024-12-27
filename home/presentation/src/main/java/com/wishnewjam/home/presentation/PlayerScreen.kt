@@ -3,9 +3,10 @@ package com.wishnewjam.home.presentation
 import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,9 +14,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -23,20 +24,23 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource.Companion.SideEffect
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import com.wishnewjam.commons.design.Bitsumishi
 import com.wishnewjam.commons.design.R
-import com.wishnewjam.commons.design.buttonBackground
-import com.wishnewjam.commons.design.buttonTextCommon
 import com.wishnewjam.home.domain.PlayerViewModel
 
 @Composable
@@ -46,7 +50,7 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = Color.Transparent.toArgb()
+//            window.statusBarColor = Color.Transparent.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
@@ -64,24 +68,56 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
                     end = Offset(1000f, 200f)
                 )
             )
+            .padding(16.dp)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(
-                modifier = Modifier.padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                PlaybackStatusBar(uiState)
-            }
+            Spacer(modifier = Modifier.height(64.dp))
+            Text(
+                text = "DUBSTEP.FM",
+                fontFamily = Bitsumishi,
+                textAlign = TextAlign.Center,
+                style = TextStyle(
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.Gray
+                )
+            )
             MainLogo(modifier = Modifier.weight(weight = 1f))
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "2011-11-30",
+                    fontFamily = Bitsumishi,
+                    textAlign = TextAlign.Center,
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        color = Color.Gray
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "JVIZ PRESENTS EARTHQUAKE WEATHER IN LA WITH\nKONFADENSE AND SATI",
+                    fontFamily = Bitsumishi,
+                    textAlign = TextAlign.Center,
+                    style = TextStyle(
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Thin,
+                        color = Color(0xFFE34715)
+                    ),
+                    lineHeight = 20.sp,
+                )
+            }
+            Spacer(modifier = Modifier.height(36.dp))
             PlayButton(uiState) {
                 viewModel.clickPlayButton()
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(48.dp))
         }
 
         if (uiState.isLoading) {
@@ -115,16 +151,22 @@ private fun PlayButton(
     uiState: PlayerViewModel.UiState,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
-) = Button(
-    onClick = onClick,
-    modifier = modifier.fillMaxWidth(),
-    colors = ButtonDefaults.buttonColors(
-        containerColor = buttonBackground,
-        contentColor = buttonTextCommon
-    )
+) = Box(
+    contentAlignment = Alignment.Center,
+    modifier = modifier
+        .size(60.dp)
+        .shadow(12.dp, CircleShape)
+        .background(
+            Brush.radialGradient(
+                colors = listOf(Color(0xFFFF5722), Color(0xFFB23C17)),
+                radius = 50f
+            ),
+            shape = CircleShape
+        )
+        .clickable(onClick = onClick)
 ) {
     if (uiState.isPlaying) {
-        Image(
+        Icon(
             painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_pause),
             contentDescription = "Pause",
             modifier = Modifier
@@ -132,27 +174,35 @@ private fun PlayButton(
                 .padding(8.dp)
         )
     } else {
-        Image(
+        Icon(
             painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_play),
             contentDescription = "Play",
             modifier = Modifier
                 .size(64.dp)
+                .shadow(16.dp, RectangleShape)
                 .padding(8.dp)
         )
     }
 }
 
 @Composable
-private fun MainLogo(modifier: Modifier = Modifier) = Box(
-    modifier = modifier
-        .fillMaxWidth(),
-    contentAlignment = Alignment.Center
-) {
-    Image(
-        painter = painterResource(id = R.drawable.img_logo),
-        contentDescription = "Logo",
-        modifier = Modifier.padding(36.dp)
-    )
+private fun MainLogo(modifier: Modifier = Modifier) {
+    val configuration = LocalConfiguration.current // todo to heavy
+    val screenWidth = configuration.screenWidthDp.dp
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.img_logo),
+            contentDescription = "Logo",
+            modifier = Modifier
+                .padding(36.dp)
+                .size(screenWidth * 0.5f)
+        )
+    }
 }
 
 @Composable
