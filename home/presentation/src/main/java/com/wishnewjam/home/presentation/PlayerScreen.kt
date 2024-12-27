@@ -21,6 +21,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,7 +37,21 @@ import com.wishnewjam.home.domain.PlayerViewModel
 fun PlayerScreen(viewModel: PlayerViewModel) {
     val uiState by viewModel.state.collectAsState()
 
-    Box(modifier = Modifier.fillMaxSize()) {
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFF2C3137),
+                        Color(0xFF17191D)  // Second color
+                    ),
+                    start = Offset(-200f, 200f),
+                    end = Offset(1000f, 200f)
+                )
+            )
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
