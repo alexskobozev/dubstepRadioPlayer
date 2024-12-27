@@ -4,7 +4,6 @@ import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,12 +18,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -37,7 +34,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
@@ -52,7 +48,6 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-//            window.statusBarColor = Color.Transparent.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
@@ -154,14 +149,10 @@ private fun PlayButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val indicationSource = remember { MutableInteractionSource() }
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-//        .padding(8.dp)
             .size(86.dp)
-
-
             .shadow(
                 elevation = 8.dp,
                 shape = CircleShape,
@@ -175,10 +166,6 @@ private fun PlayButton(
                 ),
             )
             .clickable(
-                interactionSource = indicationSource,
-                indication = ripple(
-                    bounded = true,
-                ),
                 onClick = onClick,
             ),
     ) {
@@ -238,30 +225,4 @@ private fun MainLogo(modifier: Modifier = Modifier) {
                 .size(screenWidth * 0.5f)
         )
     }
-}
-
-@Composable
-private fun PlaybackStatusBar(uiState: PlayerViewModel.UiState, modifier: Modifier = Modifier) {
-    if (uiState.isLoading) {
-        CircularProgressIndicator(
-            modifier = modifier
-                .size(24.dp)
-                .padding(end = 8.dp)
-        )
-    }
-
-    Image(
-        painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_play),
-        contentDescription = "Stop",
-        modifier = modifier
-            .size(24.dp)
-            .padding(end = 8.dp)
-    )
-
-    Text(
-        text = uiState.nowPlaying,
-        fontSize = 18.sp,
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis
-    )
 }
