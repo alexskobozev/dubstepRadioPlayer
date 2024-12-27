@@ -92,7 +92,7 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "2011-11-30",
+                    text = uiState.year,
                     fontFamily = Bitsumishi,
                     textAlign = TextAlign.Center,
                     style = TextStyle(
@@ -102,7 +102,7 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "JVIZ PRESENTS EARTHQUAKE WEATHER IN LA WITH\nKONFADENSE AND SATI",
+                    text = uiState.nowPlaying,
                     fontFamily = Bitsumishi,
                     textAlign = TextAlign.Center,
                     style = TextStyle(
