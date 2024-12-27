@@ -34,7 +34,10 @@ class DefaultPlayerViewModel @Inject constructor(
         }
         viewModelScope.launch {
             metadataUsecase.playingText.collectLatest { playingText ->
-                _uiState.value = _uiState.value.copy(nowPlaying = playingText)
+                _uiState.value = _uiState.value.copy(
+                    nowPlaying = playingText.nowPlaying,
+                    year = playingText.year,
+                )
             }
         }
         if (_uiState.value.isPlaying) {
