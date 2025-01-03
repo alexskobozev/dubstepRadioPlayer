@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,6 +52,9 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
             val window = (view.context as Activity).window
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
+    }
+    SideEffect {
+        viewModel.initialize()
     }
 
     Box(
@@ -75,7 +80,7 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
         ) {
             Spacer(modifier = Modifier.height(64.dp))
             Text(
-                text = "DUBSTEP.FM",
+                text = stringResource(com.wishnewjam.home.presentation.R.string.description),
                 fontFamily = Bitsumishi,
                 textAlign = TextAlign.Center,
                 style = TextStyle(
@@ -84,6 +89,8 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
                     color = Color.Gray
                 )
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            Dropdown(uiState = uiState)
             MainLogo(modifier = Modifier.weight(weight = 1f))
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -120,6 +127,32 @@ fun PlayerScreen(viewModel: PlayerViewModel) {
         if (uiState.isLoading) {
             LoadingPop()
         }
+    }
+}
+
+@Composable
+fun Dropdown(
+    uiState: PlayerViewModel.UiState
+) {
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = uiState.currentStream?.description ?: "",
+            fontFamily = Bitsumishi,
+//            textAlign = TextAlign.Center,
+            style = TextStyle(
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Thin,
+                color = Color.Gray
+            ),
+            lineHeight = 20.sp,
+        )
+        Image(
+            painter = painterResource(id = androidx.media3.session.R.drawable.media3_icon_plus),
+            contentDescription = "DropDown Icon"
+        )
     }
 }
 

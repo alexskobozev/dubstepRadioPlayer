@@ -77,8 +77,10 @@ class LibsModule(private val application: Application) {
     fun home(
         metadataApi: MetadataApi,
         playbackApi: PlaybackApi,
+        streamApi: StreamApi,
     ): HomeApi = DaggerHomeApiComponent.factory().create(
         metadataApi = metadataApi,
         playbackApi = playbackApi,
+        streamApi = streamApi,
     )
 }

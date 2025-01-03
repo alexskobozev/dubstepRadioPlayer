@@ -8,6 +8,7 @@ kotlin {
 
 dependencies {
     api(project(":di"))
+    api(project(":stream:domain"))
 
     implementation(platform(libs.kotlin.bom))
     implementation(libs.kotlin.coroutines.core)
