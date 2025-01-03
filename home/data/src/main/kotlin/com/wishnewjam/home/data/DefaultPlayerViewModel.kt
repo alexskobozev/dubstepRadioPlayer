@@ -6,6 +6,7 @@ import com.wishnewjam.home.domain.PlayerViewModel
 import com.wishnewjam.home.domain.UiPlayerStateUsecase
 import com.wishnewjam.playback.domain.PlaybackCommandHandler
 import com.wishnewjam.playback.domain.PlayerState
+import com.wishnewjam.stream.domain.StreamRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,11 +19,29 @@ class DefaultPlayerViewModel @Inject constructor(
     private val metadataUsecase: MetadataUsecase,
     private val playbackCommandHandler: PlaybackCommandHandler,
     private val playbackStateUsecase: UiPlayerStateUsecase<PlayerState>,
+    private val streamRepository: StreamRepository,
 ) : PlayerViewModel() {
 
     private val _uiState = MutableStateFlow(UiState())
 
     override val state: StateFlow<UiState> = _uiState.asStateFlow()
+
+    override fun initialize() {
+        viewModelScope.launch {
+            streamRepository.streams.collectLatest { streams ->
+                _uiState.value = _uiState.value.copy(
+                    streams = streams,
+                )
+            }
+        }
+        viewModelScope.launch {
+            streamRepository.currentRadioStream.collectLatest { stream ->
+                _uiState.value = _uiState.value.copy(
+                    currentStream = stream,
+                )
+            }
+        }
+    }
 
     override fun clickPlayButton() {
         Timber.d("Push play button")

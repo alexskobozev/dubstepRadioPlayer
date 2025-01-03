@@ -41,7 +41,7 @@ class DefaultRadioServiceController @Inject constructor(
     private val uiScope = CoroutineScope(Dispatchers.Main)
     private var mediaSession: MediaSession? = null
 
-    lateinit var mediaSessionService: MediaSessionService
+    private lateinit var mediaSessionService: MediaSessionService
 
     @Inject
     lateinit var saveMetaDataUseCase: SaveMetaDataUseCase
@@ -263,7 +263,7 @@ class DefaultRadioServiceController @Inject constructor(
 
 
     private suspend fun playRadio() {
-        val streamUrl = streamRepository.currentStreamUrl.last() // TODO: choose
+        val streamUrl = streamRepository.currentRadioStream.last().url
         Timber.d("Service: play command with uri $streamUrl")
         val mediaItem = MediaItem.Builder()
             .setMediaId("dubstep")
