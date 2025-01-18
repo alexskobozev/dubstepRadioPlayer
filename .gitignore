@@ -33,3 +33,4 @@ captures/
 
 .idea/
 /app/fabric.properties
+.DS_Store
