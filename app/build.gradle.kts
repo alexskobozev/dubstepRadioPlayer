@@ -16,6 +16,7 @@ android {
         targetSdk = 35
         versionCode = 10308
         versionName = "1.3.8"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         getByName("release") {
@@ -23,12 +24,19 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
-    packagingOptions {
-        exclude("META-INF/atomicfu.kotlin_module")
+    packaging {
+        resources {
+            excludes += "META-INF/atomicfu.kotlin_module"
+            excludes += "META-INF/LICENSE.md"
+            excludes += "META-INF/LICENSE-notice.md"
+        }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
     namespace = "com.wishnewjam.dubstepfm"
 }
@@ -50,4 +58,23 @@ dependencies {
     implementation(libs.material)
 
     debugImplementation (libs.libraries.leak)
+
+    // Unit test dependencies
+    testImplementation(libs.test.junit)
+    testImplementation(libs.test.mockk)
+    testImplementation(libs.test.robolectric)
+    testImplementation(libs.test.androidx.core)
+    testImplementation(libs.test.androidx.core.ktx)
+    testImplementation(libs.test.arch.core)
+    testImplementation(libs.test.coroutines)
+
+    // Android instrumented test dependencies
+    androidTestImplementation(libs.test.androidx.runner)
+    androidTestImplementation(libs.test.androidx.rules)
+    androidTestImplementation(libs.test.androidx.ext.junit)
+    androidTestImplementation(libs.test.androidx.ext.junit.ktx)
+    androidTestImplementation(libs.test.espresso.core)
+    androidTestImplementation(libs.test.espresso.contrib)
+    androidTestImplementation(libs.test.mockk.android)
+    androidTestImplementation(libs.test.fragment)
 }
