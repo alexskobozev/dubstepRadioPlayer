@@ -1,64 +1,193 @@
 package com.wishnewjam.dubstepfm
 
-import android.graphics.Color
+import android.content.ComponentName
+import android.content.Intent
+import android.media.AudioManager
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.lifecycle.ViewModelProvider
-import com.wishnewjam.commons.android.apiContainer
-import com.wishnewjam.di.getFeature
-import com.wishnewjam.dubstepfm.di.DaggerMainActivityComponent
-import com.wishnewjam.home.domain.PlayerViewModel
-import com.wishnewjam.home.domain.PlayerViewModelFactory
-import com.wishnewjam.playback.domain.PlaybackCommandHandler
-import com.wishnewjam.playback.presentation.RadioService
-import javax.inject.Inject
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.ViewModelProviders
+import com.wishnewjam.dubstepfm.Tools.logDebug
+import com.wishnewjam.dubstepfm.Tools.toastDebug
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
-    @Inject
-    lateinit var viewModelFactory: PlayerViewModelFactory
+    private var mediaBrowser: MediaBrowserCompat? = null
+    private lateinit var mediaViewModel: MediaViewModel
 
-    @Inject
-    lateinit var playbackCommandHandler: PlaybackCommandHandler
+    private val controllerCallback: MediaControllerCompat.Callback =
+            object : MediaControllerCompat.Callback() {
+                override fun onPlaybackStateChanged(
+                        state: PlaybackStateCompat?) {
+                    super.onPlaybackStateChanged(state)
+                    logDebug { "controllerCallback: onPlaybackStateChanged, state= ${state?.state}" }
+                    applyPlaybackState(state?.state)
+                }
 
-    private val playerViewModel: PlayerViewModel by lazy {
-        ViewModelProvider(this, viewModelFactory)[PlayerViewModel::class.java]
+                override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+                    super.onMetadataChanged(metadata)
+                    applyMetadata(metadata)
+                }
+            }
+
+    private val connectionCallback: MediaBrowserCompat.ConnectionCallback? =
+            object : MediaBrowserCompat.ConnectionCallback() {
+                override fun onConnected() {
+                    super.onConnected()
+                    logDebug { "ConnectionCallback: onConnected" }
+                    val token: MediaSessionCompat.Token? =
+                            mediaBrowser?.sessionToken
+                    token?.let {
+                        val controller =
+                                MediaControllerCompat(this@MainActivity, it)
+                        MediaControllerCompat.setMediaController(
+                                this@MainActivity, controller)
+                        buildTransportControls()
+                        applyPlaybackState(controller.playbackState.state)
+                        applyMetadata(controller.metadata)
+                    }
+                    volumeControlStream = AudioManager.STREAM_MUSIC
+                    startService(
+                            Intent(this@MainActivity, MainService::class.java))
+                }
+
+                override fun onConnectionSuspended() {
+                    super.onConnectionSuspended()
+                    logDebug { "ConnectionCallback: onConnectionSuspended" }
+                }
+
+                override fun onConnectionFailed() {
+                    super.onConnectionFailed()
+                    logDebug { "ConnectionCallback: onConnectionFailed" }
+                }
+            }
+
+    private fun applyMetadata(metadata: MediaMetadataCompat?) {
+        val artist =
+                metadata?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
+        val track = metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
+        if (artist != null && track != null) {
+            val nowPlayingText = "${getString(R.string.now_playing)} $track"
+            findViewById<TextView>(R.id.tv_nowplaying).text = nowPlayingText
+        }
+    }
+
+    private fun buildTransportControls() {
+        val playButton: Button? = findViewById(R.id.tv_play)
+        val stopButton: Button? = findViewById(R.id.tv_stop)
+        val mediaController = MediaControllerCompat.getMediaController(this)
+
+        playButton?.setOnClickListener {
+            if (mediaController.playbackState.state != PlaybackStateCompat.STATE_PLAYING) findViewById<TextView>(
+                R.id.tv_nowplaying
+            ).setText(
+                R.string.gathering_info
+            )
+            mediaController.transportControls.play()
+        }
+
+        stopButton?.setOnClickListener {
+            mediaController.transportControls.stop()
+        }
+
+        mediaController.registerCallback(controllerCallback)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        DaggerMainActivityComponent.factory().create(
-            homeApi = apiContainer().getFeature(),
-            metadataApi = apiContainer().getFeature(),
-            playbackApi = apiContainer().getFeature(),
-        ).inject(this)
-        actionBar?.hide()
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.light(
-                Color.TRANSPARENT, Color.TRANSPARENT
-            ),
-            navigationBarStyle = SystemBarStyle.light(
-                Color.TRANSPARENT, Color.TRANSPARENT
-            )
-        )
         super.onCreate(savedInstanceState)
 
-        setContent {
-            com.wishnewjam.commons.design.DubstepFMRadioPlayerTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(color = MaterialTheme.colorScheme.background) {
-                    com.wishnewjam.home.presentation.PlayerScreen(viewModel = playerViewModel)
-                }
-            }
-        }
+        mediaViewModel = ViewModelProviders.of(this)
+                .get(MediaViewModel::class.java)
+        setContentView(R.layout.activity_main)
+
+        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
+        mediaBrowser = MediaBrowserCompat(this,
+                ComponentName(this, MainService::class.java),
+                connectionCallback, null)
     }
 
     override fun onStart() {
         super.onStart()
-        playbackCommandHandler.init(this, RadioService::class.java)
+        mediaBrowser?.connect()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        MediaControllerCompat.getMediaController(this)
+                ?.unregisterCallback(controllerCallback)
+        mediaBrowser?.disconnect()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.main, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_bitrate -> {
+                showBitrateChooser()
+                true
+            }
+            else                -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun applyPlaybackState(state: Int?) {
+        when (state) {
+            PlaybackStateCompat.STATE_PLAYING   -> showPlaying()
+            PlaybackStateCompat.STATE_BUFFERING -> showLoading()
+            PlaybackStateCompat.STATE_ERROR     -> showError()
+            else                                -> showStopped()
+        }
+    }
+
+    private fun showLoading() {
+        findViewById<LinearLayout>(R.id.ll_loading).visibility = View.VISIBLE
+        findViewById<ProgressBar>(R.id.progressBar).visibility = View.VISIBLE
+        findViewById<ImageView>(R.id.iv_status).visibility = View.INVISIBLE
+    }
+
+    private fun showStopped() {
+        findViewById<LinearLayout>(R.id.ll_loading).visibility = View.GONE
+        findViewById<ImageView>(R.id.iv_status).setImageResource(R.drawable.ic_stop)
+        findViewById<ProgressBar>(R.id.progressBar).visibility = View.INVISIBLE
+        findViewById<ImageView>(R.id.iv_status).visibility = View.VISIBLE
+    }
+
+    private fun showPlaying() {
+        findViewById<LinearLayout>(R.id.ll_loading).visibility = View.GONE
+        findViewById<ProgressBar>(R.id.progressBar).visibility = View.INVISIBLE
+        findViewById<ImageView>(R.id.iv_status).visibility = View.VISIBLE
+        findViewById<ImageView>(R.id.iv_status).setImageResource(R.drawable.ic_play)
+    }
+
+    private fun showError() {
+        findViewById<LinearLayout>(R.id.ll_loading).visibility = View.GONE
+        findViewById<ProgressBar>(R.id.progressBar).visibility = View.INVISIBLE
+        findViewById<ImageView>(R.id.iv_status).visibility = View.VISIBLE
+        findViewById<ImageView>(R.id.iv_status).setImageResource(R.drawable.ic_stop)
+        toastDebug({ getString(R.string.error) }, this)
+    }
+
+    private fun showBitrateChooser() {
+        val bitrateFragment = ChooseBitrateDialogFragment()
+        bitrateFragment.show(supportFragmentManager, "bitrate")
     }
 }
