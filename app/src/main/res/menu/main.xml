@@ -4,5 +4,6 @@
     <item android:id="@+id/action_bitrate"
         android:icon="@drawable/ic_settings"
         android:title="@string/action_settings"
+        app:showAsAction="ifRoom"
         />
 </menu>
