@@ -24,8 +24,12 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
-    packagingOptions {
-        exclude("META-INF/atomicfu.kotlin_module")
+    packaging {
+        resources {
+            excludes += "META-INF/atomicfu.kotlin_module"
+            excludes += "META-INF/LICENSE.md"
+            excludes += "META-INF/LICENSE-notice.md"
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
