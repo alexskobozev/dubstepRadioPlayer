@@ -21,6 +21,19 @@ version-library-material-dialogs = "3.3.0"
 version-library-timber = "5.0.1"
 material = "1.12.0"
 
+# Test dependencies
+version-junit = "4.13.2"
+version-mockk = "1.13.8"
+version-robolectric = "4.11.1"
+version-androidx-test-core = "1.5.0"
+version-androidx-test-runner = "1.5.2"
+version-androidx-test-rules = "1.5.0"
+version-androidx-test-ext-junit = "1.1.5"
+version-espresso = "3.5.1"
+version-androidx-arch-core = "2.2.0"
+version-coroutines-test = "1.7.3"
+version-androidx-fragment-testing = "1.6.2"
+
 [libraries]
 
 firebase-billOfMaterials = { module = "com.google.firebase:firebase-bom", version.ref = "version-firebase-billOfMaterials" }
@@ -40,6 +53,23 @@ libraries-material-dialogs = { module = "com.afollestad.material-dialogs:core", 
 libraries-leak = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "version-library-leak" }
 libraries-timber = { module = "com.jakewharton.timber:timber", version.ref = "version-library-timber" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+
+# Test dependencies
+test-junit = { module = "junit:junit", version.ref = "version-junit" }
+test-mockk = { module = "io.mockk:mockk", version.ref = "version-mockk" }
+test-mockk-android = { module = "io.mockk:mockk-android", version.ref = "version-mockk" }
+test-robolectric = { module = "org.robolectric:robolectric", version.ref = "version-robolectric" }
+test-androidx-core = { module = "androidx.test:core", version.ref = "version-androidx-test-core" }
+test-androidx-core-ktx = { module = "androidx.test:core-ktx", version.ref = "version-androidx-test-core" }
+test-androidx-runner = { module = "androidx.test:runner", version.ref = "version-androidx-test-runner" }
+test-androidx-rules = { module = "androidx.test:rules", version.ref = "version-androidx-test-rules" }
+test-androidx-ext-junit = { module = "androidx.test.ext:junit", version.ref = "version-androidx-test-ext-junit" }
+test-androidx-ext-junit-ktx = { module = "androidx.test.ext:junit-ktx", version.ref = "version-androidx-test-ext-junit" }
+test-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "version-espresso" }
+test-espresso-contrib = { module = "androidx.test.espresso:espresso-contrib", version.ref = "version-espresso" }
+test-arch-core = { module = "androidx.arch.core:core-testing", version.ref = "version-androidx-arch-core" }
+test-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "version-coroutines-test" }
+test-fragment = { module = "androidx.fragment:fragment-testing", version.ref = "version-androidx-fragment-testing" }
 
 [plugins]
 
