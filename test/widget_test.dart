@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:dubstepfm/src/home_screen.dart';
-import 'package:dubstepfm/src/l10n/strings.dart';
 import 'package:dubstepfm/src/playback/bitrate_preference.dart';
 import 'package:dubstepfm/src/playback/playback_controller.dart';
 import 'package:dubstepfm/src/theme.dart';
@@ -47,8 +46,10 @@ void main() {
       final controller = await _pumpHome(tester);
       await tester.tap(find.widgetWithText(TextButton, 'PLAY'));
       await tester.pump();
-      expect(find.text(kStrings['loading']!), findsOneWidget);
+      expect(find.textContaining('Loading'), findsOneWidget);
       expect(controller.currentUrl.contains('128mp3'), isTrue);
+      await controller.stop();
+      await tester.pump();
     });
 
     testWidgets('PLAY button is disabled while loading or playing',

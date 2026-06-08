@@ -5,27 +5,22 @@ on:
 
 jobs:
   warmup:
-    name: Warm up Gradle cache
+    name: Warm up Flutter pub cache
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Decode google-services.json
-        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > app/google-services.json
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          flutter-version: '3.44.x'
+          channel: stable
+          cache: true
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Resolve dependencies
+        run: flutter pub get
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
-
-      - name: Download dependencies
-        run: ./gradlew app:assembleDebug --no-daemon
+      - name: Precache Android artifacts
+        run: flutter precache --android
