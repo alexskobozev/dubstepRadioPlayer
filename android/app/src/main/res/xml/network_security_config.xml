@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cleartext HTTP is allowed only to the dubstep.fm stream origins and
+  to loopback (just_audio runs a local proxy on 127.0.0.1 that ExoPlayer
+  connects to for ICY metadata extraction). Default policy is HTTPS-only;
+  these exceptions exist because the Shoutcast endpoint is HTTP-only at
+  the operator level.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">50.118.246.51</domain>
+        <domain includeSubdomains="true">stream.dubstep.fm</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>
