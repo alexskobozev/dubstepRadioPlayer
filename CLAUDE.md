@@ -1,74 +1,52 @@
-# Project: Dubstep FM Radio Player
+# CLAUDE.md
 
-Android app for streaming Dubstep FM radio with playback controls and bitrate selection.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Tech Stack
+## Project
 
-- **Language**: Kotlin
-- **Min SDK**: 21, Target SDK: 35
-- **Build**: Gradle 8.7.1 with Kotlin DSL, version catalog (`gradle/libs.versions.toml`)
-- **Java**: 17
-
-## Key Dependencies
-
-- **Media**: ExoPlayer 2.13.3, AndroidX Media 1.6.0
-- **Firebase**: Crashlytics, Analytics (requires `google-services.json`)
-- **UI**: Material Dialogs 3.3.0, ConstraintLayout
-- **Debug**: LeakCanary, Timber
-
-## Project Structure
-
-```
-app/src/main/java/com/wishnewjam/dubstepfm/
-├── MainActivity.kt          # Main UI with play/stop controls
-├── MainService.kt           # MediaBrowserService for background playback
-├── MediaPlayerInstance.kt   # ExoPlayer wrapper
-├── MediaViewModel.kt        # ViewModel for media state
-├── ChooseBitrateDialogFragment.kt  # Bitrate selection dialog
-├── CurrentUrl.kt            # Current stream URL holder
-├── Links.kt                 # Stream URLs
-├── UIStates.kt              # UI state definitions
-└── Tools.kt                 # Utility functions
-```
+Flutter application (`dubstepfm`), Dart SDK `^3.12.1`. Currently at the **001-android-baseline-migration** baseline — a static visual prototype that reproduces the legacy `dubstepRadioPlayer` Android app's first-launch screen, launcher identity (`com.wishnewjam.dubstepfm`, label "DUBSTEP.FM"), and assets. No real audio playback. See `specs/001-android-baseline-migration/quickstart.md` for build / run / verify. All platform shells (android/, ios/, macos/, linux/, windows/, web/) are present as generated; only Android is parity-bound.
 
 ## Commands
 
 ```bash
-# Run unit tests
-./gradlew app:testDebugUnitTest
-
-# Run instrumented tests (requires emulator)
-./gradlew app:connectedDebugAndroidTest
-
-# Build debug APK
-./gradlew app:assembleDebug
-
-# Download dependencies (cache warmup)
-./gradlew app:dependencies
+flutter pub get                    # install dependencies
+flutter run                        # run on default device (interactive: r=hot reload, R=hot restart, q=quit)
+flutter run -d chrome              # pick a target device explicitly
+flutter analyze                    # static analysis / lint (uses analysis_options.yaml)
+flutter test                       # run all tests
+flutter test test/widget_test.dart # run a single test file
+flutter test --name "smoke"        # run tests matching a name pattern
+flutter build apk|ios|web|macos    # platform builds
+flutter clean                      # wipe build/ and .dart_tool/ when builds get weird
 ```
 
-## Tests
+## Lint config
 
-- **Unit tests**: `app/src/test/` - Uses JUnit, MockK, Robolectric
-- **Instrumented tests**: `app/src/androidTest/` - Uses Espresso, AndroidX Test
+`analysis_options.yaml` includes `package:flutter_lints/flutter.yaml`. Custom rules go in the `linter.rules:` block of that file.
 
-## CI/CD (GitHub Actions)
+## Source layout (after 001-android-baseline-migration)
 
-Located in `.github/workflows/`:
+- `lib/main.dart` — `DubstepFmApp` entry; wires `PlaybackController`, `AudioService.init`, and `AudioSession`.
+- `lib/src/home_screen.dart` — home screen; PLAY/STOP bound to `PlaybackController`, status text reflects current state and ICY title.
+- `lib/src/bitrate_dialog.dart` — `showBitrateDialog(context, controller:)` switches the live stream.
+- `lib/src/theme.dart` — legacy palette + `buildDubstepTheme()`.
+- `lib/src/l10n/strings.dart` — `kStrings` map keyed by legacy `strings.xml` names.
+- `lib/src/playback/` — playback module:
+  - `radio_player.dart` — engine-wrapping interface (`RadioPlayer`, `RadioEngineEvent`, `IcyFrame`).
+  - `just_audio_radio_player.dart` — production `RadioPlayer` over `package:just_audio`.
+  - `playback_state.dart` — sealed `PlaybackState` (`Idle` / `Loading` / `Playing(title, artist)` / `Error`).
+  - `playback_controller.dart` — state machine + reconnect policy (≤10 attempts × 10 s).
+  - `endpoint_catalog.dart` — four direct-IP stream URLs (`50.118.246.51`); `shout.dubstep.fm` deliberately absent.
+  - `bitrate_preference.dart` — `SharedPreferences`-backed persistence of selected URL.
+  - `icy_metadata.dart` — pure-Dart `parseIcyTitle` (artist/title split, fallback).
+  - `audio_handler.dart` — `BaseAudioHandler` bridge to `audio_service`.
+- `assets/images/img_logo.png` — centre logo from legacy `drawable/img_logo.png`.
+- `android/app/src/main/res/values/strings.xml` — native `app_name` for launcher.
+- `android/app/src/main/res/mipmap-*/ic_launcher*.png` + `mipmap-anydpi-v26/ic_launcher.xml` + `values/ic_launcher_background.xml` — legacy launcher icon.
+- `android/app/src/main/res/xml/network_security_config.xml` — cleartext HTTP allowance scoped to dubstep.fm stream hosts.
+- `android/app/src/main/AndroidManifest.xml` — `INTERNET`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, `WAKE_LOCK` permissions and `audio_service` `<service>` / `<receiver>` entries; `MainActivity` extends `AudioServiceActivity`.
 
-- `tests.yml` - Runs on push/PR to master/main/develop:
-  - Unit tests job
-  - Instrumented tests job (with Android emulator)
-  - Build APK job
-- `cache-warmup.yml` - Manual workflow to pre-warm Gradle cache
-
-## Secrets
-
-- `GOOGLE_SERVICES_JSON`: Base64-encoded `google-services.json` file (required for Firebase)
-  - Decoded in CI with: `echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > app/google-services.json`
-
-## Notes
-
-- `google-services.json` is gitignored - must be provided via secret in CI or locally
-- Uses MediaBrowserCompat/MediaSessionCompat pattern for media playback
-- Supports multiple bitrate streams
+<!-- SPECKIT START -->
+Active feature plan: [specs/002-stream-playback-migration/plan.md](specs/002-stream-playback-migration/plan.md).
+For additional context about technologies, project structure, and shell commands, read the current plan and `specs/002-stream-playback-migration/quickstart.md`.
+<!-- SPECKIT END -->
