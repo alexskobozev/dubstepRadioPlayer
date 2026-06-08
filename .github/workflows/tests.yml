@@ -93,25 +93,3 @@ jobs:
         with:
           name: debug-apk
           path: build/app/outputs/flutter-apk/app-debug.apk
-
-  build-ios:
-    name: Build iOS (no codesign)
-    runs-on: macos-latest
-    needs: [analyze, test]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build iOS (no codesign)
-        run: flutter build ios --debug --no-codesign
