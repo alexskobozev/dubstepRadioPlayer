@@ -113,8 +113,22 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Stub flutterfire CLI
+        # The Runner Xcode project has a build phase that calls
+        # "flutterfire upload-crashlytics-symbols" on every build. That needs
+        # the real FlutterFire CLI + a generated Firebase app_id_file +
+        # firebase-ios-sdk Crashlytics/run binary in SPM checkouts — a fragile
+        # stack to set up in CI for a debug build that produces no dSYMs to
+        # upload. Stub the CLI to no-op so the script phase passes.
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          cat > "$HOME/.local/bin/flutterfire" <<'SH'
+          #!/usr/bin/env bash
+          echo "[CI stub] flutterfire $* — skipping"
+          exit 0
+          SH
+          chmod +x "$HOME/.local/bin/flutterfire"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - name: Build iOS simulator (debug)
-        # Simulator builds skip the FlutterFire "upload-crashlytics-symbols"
-        # Xcode build phase, which otherwise needs flutterfire CLI + Firebase
-        # auth state that isn't available in CI.
         run: flutter build ios --debug --simulator
