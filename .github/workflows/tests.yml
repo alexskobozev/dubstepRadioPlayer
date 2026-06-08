@@ -110,29 +110,11 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Install FlutterFire CLI
-        run: |
-          dart pub global activate flutterfire_cli
-          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
-
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Stage FlutterFire iOS app_id_file
-        # The Xcode "upload-crashlytics-symbols" build phase reads this file.
-        # flutterfire configure normally writes it, but that requires Firebase
-        # auth. The values below mirror lib/firebase_options.dart (iOS) and
-        # ios/Runner/GoogleService-Info.plist, which are both checked in.
-        run: |
-          mkdir -p .dart_tool/flutterfire/platforms/ios/default/dubstepfm-25bd3
-          cat > .dart_tool/flutterfire/platforms/ios/default/dubstepfm-25bd3/app_id_file.json <<'JSON'
-          {
-            "FILE_GENERATED_BY": "CI",
-            "PURPOSE": "FirebaseAppID for this Firebase app in this directory, currently used by Crashlytics.",
-            "GOOGLE_APP_ID": "1:792316857839:ios:86a9ba1b9605220c04fa1a",
-            "FIREBASE_PROJECT_ID": "dubstepfm-25bd3"
-          }
-          JSON
-
-      - name: Build iOS (no codesign)
-        run: flutter build ios --debug --no-codesign
+      - name: Build iOS simulator (debug)
+        # Simulator builds skip the FlutterFire "upload-crashlytics-symbols"
+        # Xcode build phase, which otherwise needs flutterfire CLI + Firebase
+        # auth state that isn't available in CI.
+        run: flutter build ios --debug --simulator
