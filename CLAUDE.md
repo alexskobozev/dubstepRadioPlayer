@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Flutter application (`dubstepfm`), Dart SDK `^3.12.1`. Currently at the **001-android-baseline-migration** baseline — a static visual prototype that reproduces the legacy `dubstepRadioPlayer` Android app's first-launch screen, launcher identity (`com.wishnewjam.dubstepfm`, label "DUBSTEP.FM"), and assets. No real audio playback. See `specs/001-android-baseline-migration/quickstart.md` for build / run / verify. All platform shells (android/, ios/, macos/, linux/, windows/, web/) are present as generated; only Android is parity-bound.
+Flutter application (`dubstepfm`), Dart SDK `^3.12.1`. Reimplements the legacy `dubstepRadioPlayer` Android app across Android and iOS — same launcher identity (`com.wishnewjam.dubstepfm`, label "DUBSTEP.FM"), assets, and playback behaviour. See `specs/001-android-baseline-migration/quickstart.md` for build / run / verify. All platform shells (android/, ios/, macos/, linux/, windows/, web/) are present as generated; **Android and iOS are parity-bound** (other shells are unused).
 
 ## Commands
 
