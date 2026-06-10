@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DUBSTEP.FM — Privacy Policy</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #111111;
+    --muted: #555555;
+    --accent: #c8102e;
+    --border: #e5e5e5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d0d0d;
+      --fg: #f0f0f0;
+      --muted: #a0a0a0;
+      --border: #2a2a2a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2rem 1.25rem 4rem;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 1.8rem;
+    margin: 0 0 .25rem;
+    letter-spacing: -.01em;
+  }
+  h2 {
+    font-size: 1.15rem;
+    margin: 2.25rem 0 .5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: .35rem;
+  }
+  p, li { color: var(--fg); }
+  .muted { color: var(--muted); font-size: .9rem; }
+  ul { padding-left: 1.25rem; }
+  li { margin-bottom: .35rem; }
+  code {
+    background: rgba(127,127,127,.15);
+    padding: .1em .35em;
+    border-radius: 3px;
+    font-size: .9em;
+  }
+  a { color: var(--accent); }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: .85rem;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Privacy Policy — DUBSTEP.FM</h1>
+<p class="muted">Effective date: 10 June 2026 · Last updated: 10 June 2026</p>
+
+<p>
+This policy explains what information the <strong>DUBSTEP.FM</strong> mobile app (the "app") collects, why, and how to contact the developer.
+The app is a thin client for the publicly accessible <a href="https://dubstep.fm">dubstep.fm</a> internet radio stream and is published by Alexander Kobozev (the "developer").
+The app is not affiliated with or operated by the dubstep.fm broadcaster.
+</p>
+
+<h2>What the app does <em>not</em> collect</h2>
+<ul>
+  <li>No account, login, or sign-up — the app has none.</li>
+  <li>No name, email address, phone number, contacts, photos, location, microphone, calendar, or health data.</li>
+  <li>No advertising identifiers (IDFA). The app does not show ads.</li>
+  <li>No tracking, in Apple's <a href="https://developer.apple.com/app-store/user-privacy-and-data-use/">App Tracking Transparency</a> sense — no data is linked to identity across other apps or websites.</li>
+</ul>
+
+<h2>What the app <em>does</em> collect</h2>
+<p>
+The app uses two Google Firebase services as data processors:
+</p>
+
+<h3>Firebase Crashlytics</h3>
+<ul>
+  <li><strong>What:</strong> Crash reports and non-fatal error reports — stack traces, device model, OS version, app version, and a randomly-generated installation ID.</li>
+  <li><strong>Why:</strong> To detect and fix bugs that cause the app to crash or fail to play the stream.</li>
+  <li><strong>Retention:</strong> Crash reports are retained for 90 days by Firebase and then automatically deleted.</li>
+</ul>
+
+<h3>Firebase Analytics</h3>
+<ul>
+  <li><strong>What:</strong> A small set of app-interaction events:
+    <ul>
+      <li><code>playback_start</code> — when the listener taps PLAY or switches bitrate. Includes the chosen bitrate (24/64/128/256 kbps) and stream URL.</li>
+      <li><code>playback_error</code> — when the stream fails to load or drops mid-play. Includes bitrate, stream URL, a short error description, and whether the app is going to retry.</li>
+      <li><code>playback_failed</code> — when the app gives up after exhausted retries and shows "Can't connect". Includes bitrate, stream URL, and short error description.</li>
+    </ul>
+  </li>
+  <li><strong>Plus:</strong> Firebase Analytics automatically records app open, session length, app version, OS version, device model, country (derived from IP at request time — IP itself is <em>not</em> stored), and a randomly-generated installation ID.</li>
+  <li><strong>Why:</strong> To understand which bitrates listeners use, how often the stream fails, and whether app updates regress these numbers.</li>
+  <li><strong>Retention:</strong> Aggregated analytics data is retained for 14 months and then automatically deleted.</li>
+</ul>
+
+<h2>Audio stream</h2>
+<p>
+The app plays an audio stream served directly from the dubstep.fm broadcaster's servers (currently <code>50.118.246.51:80</code> over plain HTTP).
+The developer does not host, record, store, or relay the audio. What you hear is what dubstep.fm is currently broadcasting. The developer has no insight into who is listening.
+</p>
+
+<h2>Sharing &amp; third parties</h2>
+<p>
+The diagnostic and analytics data described above is processed by Google as a sub-processor under the <a href="https://firebase.google.com/terms/data-processing-terms">Firebase Data Processing and Security Terms</a>. The developer does not sell, rent, share, or otherwise transfer any data to any other third party.
+</p>
+
+<h2>Children</h2>
+<p>
+The app is not directed at children under 13 and does not knowingly collect data from them. The app contains no in-app purchases, no chat, no user-generated content, and no advertising. The audio stream itself may contain language unsuitable for young children, which is why the app is rated 12+.
+</p>
+
+<h2>Your choices</h2>
+<ul>
+  <li><strong>Reset diagnostic/analytics identifiers:</strong> uninstall and reinstall the app. The installation ID is regenerated on a fresh install.</li>
+  <li><strong>Stop collection entirely:</strong> uninstall the app.</li>
+  <li><strong>Request deletion:</strong> email the address below with your installation ID (visible in the app's About screen — to be added in a future update) and the developer will request its deletion from Firebase.</li>
+</ul>
+
+<h2>Changes to this policy</h2>
+<p>
+Material changes will be reflected by bumping the "Effective date" above and, where the change is significant, noted in the app's next "What's New" release notes.
+</p>
+
+<h2>Contact</h2>
+<p>
+Questions or deletion requests: <a href="mailto:eternalkaif@gmail.com">eternalkaif@gmail.com</a>.
+</p>
+
+<footer>
+  Source for this page: <a href="https://github.com/alexskobozev/dubstepRadioPlayer/blob/master/docs/privacy.html">docs/privacy.html</a> in the app's GitHub repository.
+</footer>
+
+</main>
+</body>
+</html>
