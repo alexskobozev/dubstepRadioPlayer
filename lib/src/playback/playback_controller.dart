@@ -13,6 +13,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../analytics/analytics_logger.dart';
 import 'endpoint_catalog.dart';
 import 'bitrate_preference.dart';
 import 'icy_metadata.dart';
@@ -66,6 +67,7 @@ class PlaybackController {
   final BitratePreference _preference;
   final ReconnectPolicy _policy;
   final String _stationFallback;
+  final AnalyticsLogger _analytics;
 
   final ValueNotifier<PlaybackState> _state =
       ValueNotifier<PlaybackState>(kInitialState);
@@ -90,10 +92,12 @@ class PlaybackController {
     required BitratePreference preference,
     ReconnectPolicy policy = const ReconnectPolicy(),
     String stationFallback = 'DUBSTEP.FM',
+    AnalyticsLogger analytics = const NoOpAnalyticsLogger(),
   })  : _player = player,
         _preference = preference,
         _policy = policy,
-        _stationFallback = stationFallback {
+        _stationFallback = stationFallback,
+        _analytics = analytics {
     _eventSub = _player.events.listen(_onEngineEvent);
     _icySub = _player.icyMetadata.listen(_onIcyFrame);
   }
@@ -121,6 +125,10 @@ class PlaybackController {
     _cancelRetryTimer();
     _state.value = const LoadingState();
     _armSlowLoadTimer();
+    unawaited(_analytics.logEvent('playback_start', {
+      'bitrate_kbps': endpointForUrl(_currentUrl).bitrateKbps,
+      'url': _currentUrl,
+    }));
     await _player.setUrlAndPlay(_currentUrl);
   }
 
@@ -149,6 +157,10 @@ class PlaybackController {
       _cancelRetryTimer();
       _state.value = const LoadingState();
       _armSlowLoadTimer();
+      unawaited(_analytics.logEvent('playback_start', {
+        'bitrate_kbps': endpointForUrl(url).bitrateKbps,
+        'url': url,
+      }));
       await _player.setUrlAndPlay(url);
     }
     // In Idle / Error: persist but do not auto-start.
@@ -202,12 +214,26 @@ class PlaybackController {
         if (s is LoadingState || s is PlayingState) {
           _buffering.value = false;
           _retryCount += 1;
-          if (_retryCount >= _policy.maxAttempts) {
+          final willRetry = _retryCount < _policy.maxAttempts;
+          unawaited(_analytics.logEvent('playback_error', {
+            'bitrate_kbps': endpointForUrl(_currentUrl).bitrateKbps,
+            'url': _currentUrl,
+            'reason': _describeCause(cause),
+            'phase': s is LoadingState ? 'loading' : 'playing',
+            'retry_count': _retryCount,
+            'will_retry': willRetry,
+          }));
+          if (!willRetry) {
             _retryCount = 0;
             _cancelRetryTimer();
             _cancelSlowLoadTimer();
             _state.value = ErrorState(cause);
             _pushClearedItem();
+            unawaited(_analytics.logEvent('playback_failed', {
+              'bitrate_kbps': endpointForUrl(_currentUrl).bitrateKbps,
+              'url': _currentUrl,
+              'reason': _describeCause(cause),
+            }));
             // Best-effort: ensure the engine is in a stopped state too.
             unawaited(_player.stop());
           } else {
@@ -311,6 +337,11 @@ class PlaybackController {
       url: _currentUrl,
       clearedToFallback: true,
     );
+  }
+
+  String _describeCause(Object cause) {
+    final s = cause.toString();
+    return s.length > 100 ? s.substring(0, 100) : s;
   }
 
   void _ensureNotDisposed() {
