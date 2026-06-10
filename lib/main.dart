@@ -11,6 +11,8 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 
 import 'firebase_options.dart';
+import 'src/analytics/analytics_logger.dart';
+import 'src/analytics/firebase_analytics_logger.dart';
 import 'src/home_screen.dart';
 import 'src/l10n/strings.dart';
 import 'src/playback/audio_handler.dart';
@@ -45,10 +47,13 @@ Future<void> main() async {
 }
 
 Future<void> _bootstrap() async {
+  final AnalyticsLogger analytics =
+      kIsWeb ? const NoOpAnalyticsLogger() : FirebaseAnalyticsLogger();
   final controller = PlaybackController(
     player: JustAudioRadioPlayer(),
     preference: SharedPreferencesBitratePreference(),
     stationFallback: kStrings['station_name']!,
+    analytics: analytics,
   );
   await controller.load();
 
