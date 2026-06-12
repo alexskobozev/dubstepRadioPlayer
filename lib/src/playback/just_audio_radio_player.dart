@@ -33,10 +33,20 @@ class JustAudioRadioPlayer implements RadioPlayer {
       : _player = player ??
             ja.AudioPlayer(
               userAgent: _userAgent,
-              // audio_session / audio_service own focus and noisy handling.
+              // We own interruption *reactions* (audio_session's
+              // interruptionEventStream / becomingNoisyEventStream call
+              // controller.stop()), so just_audio must not also pause/resume.
               handleInterruptions: false,
-              // audio_service activates the session; just_audio should not.
-              handleAudioSessionActivation: false,
+              // …but just_audio MUST own audio-session activation. It calls
+              // session.setActive(true) before each play (requesting audio
+              // focus) and deactivates on stop. Without this nothing ever
+              // requests focus, so (a) interruptionEventStream never fires —
+              // calls don't pause the radio — and (b) on iOS, after a route
+              // change leaves the AVAudioSession inactive, playback stalls
+              // "connecting" forever until app restart. Reactivating on every
+              // play fixes both. (audio_service does NOT request focus itself
+              // when paired with just_audio — verified empirically.)
+              handleAudioSessionActivation: true,
             ) {
     _stateSub = _player.playerStateStream.listen(_onPlayerState);
     _errorSub = _player.errorStream.listen(_onError);
