@@ -16,7 +16,8 @@ import 'radio_player.dart';
 class JustAudioRadioPlayer implements RadioPlayer {
   static const String _userAgent = 'dubstep.fm';
 
-  final ja.AudioPlayer _player;
+  ja.AudioPlayer _player;
+  final bool _ownsPlayer;
   final StreamController<RadioEngineEvent> _events =
       StreamController<RadioEngineEvent>.broadcast();
   final StreamController<IcyFrame?> _icy =
@@ -29,28 +30,62 @@ class JustAudioRadioPlayer implements RadioPlayer {
   bool _disposed = false;
   bool _suppressNextStoppedEvent = false;
 
+  /// Set when a start attempt times out: the native engine may be wedged
+  /// (notably on iOS, where the OS suspends a long-backgrounded, non-playing
+  /// app and tears down just_audio's AVPlayer + local proxy sockets). Reusing
+  /// it leaves playback "connecting" forever until app kill, so we stand up a
+  /// fresh engine before the next attempt.
+  bool _needsRecreate = false;
+
+  /// A live-stream start that hasn't begun within this window is treated as a
+  /// failure, so the controller's reconnect policy can recover rather than
+  /// spinning indefinitely on a dead engine.
+  static const Duration _connectTimeout = Duration(seconds: 20);
+
   JustAudioRadioPlayer({ja.AudioPlayer? player})
-      : _player = player ??
-            ja.AudioPlayer(
-              userAgent: _userAgent,
-              // We own interruption *reactions* (audio_session's
-              // interruptionEventStream / becomingNoisyEventStream call
-              // controller.stop()), so just_audio must not also pause/resume.
-              handleInterruptions: false,
-              // …but just_audio MUST own audio-session activation. It calls
-              // session.setActive(true) before each play (requesting audio
-              // focus) and deactivates on stop. Without this nothing ever
-              // requests focus, so (a) interruptionEventStream never fires —
-              // calls don't pause the radio — and (b) on iOS, after a route
-              // change leaves the AVAudioSession inactive, playback stalls
-              // "connecting" forever until app restart. Reactivating on every
-              // play fixes both. (audio_service does NOT request focus itself
-              // when paired with just_audio — verified empirically.)
-              handleAudioSessionActivation: true,
-            ) {
+      : _player = player ?? _createPlayer(),
+        _ownsPlayer = player == null {
+    _subscribe();
+  }
+
+  static ja.AudioPlayer _createPlayer() => ja.AudioPlayer(
+        userAgent: _userAgent,
+        // We own interruption *reactions* (audio_session's
+        // interruptionEventStream / becomingNoisyEventStream call
+        // controller.stop()), so just_audio must not also pause/resume.
+        handleInterruptions: false,
+        // …but just_audio MUST own audio-session activation. It calls
+        // session.setActive(true) before each play (requesting audio focus)
+        // and deactivates on stop. Without this nothing ever requests focus,
+        // so (a) interruptionEventStream never fires — calls don't pause the
+        // radio — and (b) on iOS, after a route change leaves the
+        // AVAudioSession inactive, playback stalls "connecting" forever until
+        // app restart. Reactivating on every play fixes both. (audio_service
+        // does NOT request focus itself when paired with just_audio.)
+        handleAudioSessionActivation: true,
+      );
+
+  void _subscribe() {
     _stateSub = _player.playerStateStream.listen(_onPlayerState);
     _errorSub = _player.errorStream.listen(_onError);
     _icySub = _player.icyMetadataStream.listen(_onIcyMetadata);
+  }
+
+  /// Replace the (possibly wedged) engine with a fresh one. Only valid when we
+  /// created the player ourselves; an injected test player is left untouched.
+  Future<void> _recreatePlayer() async {
+    final old = _player;
+    await _stateSub?.cancel();
+    await _errorSub?.cancel();
+    await _icySub?.cancel();
+    _suppressNextStoppedEvent = false;
+    _player = _createPlayer();
+    _subscribe();
+    // Dispose the corpse last; its teardown events are already unhooked. A
+    // wedged engine can itself throw on dispose, so swallow it.
+    try {
+      await old.dispose();
+    } catch (_) {}
   }
 
   @override
@@ -63,13 +98,33 @@ class JustAudioRadioPlayer implements RadioPlayer {
   Future<void> setUrlAndPlay(String url) async {
     _ensureNotDisposed();
     _events.add(const RadioEngineLoading());
+    // A previous attempt timed out against a wedged engine; replace it before
+    // retrying rather than reusing the corpse (the iOS "connecting forever").
+    if (_needsRecreate && _ownsPlayer) {
+      _needsRecreate = false;
+      await _recreatePlayer();
+    }
     try {
       // Stop any in-flight playback first so the engine surfaces a fresh
       // loading→ready cycle for the new URL rather than carrying state over.
-      _suppressNextStoppedEvent = true;
-      await _player.stop();
-      await _player.setAudioSource(ja.AudioSource.uri(Uri.parse(url)));
-      await _player.play();
+      // Bound only the connect (stop + setAudioSource): a load that never
+      // begins (e.g. a suspended-then-resumed engine whose local proxy socket
+      // is dead) must surface as an error so the reconnect policy can recover,
+      // not hang. play() is deliberately OUTSIDE this — its future completes
+      // only when playback *ends*, so a live stream that never ends would
+      // otherwise "time out" mid-playback and force an endless reconnect loop.
+      await () async {
+        _suppressNextStoppedEvent = true;
+        await _player.stop();
+        await _player.setAudioSource(ja.AudioSource.uri(Uri.parse(url)));
+      }()
+          .timeout(_connectTimeout);
+      // Fire-and-forget; start errors surface via errorStream → _onError.
+      unawaited(_player.play());
+    } on TimeoutException catch (e) {
+      // Don't trust this engine again — recreate it on the next attempt.
+      _needsRecreate = true;
+      _events.add(RadioEngineError(e));
     } on ja.PlayerException catch (e) {
       _events.add(RadioEngineError(e));
     } catch (e) {
