@@ -41,6 +41,13 @@ android {
 
     packaging {
         jniLibs {
+            // Extract native libs (libflutter.so, libapp.so, …) onto the
+            // filesystem at install time instead of leaving them compressed in
+            // the APK. AGP defaults this to false (extractNativeLibs="false"),
+            // but ReLinker — used by the Flutter loader — throws
+            // MissingLibraryException ("only found: []") on some devices and
+            // sideload / split-install paths when the libs stay in-APK.
+            useLegacyPackaging = true
             excludes += setOf("lib/x86/**", "lib/x86_64/**")
         }
     }

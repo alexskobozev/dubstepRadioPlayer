@@ -33,7 +33,7 @@ Future<void> main() async {
       FlutterError.onError =
           FirebaseCrashlytics.instance.recordFlutterFatalError;
       PlatformDispatcher.instance.onError = (error, stack) {
-        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        _recordError(error, stack);
         return true;
       };
     }
@@ -41,9 +41,35 @@ Future<void> main() async {
     await _bootstrap();
   }, (error, stack) {
     if (!kIsWeb) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      _recordError(error, stack);
     }
   });
+}
+
+/// Record an uncaught zone/platform error to Crashlytics, downgrading
+/// transient network failures to non-fatal.
+///
+/// just_audio runs a local proxy HTTP server for the stream; when the device
+/// has no connectivity it throws `SocketException: Connection failed (Network
+/// is unreachable)` from inside that proxy, on an async path the player's
+/// `errorStream` never sees. It surfaces here as an uncaught error. The
+/// reconnect policy already handles the user-facing recovery, so flagging it
+/// `fatal: true` only pollutes crash-free-users with what is really a
+/// "no internet" condition. Report it as a non-fatal instead.
+void _recordError(Object error, StackTrace stack) {
+  FirebaseCrashlytics.instance
+      .recordError(error, stack, fatal: !_isTransientNetworkError(error));
+}
+
+bool _isTransientNetworkError(Object error) {
+  if (error is SocketException || error is HttpException) return true;
+  final message = error.toString();
+  return message.contains('SocketException') ||
+      message.contains('Network is unreachable') ||
+      message.contains('Connection failed') ||
+      message.contains('Connection refused') ||
+      message.contains('Connection reset') ||
+      message.contains('Connection closed');
 }
 
 Future<void> _bootstrap() async {
@@ -64,17 +90,27 @@ Future<void> _bootstrap() async {
     // which only understands http(s)/file/content URIs — not asset://. Stage
     // the bundled logo into the cache dir and hand back a file:// URI.
     final artUri = await _stageNotificationArt();
-    await AudioService.init(
-      builder: () => DubstepAudioHandler(controller, artUri: artUri),
-      config: AudioServiceConfig(
-        androidNotificationChannelId: 'fm.dubstep.audio',
-        androidNotificationChannelName:
-            kStrings['notification_channel_name']!,
-        androidNotificationOngoing: true,
-        androidStopForegroundOnPause: true,
-        androidNotificationIcon: 'mipmap/ic_launcher',
-      ),
-    );
+    // audio_service's Android configure() reads the launching Activity's
+    // intent; on some devices/launch paths that intent is null and it throws
+    // `PlatformException(... Intent.mAction on a null object reference ...)`,
+    // which otherwise aborts the whole launch. Degrade gracefully: without the
+    // media session we lose the system notification / lock-screen controls,
+    // but in-app PLAY/STOP still works. Report the failure as non-fatal.
+    try {
+      await AudioService.init(
+        builder: () => DubstepAudioHandler(controller, artUri: artUri),
+        config: AudioServiceConfig(
+          androidNotificationChannelId: 'fm.dubstep.audio',
+          androidNotificationChannelName:
+              kStrings['notification_channel_name']!,
+          androidNotificationOngoing: true,
+          androidStopForegroundOnPause: true,
+          androidNotificationIcon: 'mipmap/ic_launcher',
+        ),
+      );
+    } catch (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: false);
+    }
 
     final session = await AudioSession.instance;
     await session.configure(const AudioSessionConfiguration.music());
