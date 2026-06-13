@@ -14,7 +14,11 @@ class FirebaseAnalyticsLogger implements AnalyticsLogger {
       if (value == null) return;
       if (value is String) {
         sanitized[key] = value.length > 100 ? value.substring(0, 100) : value;
-      } else if (value is num || value is bool) {
+      } else if (value is bool) {
+        // Firebase Analytics only accepts String or num parameter values;
+        // a raw bool trips an assertion. Encode as 1/0.
+        sanitized[key] = value ? 1 : 0;
+      } else if (value is num) {
         sanitized[key] = value;
       } else {
         final s = value.toString();
