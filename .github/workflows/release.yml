@@ -1,0 +1,104 @@
+name: Release
+
+# Bumps the version in pubspec.yaml, commits it to the default branch, then
+# tags and publishes a GitHub Release. Publishing the release triggers
+# build-release.yml (which produces the signed AAB + IPA).
+#
+# IMPORTANT: the release must be created with a Personal Access Token, not the
+# default GITHUB_TOKEN. Releases created by GITHUB_TOKEN do NOT trigger other
+# workflows, so build-release.yml would never fire. Add a repo/fine-grained PAT
+# with "contents: write" as the RELEASE_PAT secret.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Semver part to bump (ignored if "version" is set)'
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+      version:
+        description: 'Explicit version e.g. 2.1.0 (overrides "bump")'
+        type: string
+        default: ''
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Bump version & publish release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # Use the PAT so the push + release are attributed to it and the
+          # downstream "on: release" workflow is allowed to trigger.
+          token: ${{ secrets.RELEASE_PAT }}
+          fetch-depth: 0
+
+      - name: Compute next version
+        id: ver
+        run: |
+          set -euo pipefail
+          current="$(grep -E '^version:' pubspec.yaml | sed -E 's/^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/')"
+          echo "Current version: $current"
+
+          if [ -n "${{ inputs.version }}" ]; then
+            next="${{ inputs.version }}"
+          else
+            IFS='.' read -r major minor patch <<< "$current"
+            case "${{ inputs.bump }}" in
+              major) major=$((major + 1)); minor=0; patch=0 ;;
+              minor) minor=$((minor + 1)); patch=0 ;;
+              patch) patch=$((patch + 1)) ;;
+            esac
+            next="${major}.${minor}.${patch}"
+          fi
+
+          if ! [[ "$next" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid version '$next' (expected MAJOR.MINOR.PATCH)"; exit 1
+          fi
+
+          IFS='.' read -r major minor patch <<< "$next"
+          build=$((major * 10000 + minor * 100 + patch))
+
+          echo "next=$next" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "tag=v$next" >> "$GITHUB_OUTPUT"
+          echo "Next version: $next+$build (tag v$next)"
+
+      - name: Fail if tag already exists
+        run: |
+          if git rev-parse "refs/tags/${{ steps.ver.outputs.tag }}" >/dev/null 2>&1; then
+            echo "::error::Tag ${{ steps.ver.outputs.tag }} already exists"; exit 1
+          fi
+
+      - name: Update pubspec.yaml
+        run: |
+          sed -i -E "s/^version:.*/version: ${{ steps.ver.outputs.next }}+${{ steps.ver.outputs.build }}/" pubspec.yaml
+          grep -E '^version:' pubspec.yaml
+
+      - name: Commit version bump
+        id: commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add pubspec.yaml
+          git commit -m "Release ${{ steps.ver.outputs.next }}"
+          git push origin HEAD:${{ github.ref_name }}
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
+        run: |
+          gh release create "${{ steps.ver.outputs.tag }}" \
+            --target "${{ steps.commit.outputs.sha }}" \
+            --title "${{ steps.ver.outputs.next }}" \
+            --generate-notes

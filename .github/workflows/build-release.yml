@@ -1,0 +1,199 @@
+name: Build Release Artifacts
+
+# Triggered when a GitHub Release is published (see release.yml). Builds the
+# signed Android App Bundle and signed iOS IPA, uploads iOS dSYMs to Crashlytics
+# at build time, and stores the AAB / IPA / dSYMs as workflow artifacts.
+#
+# Retention is 1 day for now — these are not yet shipped to the stores.
+
+on:
+  release:
+    types: [published]
+
+env:
+  FLUTTER_VERSION: '3.44.x'
+  JAVA_VERSION: '17'
+
+concurrency:
+  group: build-release-${{ github.event.release.tag_name }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Build signed AAB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (release tag)
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Decode keystore & write key.properties
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_BASE64:-}" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 secret is not set"; exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          # Overwrite the committed key.properties so storeFile points at the
+          # decoded keystore and passwords come from secrets (not the repo).
+          cat > android/key.properties <<EOF
+          keyAlias=${KEY_ALIAS}
+          keyPassword=${KEY_PASSWORD}
+          storeFile=upload-keystore.jks
+          storePassword=${STORE_PASSWORD}
+          EOF
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build App Bundle
+        run: flutter build appbundle --release
+
+      - name: Clean up signing material
+        if: always()
+        run: rm -f android/app/upload-keystore.jks android/key.properties
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: dubstepfm-${{ github.event.release.tag_name }}-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 1
+          if-no-files-found: error
+
+  ios:
+    name: Build signed IPA
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout (release tag)
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Import signing certificate
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.IOS_CERT_P12_BASE64 }}
+          p12-password: ${{ secrets.IOS_CERT_PASSWORD }}
+
+      - name: Install provisioning profile
+        env:
+          PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          echo "$PROFILE_BASE64" | base64 --decode \
+            > "$HOME/Library/MobileDevice/Provisioning Profiles/build.mobileprovision"
+
+      - name: Write ExportOptions.plist
+        env:
+          TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          PROFILE_NAME: ${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}
+        run: |
+          cat > ios/ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>teamID</key>
+            <string>${TEAM_ID}</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>signingCertificate</key>
+            <string>Apple Distribution</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.wishnewjam.dubstepfm</key>
+              <string>${PROFILE_NAME}</string>
+            </dict>
+            <key>uploadSymbols</key>
+            <true/>
+            <key>stripSwiftSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Stub flutterfire CLI (dSYMs uploaded explicitly post-build)
+        # The Runner Xcode project runs "flutterfire upload-crashlytics-symbols"
+        # on every non-Debug build. Wiring the full FlutterFire CLI + generated
+        # firebase_app_id_file.json in CI is fragile, so no-op it here and upload
+        # dSYMs ourselves below with the Crashlytics upload-symbols binary.
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          cat > "$HOME/.local/bin/flutterfire" <<'SH'
+          #!/usr/bin/env bash
+          echo "[CI stub] flutterfire $* — skipping in-build upload"
+          exit 0
+          SH
+          chmod +x "$HOME/.local/bin/flutterfire"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build IPA
+        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+
+      - name: Upload dSYMs to Crashlytics
+        # Best-effort: uses the GoogleService-Info.plist already in the repo and
+        # the upload-symbols binary that CocoaPods installed with the
+        # FirebaseCrashlytics pod. Runs against the archive's dSYMs.
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          UPLOAD_BIN="$(find ios/Pods/FirebaseCrashlytics -name upload-symbols -maxdepth 2 2>/dev/null | head -n1 || true)"
+          DSYMS="build/ios/archive/Runner.xcarchive/dSYMs"
+          if [ -z "$UPLOAD_BIN" ]; then
+            echo "::warning::upload-symbols not found; skipping Crashlytics upload"; exit 0
+          fi
+          if [ ! -d "$DSYMS" ]; then
+            echo "::warning::No dSYMs at $DSYMS; skipping Crashlytics upload"; exit 0
+          fi
+          "$UPLOAD_BIN" -gsp ios/Runner/GoogleService-Info.plist -p ios "$DSYMS"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: dubstepfm-${{ github.event.release.tag_name }}-ipa
+          path: build/ios/ipa/*.ipa
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload dSYMs artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: dubstepfm-${{ github.event.release.tag_name }}-dsyms
+          path: build/ios/archive/Runner.xcarchive/dSYMs
+          retention-days: 1
+          if-no-files-found: warn
