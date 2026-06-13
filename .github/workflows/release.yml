@@ -4,10 +4,11 @@ name: Release
 # tags and publishes a GitHub Release. Publishing the release triggers
 # build-release.yml (which produces the signed AAB + IPA).
 #
-# IMPORTANT: the release must be created with a Personal Access Token, not the
-# default GITHUB_TOKEN. Releases created by GITHUB_TOKEN do NOT trigger other
-# workflows, so build-release.yml would never fire. Add a repo/fine-grained PAT
-# with "contents: write" as the RELEASE_PAT secret.
+# IMPORTANT: the push + release are made with a GitHub App installation token,
+# not the default GITHUB_TOKEN. Releases created by GITHUB_TOKEN do NOT trigger
+# other workflows, so build-release.yml would never fire. The App needs
+# "Contents: read and write" and must be installed on this repo. Provide its
+# credentials as the APP_ID and APP_PRIVATE_KEY secrets.
 
 on:
   workflow_dispatch:
@@ -34,12 +35,19 @@ jobs:
       contents: write
 
     steps:
+      - name: Mint App installation token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          # Use the PAT so the push + release are attributed to it and the
-          # downstream "on: release" workflow is allowed to trigger.
-          token: ${{ secrets.RELEASE_PAT }}
+          # Use the App token so the push + release are attributed to the App
+          # and the downstream "on: release" workflow is allowed to trigger.
+          token: ${{ steps.app-token.outputs.token }}
           fetch-depth: 0
 
       - name: Compute next version
@@ -96,7 +104,7 @@ jobs:
 
       - name: Create GitHub Release
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh release create "${{ steps.ver.outputs.tag }}" \
             --target "${{ steps.commit.outputs.sha }}" \
