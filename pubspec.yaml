@@ -50,7 +50,7 @@ dependencies:
   # Persist the listener's bitrate selection (R7).
   shared_preferences: ^2.3.0
   # Resolve a writable directory for staging the notification art file.
-  path_provider: ^2.1.0
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:
